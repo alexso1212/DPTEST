@@ -5,15 +5,18 @@ import { loginSchema } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Phone, Lock } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
+import { ArrowLeft, Phone, Lock, Sun, Moon } from "lucide-react";
 import { motion } from "framer-motion";
 import { z } from "zod";
+import logoImg from "@assets/IMG_2951_1772566874804.jpeg";
 
 type LoginData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
 
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -45,10 +48,15 @@ export default function LoginPage() {
   const errors = form.formState.errors;
 
   return (
-    <div className="min-h-screen bg-[#0a0e1a] text-white flex flex-col items-center justify-center px-5 py-8">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-600/10 blur-[100px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-600/10 blur-[100px]" />
+    <div className="min-h-screen flex flex-col items-center justify-center px-5 py-8" style={{ background: 'var(--bg-primary)' }}>
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          onClick={toggleTheme}
+          className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} /> : <Moon className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />}
+        </button>
       </div>
 
       <motion.div
@@ -59,7 +67,8 @@ export default function LoginPage() {
       >
         <button
           onClick={() => navigate("/")}
-          className="flex items-center gap-1 text-white/40 text-sm mb-8"
+          className="flex items-center gap-1 text-sm mb-8"
+          style={{ color: 'var(--text-secondary)' }}
           data-testid="button-back"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -67,56 +76,69 @@ export default function LoginPage() {
         </button>
 
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold mb-2">登录</h1>
-          <p className="text-sm text-white/40">使用手机号和密码登录</p>
+          <img src={logoImg} alt="Deltapex" className="h-8 mx-auto mb-4 object-contain" />
+          <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>登录</h1>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>使用手机号和密码登录</p>
         </div>
 
         <form onSubmit={form.handleSubmit((data) => loginMutation.mutate(data))} className="space-y-5">
           <div>
-            <label className="text-xs text-white/50 mb-1.5 block">手机号</label>
+            <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>手机号</label>
             <div className="relative">
-              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-secondary)', opacity: 0.5 }} />
               <input
                 type="tel"
                 placeholder="请输入手机号"
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-white/[0.05] border border-white/10 text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-blue-500/50 transition-colors"
+                className="w-full h-12 pl-11 pr-4 rounded-xl text-sm focus:outline-none transition-colors"
+                style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-primary)',
+                }}
                 maxLength={11}
                 {...form.register("phone")}
                 data-testid="input-phone"
               />
             </div>
-            {errors.phone && <p className="text-xs text-red-400 mt-1">{errors.phone.message}</p>}
+            {errors.phone && <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>{errors.phone.message}</p>}
           </div>
 
           <div>
-            <label className="text-xs text-white/50 mb-1.5 block">密码</label>
+            <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>密码</label>
             <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-secondary)', opacity: 0.5 }} />
               <input
                 type="password"
                 placeholder="请输入密码"
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-white/[0.05] border border-white/10 text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-blue-500/50 transition-colors"
+                className="w-full h-12 pl-11 pr-4 rounded-xl text-sm focus:outline-none transition-colors"
+                style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-primary)',
+                }}
                 {...form.register("password")}
                 data-testid="input-password"
               />
             </div>
-            {errors.password && <p className="text-xs text-red-400 mt-1">{errors.password.message}</p>}
+            {errors.password && <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>{errors.password.message}</p>}
           </div>
 
           <button
             type="submit"
             disabled={loginMutation.isPending}
-            className="w-full h-12 rounded-xl font-semibold text-sm bg-gradient-to-r from-blue-500 to-purple-500 text-white active:scale-[0.98] transition-transform disabled:opacity-50"
+            className="w-full h-12 rounded-xl font-bold text-sm text-black active:scale-[0.97] transition-transform disabled:opacity-50"
+            style={{ background: 'var(--accent-gold)' }}
             data-testid="button-login"
           >
             {loginMutation.isPending ? "登录中..." : "登录"}
           </button>
         </form>
 
-        <p className="text-center text-xs text-white/30 mt-6">
+        <p className="text-center text-xs mt-6" style={{ color: 'var(--text-secondary)' }}>
           没有账号？
           <button
-            className="text-blue-400 ml-1 underline underline-offset-2"
+            className="ml-1 underline underline-offset-2"
+            style={{ color: 'var(--accent-blue)' }}
             onClick={() => navigate("/register")}
             data-testid="link-to-register"
           >
