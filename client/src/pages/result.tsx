@@ -24,7 +24,7 @@ export default function ResultPage({ result }: ResultPageProps) {
   const minDim = sortedDims[sortedDims.length - 1];
 
   const handleContactWeChat = () => {
-    window.location.href = "https://work.weixin.qq.com/kfid/kfc3b42c637be3e4c33";
+    window.location.href = "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4";
   };
 
   return (

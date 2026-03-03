@@ -79,4 +79,4 @@ shared/
 ## 企业微信
 - Webhook URL: `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1b7a8fca-f469-4cd0-9158-4e7eff0780ef`
 - 触发时机: 用户注册时
-- 联系链接: `https://work.weixin.qq.com/kfid/kfc3b42c637be3e4c33`
+- 联系链接: `https://work.weixin.qq.com/ca/cawcde75d99eb3fce4`
