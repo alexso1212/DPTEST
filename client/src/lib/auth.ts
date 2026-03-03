@@ -8,15 +8,16 @@ interface AuthUser {
 }
 
 export function useAuth() {
-  const { data: user, isLoading, error } = useQuery<AuthUser | null>({
+  const { data: user, isLoading, isFetching } = useQuery<AuthUser | null>({
     queryKey: ["/api/me"],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   return {
     user: user ?? null,
-    isLoading,
+    isLoading: isLoading || isFetching,
     isAuthenticated: !!user,
   };
 }

@@ -26,8 +26,9 @@ export default function RegisterPage() {
       const res = await apiRequest("POST", "/api/register", data);
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/me"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/me"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/me"] });
       toast({ title: "注册成功", description: "欢迎您！请完成测评问卷" });
       navigate("/survey");
     },

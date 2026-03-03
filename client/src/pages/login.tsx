@@ -29,8 +29,9 @@ export default function LoginPage() {
       const res = await apiRequest("POST", "/api/login", data);
       return res.json();
     },
-    onSuccess: (data: { hasSurvey: boolean }) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/me"] });
+    onSuccess: async (data: { hasSurvey: boolean }) => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/me"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/me"] });
       toast({ title: "登录成功" });
       navigate(data.hasSurvey ? "/complete" : "/survey");
     },
