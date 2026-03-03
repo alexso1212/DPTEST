@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, loginSchema } from "@shared/schema";
-import { sendRegistrationNotification } from "./webhook";
+import { sendRegistrationNotification, sendContactNotification } from "./webhook";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
@@ -102,6 +102,20 @@ export async function registerRoutes(
     req.session.destroy(() => {
       res.json({ ok: true });
     });
+  });
+
+  app.post("/api/webhook/contact", async (req, res) => {
+    try {
+      const { phone, typeCode, typeName, rankName, avgScore, rarity, scores, salesStrategy } = req.body;
+      if (!phone || !typeCode) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      sendContactNotification({ phone, typeCode, typeName, rankName, avgScore, rarity, scores, salesStrategy });
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("Contact webhook error:", err);
+      res.status(500).json({ message: "Failed to send notification" });
+    }
   });
 
   return httpServer;

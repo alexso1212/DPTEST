@@ -1,6 +1,18 @@
+export type Dimension = 'RISK' | 'MENTAL' | 'SYSTEM' | 'ADAPT' | 'EXEC' | 'EDGE';
+
+export const dimensionLabels: Record<Dimension, string> = {
+  RISK: '风险管理',
+  MENTAL: '交易心理',
+  SYSTEM: '系统思维',
+  ADAPT: '市场适应',
+  EXEC: '执行力',
+  EDGE: '认知格局',
+};
+
 export interface QuestionOption {
   text: string;
   scores: Partial<Record<Dimension, number>>;
+  tag: string;
 }
 
 export interface Question {
@@ -10,148 +22,137 @@ export interface Question {
   options: QuestionOption[];
 }
 
-export type Dimension = 'RISK' | 'MENTAL' | 'SYSTEM' | 'ADAPT' | 'EXEC' | 'VISION';
-
-export const dimensionLabels: Record<Dimension, string> = {
-  RISK: '风险管理',
-  MENTAL: '交易心理',
-  SYSTEM: '系统思维',
-  ADAPT: '市场适应',
-  EXEC: '执行力',
-  VISION: '大局观',
-};
-
 export const questions: Question[] = [
-  {
-    id: 0,
-    dimension: 'RISK',
-    text: '你重仓买入了一个品种，入场后立刻浮亏3%。此时你会：',
-    options: [
-      { text: '立刻止损离场，严格执行规则', scores: { RISK: 10, EXEC: 2 } },
-      { text: '加仓拉低均价，我看好这个方向', scores: { RISK: 2, VISION: 4 } },
-      { text: '先观察一下，等下一根K线再决定', scores: { RISK: 6, MENTAL: 4 } },
-      { text: '很焦虑，不断在"止损"和"扛单"之间纠结', scores: { RISK: 2, MENTAL: 2 } },
-    ],
-  },
   {
     id: 1,
     dimension: 'RISK',
-    text: '你的账户连续亏损了5笔交易，你的第一反应是：',
+    text: '你建仓后行情立刻反向走了一段，浮亏开始扩大。这时候你脑子里第一个念头是什么？',
     options: [
-      { text: '立刻停止交易，复盘分析哪里出了问题', scores: { RISK: 10, SYSTEM: 4 } },
-      { text: '可能是市场风格变了，我需要调整策略', scores: { RISK: 6, ADAPT: 6 } },
-      { text: '减小仓位继续，亏损是正常的', scores: { RISK: 8, MENTAL: 2 } },
-      { text: '想加大仓位把亏的赚回来', scores: { RISK: 1, MENTAL: 1 } },
+      { text: '到止损位了就走，这笔的风险预算已经用完了', scores: { RISK: 10, EXEC: 4 }, tag: '纪律型' },
+      { text: '看看反向的力度有多大，如果只是毛刺我可以扛', scores: { RISK: 5, ADAPT: 6 }, tag: '灵活型' },
+      { text: '我再看看有没有新的信息支撑我的方向，如果逻辑还在就拿着', scores: { RISK: 7, SYSTEM: 6 }, tag: '逻辑型' },
+      { text: '心里很不舒服，一直盯着盈亏数字看', scores: { RISK: 2, MENTAL: 2 }, tag: '情绪型' },
     ],
   },
   {
     id: 2,
-    dimension: 'MENTAL',
-    text: '你有一笔交易已经浮盈50%，但还没到目标位。突然行情剧烈震荡，你会：',
+    dimension: 'RISK',
+    text: '连续亏损3笔后，你面前出现了一个新机会。你判断方向大概率对，但止损空间比较大（需要放宽止损），盈利目标只有止损的1.5倍。你会？',
     options: [
-      { text: '果断止盈落袋，利润不能变亏损', scores: { MENTAL: 6, EXEC: 4 } },
-      { text: '移动止盈到成本线，让利润奔跑', scores: { MENTAL: 8, SYSTEM: 6 } },
-      { text: '内心很纠结，看一眼关一眼，最后被震出去', scores: { MENTAL: 2, EXEC: 2 } },
-      { text: '不管它，目标没到就不动', scores: { MENTAL: 4, VISION: 6 } },
+      { text: '不做。止损太大、盈亏比不划算，不是每个机会都值得做', scores: { RISK: 10, EDGE: 8 }, tag: '性价比思维' },
+      { text: '做，但把仓位缩到平时的一半', scores: { RISK: 7, EXEC: 4 }, tag: '保守执行' },
+      { text: '做，方向对就行，不用每笔都算那么细', scores: { RISK: 3, EXEC: 6 }, tag: '感觉驱动' },
+      { text: '不确定，纠结了很久，最后时间窗口过了', scores: { RISK: 4, MENTAL: 2 }, tag: '犹豫型' },
     ],
   },
   {
     id: 3,
     dimension: 'MENTAL',
-    text: '周末你复盘发现本周因为情绪化操作亏了很多钱。周一开盘你会：',
+    text: '你有一笔顺势交易浮盈了不少，突然行情开始剧烈震荡。你打开手机看了一眼，心跳加速。接下来你会？',
     options: [
-      { text: '冷静执行既定计划，过去的已经过去', scores: { MENTAL: 10, EXEC: 4 } },
-      { text: '先轻仓试探，等状态恢复再加仓', scores: { MENTAL: 8, RISK: 4 } },
-      { text: '有点怕了，犹豫要不要先休息几天', scores: { MENTAL: 4, ADAPT: 4 } },
-      { text: '心里窝火，想找机会猛干一把', scores: { MENTAL: 1, RISK: 1 } },
+      { text: '把止盈移到不亏的位置，然后放下手机不看了', scores: { MENTAL: 9, SYSTEM: 4 }, tag: '系统+自控' },
+      { text: '立刻全部平仓，落袋为安，睡得着觉最重要', scores: { MENTAL: 5, RISK: 6 }, tag: '保守型' },
+      { text: '盯着看，每一根K线都看，情绪跟着涨跌走', scores: { MENTAL: 2, EXEC: 2 }, tag: '情绪驱动' },
+      { text: '按原计划拿着，目标没到就不动，震荡是正常的', scores: { MENTAL: 6, EDGE: 8 }, tag: '格局型' },
     ],
   },
   {
     id: 4,
-    dimension: 'SYSTEM',
-    text: '你是怎么决定买入一个品种的？',
+    dimension: 'MENTAL',
+    text: '你今天因为一个愚蠢的错误亏了一大笔。你知道不应该继续交易，但这时候你看到了一个"完美"的入场机会。你内心的真实状态是？',
     options: [
-      { text: '我有一套完整的入场条件清单，满足了才下单', scores: { SYSTEM: 10, EXEC: 4 } },
-      { text: '主要看技术面信号，结合一些市场情绪判断', scores: { SYSTEM: 6, ADAPT: 4 } },
-      { text: '看别人推荐的，或者群里大家在聊的', scores: { SYSTEM: 2, VISION: 2 } },
-      { text: '靠感觉和经验，觉得差不多就进了', scores: { SYSTEM: 3, MENTAL: 4 } },
+      { text: '关电脑。今天的额度已经用完了，再好的机会也不做', scores: { MENTAL: 10, RISK: 6 }, tag: '绝对纪律' },
+      { text: '理性上知道不该做，但身体已经在下单了', scores: { MENTAL: 2, EXEC: 1 }, tag: '失控型' },
+      { text: '小仓位做一笔，但我知道自己在赌，只是控制不住', scores: { MENTAL: 4, RISK: 3 }, tag: '自知但失控' },
+      { text: '我会做，但不是因为报复，而是因为这个机会本身值得做', scores: { MENTAL: 7, SYSTEM: 4, EDGE: 4 }, tag: '理性分离' },
     ],
   },
   {
     id: 5,
     dimension: 'SYSTEM',
-    text: '关于交易记录和复盘，你的习惯是：',
+    text: '回想你最近10笔交易，你的入场依据主要是什么？（选最诚实的那个）',
     options: [
-      { text: '每笔交易都有记录，每周做系统复盘', scores: { SYSTEM: 10, EXEC: 6 } },
-      { text: '会记录，但复盘不太规律', scores: { SYSTEM: 6, EXEC: 4 } },
-      { text: '偶尔记一下，主要靠脑子记', scores: { SYSTEM: 3, EXEC: 2 } },
-      { text: '基本不记录，做完就做完了', scores: { SYSTEM: 1, EXEC: 1 } },
+      { text: '有一套明确的条件清单，满足了才做', scores: { SYSTEM: 10, EXEC: 4 }, tag: '系统化' },
+      { text: '看技术形态或指标信号，加上一些盘感', scores: { SYSTEM: 5, ADAPT: 4 }, tag: '半系统半直觉' },
+      { text: '看别人的分析或者群里的讨论，觉得有道理就跟', scores: { SYSTEM: 2, EDGE: 1 }, tag: '依赖外部' },
+      { text: '说不太清楚，不同的交易入场理由都不太一样', scores: { SYSTEM: 3, ADAPT: 3 }, tag: '模糊型' },
     ],
   },
   {
     id: 6,
-    dimension: 'ADAPT',
-    text: '市场突然从单边趋势变成宽幅震荡，你之前的策略连续失效，你会：',
+    dimension: 'SYSTEM',
+    text: '关于交易复盘，最接近你真实情况的是？',
     options: [
-      { text: '立刻研究震荡行情的交易方法并切换策略', scores: { ADAPT: 8, SYSTEM: 4 } },
-      { text: '减小仓位，继续用原来的方法但加宽止损', scores: { ADAPT: 4, RISK: 6 } },
-      { text: '停止交易，等市场回到自己熟悉的节奏', scores: { ADAPT: 6, MENTAL: 4 } },
-      { text: '不管什么行情，我的方法应该都能用', scores: { ADAPT: 1, SYSTEM: 2 } },
+      { text: '每笔交易都有截图/记录，定期做数据统计和归因分析', scores: { SYSTEM: 10, EXEC: 6 }, tag: '循证型' },
+      { text: '会记录，但主要记感受和心得，很少做数据统计', scores: { SYSTEM: 6, MENTAL: 4 }, tag: '感悟型' },
+      { text: '赚钱的时候不复盘，亏钱的时候才会想想哪里错了', scores: { SYSTEM: 3, MENTAL: 2 }, tag: '被动型' },
+      { text: '知道应该复盘，但坚持不下来，断断续续的', scores: { SYSTEM: 4, EXEC: 2 }, tag: '知行不一' },
     ],
   },
   {
     id: 7,
     dimension: 'ADAPT',
-    text: '一个你完全不了解的新品种/新赛道突然大涨，朋友圈都在讨论，你会：',
+    text: '你用了3个月的策略最近连续2周亏损。你的第一反应是？',
     options: [
-      { text: '先花时间研究清楚，找到自己的入场逻辑再说', scores: { ADAPT: 8, SYSTEM: 6 } },
-      { text: '小仓位先试试，边做边学', scores: { ADAPT: 6, RISK: 4 } },
-      { text: 'FOMO了，直接冲进去先说', scores: { ADAPT: 2, RISK: 1 } },
-      { text: '不在自己能力圈内的不碰', scores: { ADAPT: 4, RISK: 8 } },
+      { text: '市场风格可能变了，我要去研究现在的行情特征再决定怎么调整', scores: { ADAPT: 9, SYSTEM: 6 }, tag: '循证适应' },
+      { text: '先停下来，等市场回到我熟悉的节奏', scores: { ADAPT: 6, MENTAL: 6 }, tag: '守能力圈' },
+      { text: '2周不算什么，可能是正常回撤，继续执行', scores: { ADAPT: 4, EXEC: 6 }, tag: '坚持型' },
+      { text: '焦虑，开始到处找新策略、新指标、新方法', scores: { ADAPT: 2, SYSTEM: 1 }, tag: '策略跳蚤' },
     ],
   },
   {
     id: 8,
-    dimension: 'EXEC',
-    text: '你的交易系统发出了入场信号，但你刚亏了两笔心情不好。你会：',
+    dimension: 'ADAPT',
+    text: '一个你完全没研究过的品种暴涨了，社交媒体全是"上车"的声音。你的真实内心是？',
     options: [
-      { text: '信号出了就执行，情绪不能影响系统', scores: { EXEC: 10, SYSTEM: 6 } },
-      { text: '做，但减小仓位来缓解心理压力', scores: { EXEC: 6, RISK: 6 } },
-      { text: '犹豫了很久最后没做，然后行情如预期，很后悔', scores: { EXEC: 2, MENTAL: 2 } },
-      { text: '跳过这次，等心态好了再说', scores: { EXEC: 4, MENTAL: 4 } },
+      { text: '不在我的能力圈内，涨再多也跟我没关系', scores: { ADAPT: 5, RISK: 8 }, tag: '守圈' },
+      { text: '先花几天研究底层逻辑和资金结构，找到自己的判断再决定', scores: { ADAPT: 9, SYSTEM: 6, EDGE: 4 }, tag: '循证介入' },
+      { text: '小仓位先上车，边做边学，错了就当交学费', scores: { ADAPT: 6, RISK: 3 }, tag: '行动派' },
+      { text: '虽然没买，但一直在刷涨幅，心里很难受', scores: { ADAPT: 3, MENTAL: 2 }, tag: 'FOMO型' },
     ],
   },
   {
     id: 9,
     dimension: 'EXEC',
-    text: '你给自己制定了严格的交易规则，但今天你"感觉"某个机会很好，虽然不完全符合规则。你会：',
+    text: '你的策略发出了一个清晰的入场信号，但你刚亏了两笔，手有点抖。你实际上会怎么做？',
     options: [
-      { text: '不做。不符合规则的一概不碰', scores: { EXEC: 10, SYSTEM: 8 } },
-      { text: '做，但只用很小仓位，当作一次"实验"', scores: { EXEC: 4, ADAPT: 6 } },
-      { text: '纠结了一会，最后还是忍不住做了', scores: { EXEC: 2, MENTAL: 2 } },
-      { text: '规则是死的人是活的，灵活应变才是高手', scores: { EXEC: 1, ADAPT: 2 } },
+      { text: '信号就是信号，跟上两笔亏损无关，执行', scores: { EXEC: 10, SYSTEM: 6 }, tag: '机器人' },
+      { text: '做，但仓位减半，给自己一个心理缓冲', scores: { EXEC: 7, RISK: 4, MENTAL: 4 }, tag: '弹性执行' },
+      { text: '知道应该做，但最终没有点下去，然后行情如预期，很难受', scores: { EXEC: 2, MENTAL: 2 }, tag: '眼睁睁错过' },
+      { text: '干脆今天不做了，状态不好', scores: { EXEC: 4, MENTAL: 6 }, tag: '保护型' },
     ],
   },
   {
     id: 10,
-    dimension: 'VISION',
-    text: '对于宏观经济/政策面的变化（比如加息、地缘政治），你的态度是：',
+    dimension: 'EXEC',
+    text: '你的规则说不该做，但你的直觉强烈告诉你这次不一样。你怎么处理这个矛盾？',
     options: [
-      { text: '密切关注，它决定了大方向，顺势而为', scores: { VISION: 10, ADAPT: 4 } },
-      { text: '会关注，但具体操作还是以技术面为主', scores: { VISION: 6, SYSTEM: 4 } },
-      { text: '偶尔看看新闻，但觉得短线影响不大', scores: { VISION: 3, ADAPT: 2 } },
-      { text: '不太关心，我只看图表做交易', scores: { VISION: 1, SYSTEM: 4 } },
+      { text: '规则就是规则，任何例外都是滑坡的开始', scores: { EXEC: 10, SYSTEM: 8 }, tag: '绝对规则' },
+      { text: '用极小仓位试一下，如果对了就记下来，看能不能优化进规则', scores: { EXEC: 5, ADAPT: 6, SYSTEM: 4 }, tag: '迭代型' },
+      { text: '做了，然后赢了就觉得自己牛逼，亏了就后悔', scores: { EXEC: 2, MENTAL: 1 }, tag: '情绪赌博' },
+      { text: '不做，但会把这个情况记录下来，看看以后是不是真的规律', scores: { EXEC: 6, SYSTEM: 8 }, tag: '循证记录' },
     ],
   },
   {
     id: 11,
-    dimension: 'VISION',
-    text: '如果让你选一个最像你的交易风格：',
+    dimension: 'EDGE',
+    text: '你觉得交易赚钱的本质是什么？',
     options: [
-      { text: '大趋势交易者：抓大波段，持仓周期长，不在意短期波动', scores: { VISION: 10, MENTAL: 4 } },
-      { text: '波段交易者：顺着趋势做波段，持仓几天到几周', scores: { VISION: 6, SYSTEM: 6 } },
-      { text: '日内交易者：每天进出，快进快出，不过夜', scores: { VISION: 4, EXEC: 4 } },
-      { text: '高频/剥头皮：抓极短线的微小波动', scores: { VISION: 2, EXEC: 6 } },
+      { text: '找到一个有概率优势的模式，然后重复执行', scores: { EDGE: 6, SYSTEM: 6 }, tag: '概率思维' },
+      { text: '理解市场里其他参与者的行为和心理，利用他们的错误', scores: { EDGE: 10, ADAPT: 4 }, tag: '博弈思维' },
+      { text: '跟对趋势，大方向对了细节差一点也没关系', scores: { EDGE: 5, MENTAL: 4 }, tag: '趋势思维' },
+      { text: '说实话我还没想明白这个问题', scores: { EDGE: 2, SYSTEM: 2 }, tag: '尚未形成' },
+    ],
+  },
+  {
+    id: 12,
+    dimension: 'EDGE',
+    text: '如果给你无限时间去打磨交易能力，你觉得最终决定胜负的会是什么？',
+    options: [
+      { text: '对市场结构和资金流动的深度理解', scores: { EDGE: 10, SYSTEM: 6 }, tag: '资金逻辑派' },
+      { text: '绝对的纪律和情绪控制', scores: { EDGE: 4, MENTAL: 8, EXEC: 4 }, tag: '纪律派' },
+      { text: '适应变化的能力，市场在变你也必须变', scores: { EDGE: 6, ADAPT: 8 }, tag: '适应派' },
+      { text: '运气和时机，七分天注定', scores: { EDGE: 1, MENTAL: 1 }, tag: '宿命论' },
     ],
   },
 ];

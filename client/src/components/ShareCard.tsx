@@ -28,7 +28,7 @@ export default function ShareCard({ result }: ShareCardProps) {
     }
   }, [result]);
 
-  const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'VISION'];
+  const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
 
   return (
     <div>

@@ -7,7 +7,7 @@ interface RadarChartProps {
 }
 
 export default function RadarChartComponent({ scores }: RadarChartProps) {
-  const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'VISION'];
+  const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
 
   const data = dims.map((dim) => ({
     dimension: `${dimensionLabels[dim]} ${scores[dim]}`,

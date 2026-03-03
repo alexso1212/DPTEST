@@ -12,8 +12,8 @@ export interface QuizResult {
 }
 
 function computeMaxScores(): Record<Dimension, number> {
-  const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'VISION'];
-  const maxScores: Record<Dimension, number> = { RISK: 0, MENTAL: 0, SYSTEM: 0, ADAPT: 0, EXEC: 0, VISION: 0 };
+  const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
+  const maxScores: Record<Dimension, number> = { RISK: 0, MENTAL: 0, SYSTEM: 0, ADAPT: 0, EXEC: 0, EDGE: 0 };
 
   for (const q of questions) {
     for (const dim of dims) {
@@ -31,8 +31,8 @@ function computeMaxScores(): Record<Dimension, number> {
 const MAX_SCORES = computeMaxScores();
 
 export function calculateResult(answers: number[]): QuizResult {
-  const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'VISION'];
-  const rawScores: Record<Dimension, number> = { RISK: 0, MENTAL: 0, SYSTEM: 0, ADAPT: 0, EXEC: 0, VISION: 0 };
+  const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
+  const rawScores: Record<Dimension, number> = { RISK: 0, MENTAL: 0, SYSTEM: 0, ADAPT: 0, EXEC: 0, EDGE: 0 };
 
   answers.forEach((choiceIndex, questionIndex) => {
     const question = questions[questionIndex];
@@ -44,7 +44,7 @@ export function calculateResult(answers: number[]): QuizResult {
     });
   });
 
-  const normalizedScores: Record<Dimension, number> = { RISK: 0, MENTAL: 0, SYSTEM: 0, ADAPT: 0, EXEC: 0, VISION: 0 };
+  const normalizedScores: Record<Dimension, number> = { RISK: 0, MENTAL: 0, SYSTEM: 0, ADAPT: 0, EXEC: 0, EDGE: 0 };
   for (const dim of dims) {
     normalizedScores[dim] = Math.min(100, Math.round((rawScores[dim] / MAX_SCORES[dim]) * 100));
   }
@@ -52,7 +52,13 @@ export function calculateResult(answers: number[]): QuizResult {
   const sorted = Object.entries(normalizedScores).sort((a, b) => b[1] - a[1]) as [Dimension, number][];
   const top2: [Dimension, Dimension] = [sorted[0][0], sorted[1][0]];
   const top2Key = [...top2].sort().join('');
-  const typeCode = typeMapping[top2Key] || 'AE';
+  let typeCode = typeMapping[top2Key];
+
+  if (!typeCode) {
+    const top1top3Key = [sorted[0][0], sorted[2][0]].sort().join('');
+    typeCode = typeMapping[top1top3Key] || 'ME';
+  }
+
   const traderType = traderTypes[typeCode];
 
   const avgScore = Math.round(Object.values(normalizedScores).reduce((a, b) => a + b, 0) / 6);

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { SiWechat } from "react-icons/si";
 import { ArrowRight, Lock } from "lucide-react";
@@ -7,6 +7,8 @@ import ShareCard from "@/components/ShareCard";
 import CountUp from "@/components/CountUp";
 import type { QuizResult } from "@/utils/calculateResult";
 import { dimensionLabels, type Dimension } from "@/data/questions";
+import { salesStrategy } from "@/data/salesStrategy";
+import { useAuth } from "@/lib/auth";
 
 interface ResultPageProps {
   result: QuizResult;
@@ -14,18 +16,36 @@ interface ResultPageProps {
 
 export default function ResultPage({ result }: ResultPageProps) {
   const { traderType, rank, rarity, normalizedScores, avgScore } = result;
+  const { user } = useAuth();
 
   const sortedDims = useMemo(() => {
-    const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'VISION'];
+    const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
     return dims.sort((a, b) => normalizedScores[b] - normalizedScores[a]);
   }, [normalizedScores]);
 
   const maxDim = sortedDims[0];
   const minDim = sortedDims[sortedDims.length - 1];
 
-  const handleContactWeChat = () => {
+  const handleContactWeChat = useCallback(() => {
+    const strategy = salesStrategy[traderType.code];
+    if (user?.phone && strategy) {
+      fetch("/api/webhook/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: user.phone,
+          typeCode: traderType.code,
+          typeName: traderType.name,
+          rankName: rank.name,
+          avgScore,
+          rarity,
+          scores: normalizedScores,
+          salesStrategy: strategy,
+        }),
+      }).catch(console.error);
+    }
     window.location.href = "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4";
-  };
+  }, [traderType, rank, avgScore, rarity, normalizedScores, user]);
 
   return (
     <div className="min-h-screen pb-10" style={{ background: 'var(--bg-primary)' }}>
@@ -46,6 +66,9 @@ export default function ResultPage({ result }: ResultPageProps) {
           >
             {rank.name}
           </div>
+          <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
+            {rank.description}
+          </p>
           <div className="flex items-center justify-center gap-1 mb-4" style={{ color: 'var(--text-secondary)' }}>
             <span className="text-xs">综合评分</span>
           </div>
@@ -77,6 +100,16 @@ export default function ResultPage({ result }: ResultPageProps) {
           <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }} data-testid="text-description">
             {traderType.description}
           </p>
+
+          <div
+            className="rounded-xl p-4 mb-4"
+            style={{ background: 'rgba(var(--accent-gold-rgb), 0.06)', border: '1px solid rgba(var(--accent-gold-rgb), 0.15)' }}
+          >
+            <p className="text-sm leading-relaxed italic" style={{ color: 'var(--accent-gold)' }} data-testid="text-piercing">
+              "{traderType.piercingDescription}"
+            </p>
+          </div>
+
           <div
             className="inline-flex items-center px-3 py-1 rounded-full text-xs"
             style={{
