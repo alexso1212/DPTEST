@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema, insertSurveySchema } from "@shared/schema";
-import { sendRegistrationNotification, sendSurveyNotification } from "./webhook";
+import { insertUserSchema, loginSchema } from "@shared/schema";
+import { sendRegistrationNotification } from "./webhook";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
@@ -72,9 +72,7 @@ export async function registerRoutes(
       }
 
       (req.session as any).userId = user.id;
-
-      const existingSurvey = await storage.getSurveyResponseByUserId(user.id);
-      res.json({ id: user.id, phone: user.phone, hasSurvey: !!existingSurvey });
+      res.json({ id: user.id, phone: user.phone });
     } catch (err) {
       console.error("Login error:", err);
       res.status(500).json({ message: "登录失败，请稍后重试" });
@@ -93,44 +91,10 @@ export async function registerRoutes(
         return res.status(401).json({ message: "用户不存在" });
       }
 
-      const existingSurvey = await storage.getSurveyResponseByUserId(user.id);
-      res.json({ id: user.id, phone: user.phone, hasSurvey: !!existingSurvey });
+      res.json({ id: user.id, phone: user.phone });
     } catch (err) {
       console.error("Get user error:", err);
       res.status(500).json({ message: "获取用户信息失败" });
-    }
-  });
-
-  app.post("/api/survey", async (req, res) => {
-    try {
-      const userId = (req.session as any)?.userId;
-      if (!userId) {
-        return res.status(401).json({ message: "请先登录" });
-      }
-
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(401).json({ message: "用户不存在" });
-      }
-
-      const existing = await storage.getSurveyResponseByUserId(userId);
-      if (existing) {
-        return res.status(409).json({ message: "您已提交过问卷" });
-      }
-
-      const parsed = insertSurveySchema.safeParse(req.body);
-      if (!parsed.success) {
-        return res.status(400).json({ message: parsed.error.errors[0].message });
-      }
-
-      const response = await storage.createSurveyResponse(userId, parsed.data);
-
-      sendSurveyNotification(user.phone, parsed.data);
-
-      res.json(response);
-    } catch (err) {
-      console.error("Survey submission error:", err);
-      res.status(500).json({ message: "提交失败，请稍后重试" });
     }
   });
 

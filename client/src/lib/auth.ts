@@ -4,7 +4,6 @@ import { getQueryFn } from "./queryClient";
 interface AuthUser {
   id: number;
   phone: string;
-  hasSurvey: boolean;
 }
 
 export function useAuth() {
