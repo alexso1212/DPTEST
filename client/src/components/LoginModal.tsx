@@ -4,8 +4,7 @@ import { Smartphone, Lock, Eye, EyeOff, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { sendRegisterWebhook } from "@/utils/webhook";
 import { queryClient } from "@/lib/queryClient";
-
-const ease = { duration: 0.22, ease: "easeOut" as const };
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LoginModalProps {
   open: boolean;
@@ -18,6 +17,7 @@ interface LoginModalProps {
 
 export default function LoginModal({ open, onClose, onSuccess, title, subtitle, defaultTab = 'register' }: LoginModalProps) {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -86,17 +86,17 @@ export default function LoginModal({ open, onClose, onSuccess, title, subtitle, 
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-end justify-center"
+          className={`fixed inset-0 z-50 flex ${isMobile ? 'items-end' : 'items-center'} justify-center`}
           style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
           onClick={onClose}
         >
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
+            initial={isMobile ? { y: '100%' } : { scale: 0.92, opacity: 0 }}
+            animate={isMobile ? { y: 0 } : { scale: 1, opacity: 1 }}
+            exit={isMobile ? { y: '100%' } : { scale: 0.92, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-lg rounded-t-2xl p-6 pb-8 relative"
-            style={{ background: '#0F1620', border: '1px solid rgba(255,255,255,0.08)', borderBottom: 'none' }}
+            className={`w-full ${isMobile ? 'max-w-lg rounded-t-2xl' : 'max-w-md rounded-2xl mx-4'} p-6 pb-8 relative`}
+            style={{ background: '#0F1620', border: '1px solid rgba(255,255,255,0.08)', borderBottom: isMobile ? 'none' : undefined }}
             onClick={(e) => e.stopPropagation()}
           >
             <button

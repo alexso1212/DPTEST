@@ -38,13 +38,15 @@ export default function LandingPage() {
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 dp-grid opacity-100" />
         <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px]"
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] md:w-[900px] h-[400px] md:h-[500px]"
           style={{ background: 'radial-gradient(ellipse, rgba(var(--primary-rgb), 0.06) 0%, transparent 70%)' }}
         />
-        <div className="absolute top-[15%] left-[10%] w-[3px] h-16 rounded-sm animate-float-up will-change-transform" style={{ background: 'rgba(var(--success-rgb), 0.2)' }} />
-        <div className="absolute top-[25%] right-[15%] w-[3px] h-12 rounded-sm animate-float-down will-change-transform" style={{ background: 'rgba(var(--danger-rgb), 0.2)', animationDelay: '1s' }} />
-        <div className="absolute top-[55%] left-[20%] w-[2px] h-10 rounded-sm animate-float-up will-change-transform" style={{ background: 'rgba(var(--success-rgb), 0.15)', animationDelay: '2s', animationDuration: '5s' }} />
-        <div className="absolute top-[45%] right-[25%] w-[2.5px] h-14 rounded-sm animate-float-down will-change-transform" style={{ background: 'rgba(var(--danger-rgb), 0.15)', animationDelay: '0.5s', animationDuration: '6s' }} />
+        <div className="absolute top-[15%] left-[10%] md:left-[20%] w-[3px] h-16 rounded-sm animate-float-up will-change-transform" style={{ background: 'rgba(var(--success-rgb), 0.2)' }} />
+        <div className="absolute top-[25%] right-[15%] md:right-[20%] w-[3px] h-12 rounded-sm animate-float-down will-change-transform" style={{ background: 'rgba(var(--danger-rgb), 0.2)', animationDelay: '1s' }} />
+        <div className="absolute top-[55%] left-[20%] md:left-[30%] w-[2px] h-10 rounded-sm animate-float-up will-change-transform" style={{ background: 'rgba(var(--success-rgb), 0.15)', animationDelay: '2s', animationDuration: '5s' }} />
+        <div className="absolute top-[45%] right-[25%] md:right-[30%] w-[2.5px] h-14 rounded-sm animate-float-down will-change-transform" style={{ background: 'rgba(var(--danger-rgb), 0.15)', animationDelay: '0.5s', animationDuration: '6s' }} />
+        <div className="hidden md:block absolute top-[35%] left-[8%] w-[2px] h-20 rounded-sm animate-float-up will-change-transform" style={{ background: 'rgba(var(--gold-rgb), 0.12)', animationDelay: '1.5s', animationDuration: '7s' }} />
+        <div className="hidden md:block absolute top-[60%] right-[10%] w-[2px] h-16 rounded-sm animate-float-down will-change-transform" style={{ background: 'rgba(var(--gold-rgb), 0.1)', animationDelay: '3s', animationDuration: '6s' }} />
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6" style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}>
@@ -52,9 +54,9 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={ease}
-          className="mb-3"
+          className="mb-3 md:mb-5"
         >
-          <div className="text-3xl font-heading font-bold tracking-widest" style={{ color: 'var(--primary)' }} data-testid="img-logo">
+          <div className="text-3xl md:text-4xl font-heading font-bold tracking-widest" style={{ color: 'var(--primary)' }} data-testid="img-logo">
             DELTAPEX
           </div>
         </motion.div>
@@ -63,16 +65,16 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...ease, delay: 0.08 }}
-          className="text-center mb-10"
+          className="text-center mb-10 md:mb-12"
         >
           <h1
-            className="text-xl font-heading font-bold tracking-tight mb-2"
+            className="text-xl md:text-2xl font-heading font-bold tracking-tight mb-2"
             style={{ color: 'var(--text-strong)' }}
             data-testid="text-title"
           >
             交易能力测评
           </h1>
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+          <p className="text-sm md:text-base leading-relaxed" style={{ color: 'var(--text-muted)' }}>
             2分钟 · 12道实战情境题<br />
             发现你的交易 DNA
           </p>
@@ -82,13 +84,13 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...ease, delay: 0.16 }}
-          className="w-full max-w-xs space-y-3"
+          className="w-full max-w-xs md:max-w-sm space-y-3"
         >
           <motion.button
             onClick={() => navigate("/quiz")}
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full h-12 rounded-xl font-bold text-base text-white flex items-center justify-center gap-2 transition-all duration-200"
+            className="w-full h-12 md:h-13 rounded-xl font-bold text-base text-white flex items-center justify-center gap-2 transition-all duration-200"
             style={{ background: 'var(--primary)' }}
             data-testid="button-start-quiz"
           >
@@ -100,7 +102,7 @@ export default function LandingPage() {
             onClick={() => setShowLogin(true)}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full h-11 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200"
+            className="w-full h-11 md:h-12 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200"
             style={{ border: '1px solid var(--border)', color: 'var(--text-muted)' }}
             data-testid="button-login-existing"
           >
