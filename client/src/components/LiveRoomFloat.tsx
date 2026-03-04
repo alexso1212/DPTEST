@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, PanInfo } from "framer-motion";
-import { Radio, ExternalLink, X } from "lucide-react";
+import { Radio, ExternalLink, X, Video } from "lucide-react";
+import { SiBilibili } from "react-icons/si";
 import { useLocation } from "wouter";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTracking } from "@/hooks/use-tracking";
 
-const DELTAPEX_URL = "https://deltapex.zeabur.app";
+const BILIBILI_LIVE = "https://live.bilibili.com/1874453448";
+const TENCENT_MEETING = "https://meeting.tencent.com/p/3621520297";
 
 function shouldShow(path: string): boolean {
   if (path === "/home" || path === "/result") return true;
@@ -70,10 +72,6 @@ export default function LiveRoomFloat() {
 
   if (!shouldShow(location)) return null;
 
-  const handleLiveRoomClick = () => {
-    trackEvent("live_room_click", { page: location, source: "float" });
-  };
-
   const panelContent = (
     <>
       <motion.div
@@ -107,18 +105,34 @@ export default function LiveRoomFloat() {
         <p className="text-[10px] mb-3" style={{ color: 'rgba(34,197,94,0.7)' }}>
           免费观摩 · 看不懂可跟助理免费学习
         </p>
-        <a
-          href={DELTAPEX_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={handleLiveRoomClick}
-          className="w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"
-          style={{ background: 'rgba(56,189,248,0.12)', color: 'var(--info)', border: '1px solid rgba(56,189,248,0.2)' }}
-          data-testid="link-float-live-room"
-        >
-          进入直播间
-          <ExternalLink className="w-3 h-3 opacity-60" />
-        </a>
+        <div className="space-y-1.5">
+          <a
+            href={BILIBILI_LIVE}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackEvent("live_room_click", { page: location, source: "bilibili" })}
+            className="w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"
+            style={{ background: 'rgba(56,189,248,0.12)', color: 'var(--info)', border: '1px solid rgba(56,189,248,0.2)' }}
+            data-testid="link-float-bilibili"
+          >
+            <SiBilibili className="w-3.5 h-3.5" />
+            B站直播间
+            <ExternalLink className="w-3 h-3 opacity-60" />
+          </a>
+          <a
+            href={TENCENT_MEETING}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackEvent("live_room_click", { page: location, source: "tencent_meeting" })}
+            className="w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"
+            style={{ background: 'rgba(34,197,94,0.08)', color: 'var(--success)', border: '1px solid rgba(34,197,94,0.2)' }}
+            data-testid="link-float-tencent-meeting"
+          >
+            <Video className="w-3.5 h-3.5" />
+            腾讯会议
+            <ExternalLink className="w-3 h-3 opacity-60" />
+          </a>
+        </div>
       </div>
     </>
   );

@@ -17,14 +17,15 @@ import { usePageView, useTracking } from "@/hooks/use-tracking";
 const ease = { duration: 0.22, ease: "easeOut" as const };
 
 const DELTAPEX_URL = "https://deltapex.zeabur.app";
+const BILIBILI_LIVE = "https://live.bilibili.com/1874453448";
 
-const dimAdvice: Record<Dimension, { text: string; resource: string; icon: string }> = {
-  EDGE: { text: "在直播间观察老师如何发现高概率交易机会，学习识别关键市场结构", resource: "实盘直播间", icon: "📡" },
-  RISK: { text: "在直播间观察老师如何实时管理风控和仓位，学习动态止损策略", resource: "实盘直播间", icon: "🛡️" },
-  MENTAL: { text: "加入交易社区，和同类型交易员互相督促心态管理，分享实战经验", resource: "交易社区", icon: "🧠" },
-  ADAPT: { text: "在直播间学习老师如何在不同行情中灵活切换策略，理解市场节奏", resource: "实盘直播间", icon: "🔄" },
-  EXEC: { text: "使用订单流工具（ATAS）精确定位入场点，用数据而非感觉执行交易", resource: "订单流工具", icon: "⚡" },
-  SYSTEM: { text: "通过学员案例学习如何构建系统化的交易计划，建立可复制的交易流程", resource: "交易社区", icon: "📋" },
+const dimAdvice: Record<Dimension, { text: string; resource: string; icon: string; url: string }> = {
+  EDGE: { text: "在直播间观察老师如何发现高概率交易机会，学习识别关键市场结构", resource: "实盘直播间", icon: "📡", url: BILIBILI_LIVE },
+  RISK: { text: "在直播间观察老师如何实时管理风控和仓位，学习动态止损策略", resource: "实盘直播间", icon: "🛡️", url: BILIBILI_LIVE },
+  MENTAL: { text: "加入交易社区，和同类型交易员互相督促心态管理，分享实战经验", resource: "交易社区", icon: "🧠", url: DELTAPEX_URL },
+  ADAPT: { text: "在直播间学习老师如何在不同行情中灵活切换策略，理解市场节奏", resource: "实盘直播间", icon: "🔄", url: BILIBILI_LIVE },
+  EXEC: { text: "使用订单流工具（ATAS）精确定位入场点，用数据而非感觉执行交易", resource: "订单流工具", icon: "⚡", url: DELTAPEX_URL },
+  SYSTEM: { text: "通过学员案例学习如何构建系统化的交易计划，建立可复制的交易流程", resource: "交易社区", icon: "📋", url: DELTAPEX_URL },
 };
 
 interface ReportData {
@@ -405,7 +406,7 @@ function ReportContent({
                     {adv.text}
                   </p>
                   <a
-                    href={DELTAPEX_URL}
+                    href={adv.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-xs font-medium transition-opacity hover:opacity-80"
@@ -470,7 +471,7 @@ function ReportContent({
               </div>
             </div>
             <a
-              href={DELTAPEX_URL}
+              href={BILIBILI_LIVE}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 hover:opacity-90"
