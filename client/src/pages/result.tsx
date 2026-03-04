@@ -8,6 +8,7 @@ import CountUp from "@/components/CountUp";
 import type { QuizResult } from "@/utils/calculateResult";
 import { dimensionLabels, type Dimension } from "@/data/questions";
 import { salesStrategy } from "@/data/salesStrategy";
+import { sendResultWebhook } from "@/utils/webhook";
 import { useAuth } from "@/lib/auth";
 
 interface ResultPageProps {
@@ -226,23 +227,17 @@ export default function ResultPage({ result }: ResultPageProps) {
   const handleContactWeChat = useCallback(() => {
     const strategy = salesStrategy[traderType.code];
     if (user?.phone && strategy) {
-      fetch("/api/webhook/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: user.phone,
-          typeCode: traderType.code,
-          typeName: traderType.name,
-          rankName: rank.name,
-          avgScore,
-          rarity,
-          scores: normalizedScores,
-          salesStrategy: strategy,
-        }),
-      }).catch(console.error);
+      sendResultWebhook({
+        phone: user.phone,
+        scores: normalizedScores,
+        traderType: { code: traderType.code, name: traderType.name, emoji: traderType.icon },
+        rank: { name: rank.name, emoji: rank.icon },
+        avgScore,
+        salesStrategy: strategy,
+      });
     }
     window.location.href = "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4";
-  }, [traderType, rank, avgScore, rarity, normalizedScores, user]);
+  }, [traderType, rank, avgScore, normalizedScores, user]);
 
   return (
     <>

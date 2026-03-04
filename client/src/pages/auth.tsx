@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Check, Lock, Smartphone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { sendRegisterWebhook } from "@/utils/webhook";
 
 interface AuthPageProps {
   onComplete: () => void;
@@ -55,6 +56,7 @@ export default function AuthPage({ onComplete }: AuthPageProps) {
         return;
       }
 
+      sendRegisterWebhook({ phone });
       onComplete();
     } catch {
       toast({ title: "网络错误，请重试", variant: "destructive" });

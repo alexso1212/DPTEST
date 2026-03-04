@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, loginSchema } from "@shared/schema";
-import { sendRegistrationNotification, sendContactNotification } from "./webhook";
+import { sendRegistrationNotification, sendResultNotification } from "./webhook";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
@@ -44,8 +44,6 @@ export async function registerRoutes(
       const hashedPassword = await bcrypt.hash(parsed.data.password, 10);
       const user = await storage.createUser({ ...parsed.data, password: hashedPassword });
       (req.session as any).userId = user.id;
-
-      sendRegistrationNotification(user.phone);
 
       res.json({ id: user.id, phone: user.phone });
     } catch (err) {
@@ -104,17 +102,31 @@ export async function registerRoutes(
     });
   });
 
-  app.post("/api/webhook/contact", async (req, res) => {
+  app.post("/api/webhook/register", async (req, res) => {
     try {
-      const { phone, typeCode, typeName, rankName, avgScore, rarity, scores, salesStrategy } = req.body;
-      if (!phone || !typeCode) {
-        return res.status(400).json({ message: "Missing required fields" });
+      const { phone, wechatName } = req.body;
+      if (!phone) {
+        return res.status(400).json({ message: "缺少手机号" });
       }
-      sendContactNotification({ phone, typeCode, typeName, rankName, avgScore, rarity, scores, salesStrategy });
-      res.json({ ok: true });
+      const result = await sendRegistrationNotification({ phone, wechatName });
+      res.json({ success: true, skipped: result.skipped });
     } catch (err) {
-      console.error("Contact webhook error:", err);
-      res.status(500).json({ message: "Failed to send notification" });
+      console.error("Register webhook error:", err);
+      res.json({ success: true, webhookError: true });
+    }
+  });
+
+  app.post("/api/webhook/result", async (req, res) => {
+    try {
+      const { phone, wechatName, scores, traderType, rank, avgScore, salesStrategy } = req.body;
+      if (!phone || !traderType) {
+        return res.status(400).json({ message: "缺少必要字段" });
+      }
+      sendResultNotification({ phone, wechatName, scores, traderType, rank, avgScore, salesStrategy });
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Result webhook error:", err);
+      res.json({ success: true, webhookError: true });
     }
   });
 

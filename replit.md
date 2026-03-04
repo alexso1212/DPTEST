@@ -71,15 +71,16 @@ client/src/
 │   ├── traderTypes.ts    # 12种人格类型 + 段位 + 稀有度 + 戳心描述
 │   └── salesStrategy.ts  # 12种类型对应的销售策略矩阵
 ├── utils/
-│   └── calculateResult.ts # 评测计分逻辑（原始分→标准化→类型判定→段位）
+│   ├── calculateResult.ts # 评测计分逻辑（原始分→标准化→类型判定→段位）
+│   └── webhook.ts         # 前端 webhook 工具函数（sendRegisterWebhook + sendResultWebhook）
 ├── lib/
 │   ├── auth.ts           # 认证hook
 │   └── queryClient.ts    # API客户端
 server/
-├── routes.ts             # API路由（注册/登录/认证/联系webhook）
+├── routes.ts             # API路由（注册/登录/认证 + 双webhook路由）
 ├── storage.ts            # 数据库存储层
 ├── db.ts                 # 数据库连接
-└── webhook.ts            # 企业微信Webhook（注册通知 + 联系通知含销售策略）
+└── webhook.ts            # 企业微信Webhook（轻量注册通知 + 完整画像通知，含5分钟防刷）
 shared/
 └── schema.ts             # 数据模型（users only）
 ```
@@ -101,14 +102,16 @@ shared/
 - **users**: id (serial), phone (varchar unique), password (text hashed), createdAt
 
 ## API接口
-- `POST /api/register` - 注册（触发企微webhook通知 - 节点1）
+- `POST /api/register` - 注册（创建数据库用户）
 - `POST /api/login` - 登录
 - `GET /api/me` - 获取当前用户
 - `POST /api/logout` - 登出
-- `POST /api/webhook/contact` - 点击添加客服时（触发企微webhook - 节点2，含完整画像+销售策略）
+- `POST /api/webhook/register` - 手机号提交时推送轻量通知（节点1）
+- `POST /api/webhook/result` - 点击加客服时推送完整画像+销售策略（节点2）
 
 ## 企业微信
 - Webhook URL: `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1b7a8fca-f469-4cd0-9158-4e7eff0780ef`
-- Webhook节点1: 用户注册时 → 销售群收到轻量通知（手机号+注册时间）
-- Webhook节点2: 点击加客服时 → 销售群收到完整画像+销售策略建议
+- Webhook节点1: AuthPage手机号提交 → 销售群收到轻量通知（微信昵称+手机号+状态）
+- Webhook节点2: 结果页点击加客服 → 销售群收到完整画像（段位+类型+六维█░进度条+🔥最强/⬆️突破口+销售策略四字段+💡快速判断）
+- 防刷机制: 同一手机号5分钟内不重复推送（server端内存Map）
 - 联系链接: `https://work.weixin.qq.com/ca/cawcde75d99eb3fce4`
