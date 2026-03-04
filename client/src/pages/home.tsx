@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { motion } from "framer-motion";
-import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLink, Building2, Star, Radio, Wrench, Trophy } from "lucide-react";
+import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLink, Building2, Radio, Wrench, Trophy } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
 
@@ -256,10 +256,9 @@ export default function HomePage() {
           <h3 className="text-sm font-semibold px-1" style={{ color: 'var(--text-muted)' }}>更多功能</h3>
 
           {[
-            { icon: <Building2 className="w-5 h-5" />, title: "PropFirm 汇总", desc: "期货自营公司推荐 & 专属折扣码", color: 'var(--primary)', href: "https://deltapex.zeabur.app" },
-            { icon: <Star className="w-5 h-5" />, title: "知识星球", desc: "每日美盘深度逻辑 & 订单流复盘", color: 'var(--warning)', href: "https://deltapex.zeabur.app" },
-            { icon: <Radio className="w-5 h-5" />, title: "官方直播间", desc: "实盘直播 & Ali交易日志", color: 'var(--info)', href: "https://deltapex.zeabur.app" },
-            { icon: <Wrench className="w-5 h-5" />, title: "交易工具", desc: "ATAS订单流 & EBC极速开户", color: 'var(--success)', href: "https://deltapex.zeabur.app" },
+            { icon: <Building2 className="w-5 h-5" />, title: "自营交易实盘申请 PropFirm", desc: "公司出资 · 你来操盘 · 通过考核获实盘账号", color: 'var(--primary)', href: "https://deltapex.zeabur.app" },
+            { icon: <Radio className="w-5 h-5" />, title: "职业交易直播间", desc: "实盘直播 & Ali交易日志", color: 'var(--info)', href: "https://deltapex.zeabur.app" },
+            { icon: <Wrench className="w-5 h-5" />, title: "机构订单流交易工具", desc: "ATAS订单流 & EBC极速开户", color: 'var(--success)', href: "https://deltapex.zeabur.app" },
             { icon: <Trophy className="w-5 h-5" />, title: "学员案例", desc: "真实学员通过考核业绩展示", color: 'var(--info)', href: "https://deltapex.zeabur.app" },
             { icon: <Gamepad2 className="w-5 h-5" />, title: "交易模拟游戏", desc: "即将上线", color: 'var(--text-muted)', href: null },
           ].map((item) => {
