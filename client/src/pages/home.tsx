@@ -79,7 +79,7 @@ export default function HomePage() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-0)' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0D0F14' }}>
         <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
       </div>
     );
@@ -95,14 +95,37 @@ export default function HomePage() {
 
   const cc = traderType?.cardColors ?? (traderType ? { primary: traderType.colors[0], secondary: traderType.colors[1], dark: '#0d0f14', glow: `${traderType.colors[0]}40` } : null);
 
+  const hasResult = !!(quizResult && traderType && rank && cc);
+
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-0)' }}>
-      <div className="max-w-lg mx-auto px-5 pt-6 pb-10">
+    <div
+      className="min-h-screen relative"
+      style={{
+        background: hasResult
+          ? `linear-gradient(180deg, ${cc.dark} 0%, #0a0c10 30%, #0d0f14 60%, #0d0f14 100%)`
+          : '#0D0F14',
+      }}
+    >
+      {hasResult && (
+        <>
+          <div className="absolute inset-0 pointer-events-none" style={{
+            background: `radial-gradient(ellipse 80% 50% at 50% 15%, ${cc.primary}18, transparent 70%)`,
+          }} />
+          <div className="absolute inset-0 pointer-events-none" style={{
+            background: `radial-gradient(ellipse 60% 30% at 30% 25%, ${cc.glow.replace('0.4', '0.06')}, transparent 60%)`,
+          }} />
+          <div className="absolute inset-0 pointer-events-none" style={{
+            background: `radial-gradient(ellipse 40% 20% at 70% 10%, ${cc.secondary || cc.primary}08, transparent 50%)`,
+          }} />
+        </>
+      )}
+
+      <div className="relative max-w-lg mx-auto px-5 pt-6 pb-10">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={ease}
-          className="flex items-center justify-between mb-6"
+          className="flex items-center justify-between mb-4"
         >
           <div>
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>你好，</p>
@@ -110,147 +133,160 @@ export default function HomePage() {
               {user.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <motion.button
-              onClick={handleLogout}
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.92 }}
-              className="w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-200"
-              style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
-              data-testid="button-logout"
-            >
-              <LogOut className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-            </motion.button>
-          </div>
+          <motion.button
+            onClick={handleLogout}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            className="w-9 h-9 rounded-full flex items-center justify-center"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+            data-testid="button-logout"
+          >
+            <LogOut className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+          </motion.button>
         </motion.div>
 
         {quizLoading ? (
-          <div className="flex items-center justify-center py-16">
+          <div className="flex items-center justify-center py-24">
             <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
           </div>
-        ) : quizResult && traderType && rank ? (
+        ) : hasResult ? (
           <>
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...ease, delay: 0.08 }}
-              className="rounded-2xl mb-4 overflow-hidden relative"
-              style={{
-                background: `linear-gradient(170deg, ${cc.dark} 0%, #0d0f14 40%, ${cc.dark} 100%)`,
-                border: `1px solid ${cc.glow}`,
-                boxShadow: `0 0 25px ${cc.glow}`,
-              }}
-              data-testid="card-character-inline"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ ...ease, delay: 0.06 }}
+              className="flex justify-between items-center mb-2"
             >
-              <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 20%, ${cc.primary}18, transparent 70%)` }} />
-              <div className="relative">
-                <div className="flex justify-between items-center px-5 pt-4">
-                  <div style={{
-                    display: "inline-flex", alignItems: "center", gap: "5px",
-                    background: `${cc.primary}22`, padding: "3px 10px", borderRadius: "16px",
-                    border: `1px solid ${cc.primary}44`,
-                  }}>
-                    <span style={{ fontSize: "12px" }}>{traderType.element.icon}</span>
-                    <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "10px", color: cc.secondary, letterSpacing: "1px" }}>
-                      {traderType.element.name.toUpperCase()}
-                    </span>
-                  </div>
-                  <span className="text-xs px-2.5 py-0.5 rounded-full" style={{ background: `${cc.primary}18`, color: cc.primary, border: `1px solid ${cc.primary}30` }}>
-                    已完成
-                  </span>
-                </div>
-
-                <div className="flex justify-center pt-2 pb-0" style={{ position: "relative" }}>
-                  <div style={{
-                    position: "absolute", width: "150px", height: "150px", borderRadius: "50%", top: "50%", left: "50%",
-                    transform: "translate(-50%,-50%)",
-                    background: `radial-gradient(circle, ${cc.primary}33 0%, transparent 70%)`,
-                  }} />
-                  <AlbionCharacterSVG type={quizResult.traderTypeCode} size={220} />
-                </div>
-
-                <div className="flex items-center gap-2.5 justify-center pb-1">
-                  <div className="flex-1 h-[1px] max-w-[60px]" style={{ background: "linear-gradient(90deg, transparent, #C9A456, transparent)" }} />
-                  <span style={{ color: "#C9A456", fontSize: "10px" }}>✦</span>
-                  <div className="flex-1 h-[1px] max-w-[60px]" style={{ background: "linear-gradient(90deg, transparent, #C9A456, transparent)" }} />
-                </div>
-
-                <div className="text-center px-5 pt-1">
-                  <h2 className="font-serif font-bold" style={{ fontSize: "24px", color: "#E8E6E1", letterSpacing: "5px", margin: 0 }} data-testid="text-trader-type">
-                    {traderType.name}
-                  </h2>
-                  <p className="font-tag tracking-widest mt-1" style={{ fontSize: "11px", color: cc.primary }}>
-                    {traderType.subtitle}
-                  </p>
-                </div>
-
-                {traderType.quote && (
-                  <div className="text-center px-7 pt-3">
-                    <p className="font-serif italic leading-relaxed" style={{ fontSize: "13px", color: "#C9A456" }}>
-                      "{traderType.quote}"
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex justify-center pt-4 pb-2">
-                  <svg viewBox="0 0 200 200" style={{ width: "140px", height: "140px" }}>
-                    {[0.3, 0.6, 0.9].map((s, i) => {
-                      const pts = [0,1,2,3,4,5].map(j => {
-                        const a = (Math.PI*2*j)/6 - Math.PI/2;
-                        return `${100+Math.cos(a)*55*s},${100+Math.sin(a)*55*s}`;
-                      }).join(" ");
-                      return <polygon key={i} points={pts} fill="none" stroke="#2a2a3a" strokeWidth="0.5"/>;
-                    })}
-                    {(() => {
-                      const vals = dimKeys.map(k => (quizResult.scores[k] ?? 50) / 100);
-                      const pts = vals.map((v, i) => {
-                        const a = (Math.PI*2*i)/6 - Math.PI/2;
-                        return `${100+Math.cos(a)*55*v},${100+Math.sin(a)*55*v}`;
-                      }).join(" ");
-                      return (
-                        <>
-                          <polygon points={pts} fill={`${cc.primary}33`} stroke={cc.primary} strokeWidth="1.5"/>
-                          {vals.map((v, i) => {
-                            const a = (Math.PI*2*i)/6 - Math.PI/2;
-                            return <circle key={i} cx={100+Math.cos(a)*55*v} cy={100+Math.sin(a)*55*v} r="2.5" fill="#C9A456" stroke="#0D0F14" strokeWidth="1"/>;
-                          })}
-                        </>
-                      );
-                    })()}
-                    {dimLabels.map((l, i) => {
-                      const a = (Math.PI*2*i)/6 - Math.PI/2;
-                      const val = quizResult.scores[dimKeys[i]] ?? 50;
-                      return <text key={i} x={100+Math.cos(a)*75} y={100+Math.sin(a)*75} textAnchor="middle" dominantBaseline="middle" fill="#8B95A5" fontSize="9">{l} {val}</text>;
-                    })}
-                  </svg>
-                </div>
-
-                <div className="text-center pb-4">
-                  <span style={{
-                    display: "inline-flex", alignItems: "center", gap: "6px",
-                    background: "rgba(201,164,86,0.08)", padding: "6px 16px", borderRadius: "20px",
-                    border: "1px solid rgba(201,164,86,0.2)",
-                    fontSize: "12px", color: "#C9A456",
-                  }}>
-                    <RankBadge tier={rank} size="sm" />
-                    {rank.name} · {quizResult.avgScore}/100
-                  </span>
-                </div>
-
-                {traderType.storyHint && (
-                  <div className="px-6 pb-5">
-                    <p className="text-center italic leading-relaxed" style={{ fontSize: "11px", color: "#8B95A5", opacity: 0.5 }}>
-                      {traderType.storyHint}
-                    </p>
-                  </div>
-                )}
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: "5px",
+                background: `${cc.primary}15`, padding: "3px 10px", borderRadius: "16px",
+                border: `1px solid ${cc.primary}30`,
+              }}>
+                <span style={{ fontSize: "12px" }}>{traderType.element.icon}</span>
+                <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "10px", color: cc.secondary || cc.primary, letterSpacing: "1px" }}>
+                  {traderType.element.name.toUpperCase()}
+                </span>
               </div>
+              <span className="text-xs px-2.5 py-0.5 rounded-full" style={{ background: `${cc.primary}12`, color: cc.primary, border: `1px solid ${cc.primary}22` }}>
+                已完成
+              </span>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ ...ease, delay: 0.1 }}
+              className="flex justify-center relative"
+              style={{ marginBottom: '-8px' }}
+            >
+              <div style={{
+                position: "absolute", width: "180px", height: "180px", borderRadius: "50%", top: "50%", left: "50%",
+                transform: "translate(-50%,-50%)",
+                background: `radial-gradient(circle, ${cc.primary}28 0%, transparent 70%)`,
+              }} />
+              <AlbionCharacterSVG type={quizResult.traderTypeCode} size={240} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ ...ease, delay: 0.14 }}
+              transition={{ ...ease, delay: 0.16 }}
+            >
+              <div className="flex items-center gap-2.5 justify-center mb-2">
+                <div className="flex-1 h-[1px] max-w-[60px]" style={{ background: "linear-gradient(90deg, transparent, #C9A456, transparent)" }} />
+                <span style={{ color: "#C9A456", fontSize: "10px" }}>✦</span>
+                <div className="flex-1 h-[1px] max-w-[60px]" style={{ background: "linear-gradient(90deg, transparent, #C9A456, transparent)" }} />
+              </div>
+
+              <div className="text-center">
+                <h2 className="font-serif font-bold" style={{ fontSize: "26px", color: "#E8E6E1", letterSpacing: "5px" }} data-testid="text-trader-type">
+                  {traderType.name}
+                </h2>
+                <p className="font-tag tracking-widest mt-1" style={{ fontSize: "11px", color: cc.primary }}>
+                  {traderType.subtitle}
+                </p>
+              </div>
+
+              {traderType.quote && (
+                <div className="text-center px-4 mt-4">
+                  <p className="font-serif italic leading-relaxed" style={{ fontSize: "13px", color: "#C9A456" }}>
+                    "{traderType.quote}"
+                  </p>
+                </div>
+              )}
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...ease, delay: 0.22 }}
+              className="flex justify-center mt-5"
+            >
+              <svg viewBox="0 0 200 200" style={{ width: "150px", height: "150px" }}>
+                {[0.3, 0.6, 0.9].map((s, i) => {
+                  const pts = [0,1,2,3,4,5].map(j => {
+                    const a = (Math.PI*2*j)/6 - Math.PI/2;
+                    return `${100+Math.cos(a)*55*s},${100+Math.sin(a)*55*s}`;
+                  }).join(" ");
+                  return <polygon key={i} points={pts} fill="none" stroke="#2a2a3a" strokeWidth="0.5"/>;
+                })}
+                {(() => {
+                  const vals = dimKeys.map(k => (quizResult.scores[k] ?? 50) / 100);
+                  const pts = vals.map((v, i) => {
+                    const a = (Math.PI*2*i)/6 - Math.PI/2;
+                    return `${100+Math.cos(a)*55*v},${100+Math.sin(a)*55*v}`;
+                  }).join(" ");
+                  return (
+                    <>
+                      <polygon points={pts} fill={`${cc.primary}33`} stroke={cc.primary} strokeWidth="1.5"/>
+                      {vals.map((v, i) => {
+                        const a = (Math.PI*2*i)/6 - Math.PI/2;
+                        return <circle key={i} cx={100+Math.cos(a)*55*v} cy={100+Math.sin(a)*55*v} r="2.5" fill="#C9A456" stroke="#0D0F14" strokeWidth="1"/>;
+                      })}
+                    </>
+                  );
+                })()}
+                {dimLabels.map((l, i) => {
+                  const a = (Math.PI*2*i)/6 - Math.PI/2;
+                  const val = quizResult.scores[dimKeys[i]] ?? 50;
+                  return <text key={i} x={100+Math.cos(a)*75} y={100+Math.sin(a)*75} textAnchor="middle" dominantBaseline="middle" fill="#8B95A5" fontSize="9">{l} {val}</text>;
+                })}
+              </svg>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...ease, delay: 0.26 }}
+              className="text-center mt-3 mb-6"
+            >
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                background: "rgba(201,164,86,0.06)", padding: "6px 16px", borderRadius: "20px",
+                border: "1px solid rgba(201,164,86,0.15)",
+                fontSize: "12px", color: "#C9A456",
+              }}>
+                <RankBadge tier={rank} size="sm" />
+                {rank.name} · {quizResult.avgScore}/100
+              </span>
+            </motion.div>
+
+            {traderType.storyHint && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.4 }}
+                transition={{ ...ease, delay: 0.3 }}
+                className="text-center italic leading-relaxed mb-6 px-4"
+                style={{ fontSize: "11px", color: "#8B95A5" }}
+              >
+                {traderType.storyHint}
+              </motion.p>
+            )}
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...ease, delay: 0.32 }}
               className="flex gap-2 mb-3"
             >
               <motion.button
@@ -270,7 +306,7 @@ export default function HomePage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-200"
-                style={{ background: 'var(--primary-soft)', color: 'var(--primary)' }}
+                style={{ background: `${cc.primary}18`, color: cc.primary, border: `1px solid ${cc.primary}25` }}
                 data-testid="button-view-result"
               >
                 查看详情
@@ -281,7 +317,7 @@ export default function HomePage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-200"
-                style={{ border: '1px solid var(--border)', color: 'var(--text-muted)' }}
+                style={{ border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-muted)' }}
                 data-testid="button-retake"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -291,10 +327,10 @@ export default function HomePage() {
 
             {quizResult.shareToken && (
               <motion.div
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ ...ease, delay: 0.18 }}
-                className="mb-5"
+                transition={{ ...ease, delay: 0.36 }}
+                className="mb-6"
               >
                 {reportUnlocked ? (
                   <motion.button
@@ -316,96 +352,116 @@ export default function HomePage() {
                 )}
               </motion.div>
             )}
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...ease, delay: 0.4 }}
+            >
+              <div className="h-[1px] mb-6" style={{ background: `linear-gradient(90deg, transparent, ${cc.primary}20, transparent)` }} />
+              <h3 className="text-sm font-semibold px-1 mb-3" style={{ color: 'var(--text-muted)' }}>更多功能</h3>
+              <FeatureLinks cc={cc} />
+            </motion.div>
           </>
         ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ ...ease, delay: 0.08 }}
-            className="rounded-2xl p-6 mb-4"
-            style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
-          >
-            <div className="text-center py-4">
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...ease, delay: 0.08 }}
+              className="text-center py-16"
+            >
               <h3 className="text-base font-bold mb-1" style={{ color: 'var(--text-strong)' }}>
                 你还没有完成交易能力测评
               </h3>
-              <p className="text-xs mb-5" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-xs mb-6" style={{ color: 'var(--text-muted)' }}>
                 2分钟 · 12道实战情境题 · 发现你的交易DNA
               </p>
               <motion.button
                 onClick={() => navigate("/quiz")}
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full h-11 rounded-xl font-bold text-sm text-white transition-all duration-200"
+                className="w-full max-w-xs mx-auto h-11 rounded-xl font-bold text-sm text-white transition-all duration-200"
                 style={{ background: 'var(--primary)' }}
                 data-testid="button-start-quiz"
               >
                 开始测评
               </motion.button>
-            </div>
-          </motion.div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...ease, delay: 0.16 }}
+            >
+              <h3 className="text-sm font-semibold px-1 mb-3" style={{ color: 'var(--text-muted)' }}>更多功能</h3>
+              <FeatureLinks />
+            </motion.div>
+          </>
         )}
-
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...ease, delay: 0.22 }}
-          className="space-y-3"
-        >
-          <h3 className="text-sm font-semibold px-1" style={{ color: 'var(--text-muted)' }}>更多功能</h3>
-
-          {[
-            { icon: <Building2 className="w-5 h-5" />, title: "自营交易实盘申请 PropFirm", desc: "公司出资 · 你来操盘 · 通过考核获实盘账号", color: 'var(--primary)', href: "https://deltapex.zeabur.app" },
-            { icon: <Radio className="w-5 h-5" />, title: "职业交易直播间", desc: "实盘直播 & Ali交易日志", color: 'var(--info)', href: "https://deltapex.zeabur.app" },
-            { icon: <Wrench className="w-5 h-5" />, title: "机构订单流交易工具", desc: "ATAS订单流 & EBC极速开户", color: 'var(--success)', href: "https://deltapex.zeabur.app" },
-            { icon: <Trophy className="w-5 h-5" />, title: "学员案例", desc: "真实学员通过考核业绩展示", color: 'var(--info)', href: "https://deltapex.zeabur.app" },
-            { icon: <Gamepad2 className="w-5 h-5" />, title: "交易模拟游戏", desc: "即将上线", color: 'var(--text-muted)', href: null },
-          ].map((item) => {
-            const content = (
-              <>
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: `color-mix(in srgb, ${item.color} 15%, transparent)`, color: item.color }}
-                >
-                  {item.icon}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>{item.title}</p>
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{item.desc}</p>
-                </div>
-                {item.href ? (
-                  <ExternalLink className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
-                ) : (
-                  <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
-                )}
-              </>
-            );
-
-            return item.href ? (
-              <a
-                key={item.title}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-xl p-4 flex items-center gap-4 transition-all duration-200"
-                style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
-                data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-              >
-                {content}
-              </a>
-            ) : (
-              <div
-                key={item.title}
-                className="rounded-xl p-4 flex items-center gap-4 opacity-60"
-                style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
-                data-testid="card-coming-soon"
-              >
-                {content}
-              </div>
-            );
-          })}
-        </motion.div>
       </div>
+    </div>
+  );
+}
+
+function FeatureLinks({ cc }: { cc?: { primary: string; glow: string } }) {
+  const items = [
+    { icon: <Building2 className="w-5 h-5" />, title: "自营交易实盘申请 PropFirm", desc: "公司出资 · 你来操盘 · 通过考核获实盘账号", color: 'var(--primary)', href: "https://deltapex.zeabur.app" },
+    { icon: <Radio className="w-5 h-5" />, title: "职业交易直播间", desc: "实盘直播 & Ali交易日志", color: 'var(--info)', href: "https://deltapex.zeabur.app" },
+    { icon: <Wrench className="w-5 h-5" />, title: "机构订单流交易工具", desc: "ATAS订单流 & EBC极速开户", color: 'var(--success)', href: "https://deltapex.zeabur.app" },
+    { icon: <Trophy className="w-5 h-5" />, title: "学员案例", desc: "真实学员通过考核业绩展示", color: 'var(--info)', href: "https://deltapex.zeabur.app" },
+    { icon: <Gamepad2 className="w-5 h-5" />, title: "交易模拟游戏", desc: "即将上线", color: 'var(--text-muted)', href: null as string | null },
+  ];
+
+  const cardBg = cc ? `rgba(255,255,255,0.02)` : 'var(--bg-1)';
+  const cardBorder = cc ? `1px solid rgba(255,255,255,0.06)` : '1px solid var(--border)';
+
+  return (
+    <div className="space-y-3">
+      {items.map((item) => {
+        const content = (
+          <>
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: `color-mix(in srgb, ${item.color} 15%, transparent)`, color: item.color }}
+            >
+              {item.icon}
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>{item.title}</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{item.desc}</p>
+            </div>
+            {item.href ? (
+              <ExternalLink className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
+            ) : (
+              <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
+            )}
+          </>
+        );
+
+        return item.href ? (
+          <a
+            key={item.title}
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-xl p-4 flex items-center gap-4 transition-all duration-200"
+            style={{ background: cardBg, border: cardBorder }}
+            data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+          >
+            {content}
+          </a>
+        ) : (
+          <div
+            key={item.title}
+            className="rounded-xl p-4 flex items-center gap-4 opacity-60"
+            style={{ background: cardBg, border: cardBorder }}
+            data-testid="card-coming-soon"
+          >
+            {content}
+          </div>
+        );
+      })}
     </div>
   );
 }
