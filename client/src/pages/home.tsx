@@ -8,7 +8,6 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
 import CharacterSVG from "@/components/character/CharacterSVG";
 import TierBadge from "@/components/character/TierBadge";
-import TierRoadmap from "@/components/character/TierRoadmap";
 import RankBadge from "@/components/RankBadge";
 import { usePageView, useTracking } from "@/hooks/use-tracking";
 
@@ -184,6 +183,15 @@ export default function HomePage() {
             </motion.div>
 
             <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...ease, delay: 0.08 }}
+              className="flex justify-center mb-2"
+            >
+              <TierBadge type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} />
+            </motion.div>
+
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ ...ease, delay: 0.1 }}
@@ -196,9 +204,6 @@ export default function HomePage() {
                 background: `radial-gradient(circle, ${cc.primary}28 0%, transparent 70%)`,
               }} />
               <CharacterSVG type={quizResult.traderTypeCode} size={240} tier={user?.tier ?? 0} />
-              <div style={{ position: "absolute", top: 8, right: "50%", transform: "translateX(80px)" }}>
-                <TierBadge type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} />
-              </div>
             </motion.div>
 
             <motion.div
@@ -283,16 +288,6 @@ export default function HomePage() {
                 <RankBadge tier={rank} size="sm" />
                 {rank.name} · {quizResult.avgScore}/100
               </span>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...ease, delay: 0.28 }}
-              className="w-full mb-4"
-              data-testid="section-tier-roadmap"
-            >
-              <TierRoadmap type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} />
             </motion.div>
 
             {traderType.storyHint && (
