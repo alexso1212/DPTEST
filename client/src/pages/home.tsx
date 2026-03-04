@@ -8,6 +8,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
 import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
 import RankBadge from "@/components/RankBadge";
+import { usePageView, useTracking } from "@/hooks/use-tracking";
 
 const ease = { duration: 0.22, ease: "easeOut" as const };
 
@@ -58,6 +59,8 @@ function useCountdown(targetTime: Date | null) {
 export default function HomePage() {
   const [, navigate] = useLocation();
   const { user, isLoading: authLoading } = useAuth();
+  const { trackEvent } = useTracking();
+  usePageView("home");
 
   const { data: quizResult, isLoading: quizLoading } = useQuery<StoredQuizResult | null>({
     queryKey: ["/api/quiz-result"],
@@ -336,7 +339,7 @@ export default function HomePage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...ease, delay: 0.36 }}
-                className="mb-6"
+                className="mb-3"
               >
                 {reportUnlocked ? (
                   <motion.button
@@ -358,6 +361,58 @@ export default function HomePage() {
                 )}
               </motion.div>
             )}
+
+            <motion.a
+              href="https://deltapex.zeabur.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...ease, delay: 0.38 }}
+              whileHover={{ scale: 1.01, y: -1 }}
+              whileTap={{ scale: 0.99 }}
+              className="block rounded-2xl p-4 mb-6 relative overflow-hidden"
+              style={{
+                background: 'linear-gradient(145deg, rgba(56,189,248,0.05), rgba(255,255,255,0.01), rgba(56,189,248,0.03))',
+                border: '1px solid rgba(56,189,248,0.12)',
+                boxShadow: '0 0 20px rgba(56,189,248,0.04)',
+              }}
+              data-testid="card-live-room"
+              onClick={() => trackEvent("live_room_click", { page: "home" })}
+            >
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: 'linear-gradient(105deg, transparent 40%, rgba(56,189,248,0.06) 50%, transparent 60%)',
+                }}
+                animate={{ x: ['-100%', '200%'] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", repeatDelay: 4 }}
+              />
+              <div className="relative flex items-center gap-3.5">
+                <motion.div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 relative"
+                  style={{ background: 'rgba(56,189,248,0.1)' }}
+                >
+                  <motion.div
+                    className="absolute inset-0 rounded-xl"
+                    style={{ background: 'rgba(56,189,248,0.08)', filter: 'blur(6px)' }}
+                    animate={{ opacity: [0.3, 0.7, 0.3], scale: [0.95, 1.1, 0.95] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <Radio className="w-5 h-5 relative" style={{ color: 'var(--info)' }} />
+                </motion.div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>职业交易实盘直播间</p>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    每日实盘直播 · 订单流实战 · 免费观摩
+                  </p>
+                </div>
+                <ExternalLink className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(56,189,248,0.5)' }} />
+              </div>
+              <p className="relative text-[10px] mt-2.5 pl-[54px]" style={{ color: 'rgba(34,197,94,0.7)' }}>
+                看不懂？可以跟助理免费一对一学习
+              </p>
+            </motion.a>
 
             {historyData && historyData.length >= 2 && (
               <GrowthTimeline history={historyData} cc={cc} />

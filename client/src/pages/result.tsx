@@ -13,6 +13,7 @@ import LoginModal from "@/components/LoginModal";
 import WeChatContactModal, { useWeChatContact } from "@/components/WeChatContactModal";
 import type { QuizResult } from "@/utils/calculateResult";
 import { dimensionLabels, type Dimension } from "@/data/questions";
+import { usePageView, useTracking } from "@/hooks/use-tracking";
 import { salesStrategy } from "@/data/salesStrategy";
 import { sendResultWebhook } from "@/utils/webhook";
 import { useAuth } from "@/lib/auth";
@@ -424,6 +425,8 @@ export default function ResultPage({ result }: ResultPageProps) {
   const [, navigate] = useLocation();
   const [showUnbox, setShowUnbox] = useState(true);
   const [showShareModal, setShowShareModal] = useState(false);
+  const { trackEvent } = useTracking();
+  usePageView("result");
   const [showCardPanel, setShowCardPanel] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showWeChatModal, setShowWeChatModal] = useState(false);
@@ -476,6 +479,7 @@ export default function ResultPage({ result }: ResultPageProps) {
   }, [normalizedScores]);
 
   const handleContactWeChat = useCallback(() => {
+    trackEvent("wechat_click", { page: "result", traderType: traderType.code });
     const strategy = salesStrategy[traderType.code];
     if (user?.phone && strategy) {
       sendResultWebhook({
@@ -491,7 +495,7 @@ export default function ResultPage({ result }: ResultPageProps) {
     if (!mobileHandled) {
       setShowWeChatModal(true);
     }
-  }, [traderType, rank, avgScore, normalizedScores, user, handleWeChatMobile]);
+  }, [traderType, rank, avgScore, normalizedScores, user, handleWeChatMobile, trackEvent]);
 
   return (
     <>

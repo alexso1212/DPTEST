@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema } from "@shared/schema";
+import { insertUserSchema, loginSchema, insertEventSchema } from "@shared/schema";
 import { sendRegistrationNotification, sendResultNotification } from "./webhook";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
@@ -47,6 +47,17 @@ export async function registerRoutes(
         req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
       }
 
+      storage.trackEvent({
+        userId: user.id,
+        sessionId: req.body.sessionId || "server",
+        eventType: "user_register",
+        eventData: { phone: user.phone, source: req.body.source },
+      });
+
+      if (req.body.source) {
+        storage.updateUserProfile(user.id, { source: req.body.source });
+      }
+
       res.json({ id: user.id, phone: user.phone });
     } catch (err) {
       console.error("Register error:", err);
@@ -75,6 +86,14 @@ export async function registerRoutes(
       if (req.body.rememberMe) {
         req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
       }
+
+      storage.trackEvent({
+        userId: user.id,
+        sessionId: req.body.sessionId || "server",
+        eventType: "user_login",
+      });
+      storage.updateUserProfile(user.id, { lastActiveAt: new Date() });
+
       res.json({ id: user.id, phone: user.phone });
     } catch (err) {
       console.error("Login error:", err);
@@ -150,6 +169,13 @@ export async function registerRoutes(
         rankName,
       });
 
+      storage.trackEvent({
+        userId,
+        sessionId: req.body.sessionId || "server",
+        eventType: "quiz_complete",
+        eventData: { traderTypeCode, avgScore, rankName },
+      });
+
       res.json({ success: true, id: result.id, shareToken: result.shareToken });
     } catch (err) {
       console.error("Save quiz result error:", err);
@@ -199,6 +225,14 @@ export async function registerRoutes(
         return res.status(404).json({ message: "报告不存在或链接已失效" });
       }
 
+      const sessionId = (req.query.sid as string) || "server";
+      storage.trackEvent({
+        userId: result.userId,
+        sessionId,
+        eventType: "report_view",
+        eventData: { token, traderTypeCode: result.traderTypeCode },
+      });
+
       res.json({
         scores: result.scores,
         traderTypeCode: result.traderTypeCode,
@@ -209,6 +243,52 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Get report error:", err);
       res.status(500).json({ message: "获取报告失败" });
+    }
+  });
+
+  app.post("/api/events", async (req, res) => {
+    try {
+      const parsed = insertEventSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid event data" });
+      }
+
+      const userId = parsed.data.userId || (req.session as any)?.userId || undefined;
+
+      storage.trackEvent({
+        userId,
+        sessionId: parsed.data.sessionId,
+        eventType: parsed.data.eventType,
+        eventData: parsed.data.eventData as Record<string, unknown>,
+      });
+
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("Track event error:", err);
+      res.json({ ok: true });
+    }
+  });
+
+  app.patch("/api/user/profile", async (req, res) => {
+    try {
+      const userId = (req.session as any)?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "未登录" });
+      }
+
+      const { nickname, wechatId, source, tags } = req.body;
+      await storage.updateUserProfile(userId, {
+        nickname,
+        wechatId,
+        source,
+        tags,
+        lastActiveAt: new Date(),
+      });
+
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("Update profile error:", err);
+      res.status(500).json({ message: "更新失败" });
     }
   });
 

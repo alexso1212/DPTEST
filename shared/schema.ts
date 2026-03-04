@@ -7,6 +7,11 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   phone: varchar("phone", { length: 20 }).notNull().unique(),
   password: text("password").notNull(),
+  nickname: varchar("nickname", { length: 50 }),
+  wechatId: varchar("wechat_id", { length: 100 }),
+  source: varchar("source", { length: 50 }),
+  tags: jsonb("tags"),
+  lastActiveAt: timestamp("last_active_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -19,6 +24,15 @@ export const quizResults = pgTable("quiz_results", {
   avgScore: integer("avg_score").notNull(),
   rankName: varchar("rank_name", { length: 50 }).notNull(),
   shareToken: varchar("share_token", { length: 32 }).notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const userEvents = pgTable("user_events", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"),
+  sessionId: varchar("session_id", { length: 64 }).notNull(),
+  eventType: varchar("event_type", { length: 50 }).notNull(),
+  eventData: jsonb("event_data"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -43,7 +57,20 @@ export const insertQuizResultSchema = createInsertSchema(quizResults).pick({
   rankName: true,
 });
 
+export const insertEventSchema = createInsertSchema(userEvents).pick({
+  sessionId: true,
+  eventType: true,
+  eventData: true,
+}).extend({
+  userId: z.number().optional(),
+  sessionId: z.string().min(1),
+  eventType: z.string().min(1).max(50),
+  eventData: z.record(z.any()).optional(),
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type QuizResult = typeof quizResults.$inferSelect;
 export type InsertQuizResult = z.infer<typeof insertQuizResultSchema>;
+export type UserEvent = typeof userEvents.$inferSelect;
+export type InsertEvent = z.infer<typeof insertEventSchema>;

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ChevronRight, LogIn } from "lucide-react";
 import LoginModal from "@/components/LoginModal";
 import { queryClient } from "@/lib/queryClient";
+import { usePageView } from "@/hooks/use-tracking";
 
 const ease = { duration: 0.22, ease: "easeOut" as const };
 
@@ -12,6 +13,7 @@ export default function LandingPage() {
   const [, navigate] = useLocation();
   const { user, isLoading } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
+  usePageView("landing");
 
   useEffect(() => {
     if (!isLoading && user) {

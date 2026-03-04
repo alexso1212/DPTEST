@@ -1,12 +1,19 @@
-import { users, quizResults, type User, type InsertUser } from "@shared/schema";
+import { users, quizResults, userEvents, type User, type InsertUser } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql, and, gte, lte } from "drizzle-orm";
 import crypto from "crypto";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByPhone(phone: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserProfile(userId: number, data: {
+    nickname?: string;
+    wechatId?: string;
+    source?: string;
+    tags?: string[];
+    lastActiveAt?: Date;
+  }): Promise<void>;
   saveQuizResult(userId: number, data: {
     answers: number[];
     scores: Record<string, number>;
@@ -17,6 +24,13 @@ export interface IStorage {
   getLatestQuizResult(userId: number): Promise<typeof quizResults.$inferSelect | undefined>;
   getAllQuizResults(userId: number): Promise<(typeof quizResults.$inferSelect)[]>;
   getQuizResultByToken(token: string): Promise<typeof quizResults.$inferSelect | undefined>;
+  trackEvent(data: {
+    userId?: number;
+    sessionId: string;
+    eventType: string;
+    eventData?: Record<string, unknown>;
+  }): Promise<void>;
+  getUserEvents(userId: number, limit?: number): Promise<(typeof userEvents.$inferSelect)[]>;
 }
 
 function generateShareToken(): string {
@@ -37,6 +51,24 @@ export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
+  }
+
+  async updateUserProfile(userId: number, data: {
+    nickname?: string;
+    wechatId?: string;
+    source?: string;
+    tags?: string[];
+    lastActiveAt?: Date;
+  }): Promise<void> {
+    const updates: Record<string, unknown> = {};
+    if (data.nickname !== undefined) updates.nickname = data.nickname;
+    if (data.wechatId !== undefined) updates.wechatId = data.wechatId;
+    if (data.source !== undefined) updates.source = data.source;
+    if (data.tags !== undefined) updates.tags = data.tags;
+    if (data.lastActiveAt !== undefined) updates.lastActiveAt = data.lastActiveAt;
+    if (Object.keys(updates).length > 0) {
+      await db.update(users).set(updates).where(eq(users.id, userId));
+    }
   }
 
   async saveQuizResult(userId: number, data: {
@@ -82,6 +114,33 @@ export class DatabaseStorage implements IStorage {
       .from(quizResults)
       .where(eq(quizResults.shareToken, token));
     return result || undefined;
+  }
+
+  async trackEvent(data: {
+    userId?: number;
+    sessionId: string;
+    eventType: string;
+    eventData?: Record<string, unknown>;
+  }): Promise<void> {
+    try {
+      await db.insert(userEvents).values({
+        userId: data.userId ?? null,
+        sessionId: data.sessionId,
+        eventType: data.eventType,
+        eventData: data.eventData ?? null,
+      });
+    } catch (err) {
+      console.error("Failed to track event:", err);
+    }
+  }
+
+  async getUserEvents(userId: number, limit = 50) {
+    return db
+      .select()
+      .from(userEvents)
+      .where(eq(userEvents.userId, userId))
+      .orderBy(desc(userEvents.createdAt))
+      .limit(limit);
   }
 }
 

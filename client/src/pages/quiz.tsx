@@ -4,6 +4,7 @@ import { dimensionLabels } from "@/data/questions";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
 import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
+import { usePageView, useTracking } from "@/hooks/use-tracking";
 
 interface QuizPageProps {
   onComplete: (answers: number[]) => void;
@@ -17,6 +18,8 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
   const [selecting, setSelecting] = useState<number | null>(null);
   const [xpFlash, setXpFlash] = useState<string | null>(null);
   const xpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { trackEvent } = useTracking();
+  usePageView("quiz_start");
   const ghostType = useMemo(() => ghostTypes[Math.floor(Math.random() * ghostTypes.length)], []);
 
   const handleSelect = useCallback((optionIndex: number) => {
