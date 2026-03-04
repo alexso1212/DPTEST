@@ -4,14 +4,14 @@ import { getQueryFn } from "./queryClient";
 interface AuthUser {
   id: number;
   phone: string;
+  hasQuizResult: boolean;
 }
 
 export function useAuth() {
   const { data: user, isLoading, isFetching } = useQuery<AuthUser | null>({
     queryKey: ["/api/me"],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    staleTime: 0,
-    refetchOnMount: "always",
+    staleTime: 30000,
   });
 
   return {

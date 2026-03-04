@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { SiWechat } from "react-icons/si";
-import { Lock, Camera } from "lucide-react";
+import { Lock, Camera, Home } from "lucide-react";
 import RadarChartComponent from "@/components/RadarChart";
 import ShareCard from "@/components/ShareCard";
 import CountUp from "@/components/CountUp";
@@ -229,6 +230,7 @@ function TypeCardFlip({ result }: { result: QuizResult }) {
 export default function ResultPage({ result }: ResultPageProps) {
   const { traderType, rank, rarity, normalizedScores, avgScore } = result;
   const { user } = useAuth();
+  const [, navigate] = useLocation();
   const [showUnbox, setShowUnbox] = useState(true);
   const [showShareModal, setShowShareModal] = useState(false);
 
@@ -445,6 +447,20 @@ export default function ResultPage({ result }: ResultPageProps) {
           >
             <div className="max-w-lg mx-auto px-5 pt-3 flex gap-3">
               <motion.button
+                onClick={() => navigate("/home")}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                className="py-3 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5"
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-secondary)',
+                }}
+                data-testid="button-go-home"
+              >
+                <Home className="w-4 h-4" />
+              </motion.button>
+              <motion.button
                 onClick={() => setShowShareModal(true)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
@@ -468,7 +484,7 @@ export default function ResultPage({ result }: ResultPageProps) {
                 data-testid="button-unlock-report"
               >
                 <Lock className="w-4 h-4" />
-                领取完整报告
+                领取报告
               </motion.button>
             </div>
           </div>

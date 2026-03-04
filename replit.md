@@ -1,7 +1,7 @@
 # 交易员能力评测 H5
 
 ## 项目概述
-一个类MBTI的交易员能力评测系统，移动端优先H5应用。用户注册后完成12道情境选择题，系统纯前端计算生成交易员人格类型、段位和雷达图结果。
+Deltapex Trading 主平台，移动端优先 H5 应用。包含用户系统、交易能力测评、未来扩展游戏/社群等模块。测评为类 MBTI 模式，12 道情境选择题，纯前端计算生成交易员人格类型、段位和雷达图。
 
 ## 技术栈
 - **前端**: React + TypeScript + Tailwind CSS + Shadcn UI + Framer Motion + Recharts
@@ -10,17 +10,24 @@
 - **字体**: Noto Sans SC (正文), Oswald (数字)
 
 ## 核心功能
-1. **用户注册/登录**: 手机号+密码注册，注册时发送企业微信通知(Webhook节点1)
-2. **12道情境评测题**: 6个维度（风险管理、交易心理、系统思维、市场适应、执行力、认知格局）
-3. **纯前端计算结果**: 12种交易员人格类型 + 6个段位等级 + 稀有度
-4. **雷达图**: 6维能力可视化展示
-5. **戳心描述**: 每种类型独有的精准行为描写，展示在结果页金色高亮区域
+1. **用户注册/登录**: 手机号+密码注册，登录后进入主页
+2. **主页 Dashboard**: 显示测评状态、未来功能入口（游戏/学习/社群）
+3. **交易能力测评（可选）**: 12道情境题，6维度评估，结果持久化到数据库
+4. **测评结果**: 段位开箱动画 + 卡牌翻转 + 雷达图 + 戳心描述
+5. **重新测评**: 已完成测评的用户可以重新测评
 6. **分享图片**: html2canvas生成可分享的结果卡片
-7. **企业微信联系**: 结果页点击添加企业微信顾问按钮时发送完整画像+销售策略建议(Webhook节点2)
+7. **企业微信联系**: 点击领取报告按钮推送完整画像+销售策略到企微群
 8. **暗黑/明亮模式**: 跟随系统偏好，支持手动切换
 
-## 体验链路
-开屏页(/) → 答题(/quiz, 零摩擦无需注册) → 加载动画(/loading, ID卡生成) → 手机号注册(/auth) → 部分结果(/result, 段位开箱+卡牌翻转+戳心描述+锁定内容) → 添加企微解锁完整报告
+## 用户流程
+### 新用户
+首页(/) 注册 → 引导页(/onboarding, 推荐测评/可跳过) → 测评(/quiz) 或 主页(/home)
+
+### 老用户
+首页(/) 登录 → 主页(/home) → 查看历史结果 / 重新测评 / 开始测评
+
+### 测评流程
+答题(/quiz, 12题) → 加载动画(/loading) → 结果页(/result, 段位开箱+卡牌翻转+雷达+戳心描述+锁定内容)
 
 ## 六维度说明
 | 代号 | 名称 | 说明 |
@@ -48,41 +55,39 @@
 | ME | 极速闪电 | MENTAL+EXEC | 11.2% |
 | MA | 百变适者 | MENTAL+ADAPT | 10.5% |
 
-## 最高分值
-RISK:42, MENTAL:40, SYSTEM:44, ADAPT:38, EXEC:40, EDGE:42
-
 ## 项目结构
 ```
 client/src/
 ├── pages/
-│   ├── landing.tsx       # 开屏页（网格背景+浮动K线元素+呼吸灯CTA+高位者姿态文案）
-│   ├── quiz.tsx          # 答题页（12题，金色选中态+XP闪现动画）
-│   ├── loading.tsx       # ID卡生成动画（描边亮起+内容逐步显示+4秒）
-│   ├── auth.tsx          # 手机号注册页（答题后收集，保存档案）
-│   └── result.tsx        # 部分结果页（段位开箱+卡牌翻转+雷达轮廓+戳心描述+毛玻璃锁定+底部固定栏）
+│   ├── landing.tsx       # 欢迎页（品牌展示 + 登录/注册表单）
+│   ├── onboarding.tsx    # 注册引导页（推荐测评，可跳过）
+│   ├── home.tsx          # 主页（测评状态 + 未来功能入口）
+│   ├── quiz.tsx          # 答题页（12题，金色选中态+XP闪现）
+│   ├── loading.tsx       # ID卡生成动画
+│   └── result.tsx        # 结果页（段位开箱+卡牌翻转+雷达+戳心描述+毛玻璃锁定+底部固定栏）
 ├── components/
-│   ├── ThemeProvider.tsx  # 暗黑/明亮模式切换（跟随系统+手动切换）
+│   ├── ThemeProvider.tsx  # 暗黑/明亮模式切换
 │   ├── CountUp.tsx       # 数字滚动动画组件
-│   ├── ProgressBar.tsx   # 答题进度条（蓝→金渐变）
+│   ├── ProgressBar.tsx   # 答题进度条（蓝→金渐变，spring 动画）
 │   ├── RadarChart.tsx    # 雷达图（recharts，科技蓝填充）
-│   └── ShareCard.tsx     # 分享卡片（html2canvas）
+│   └── ShareCard.tsx     # 分享卡片（不显示实际分数，防泄露）
 ├── data/
-│   ├── questions.ts      # 12道题目数据（含每选项计分和内部标签）
+│   ├── questions.ts      # 12道题目数据
 │   ├── traderTypes.ts    # 12种人格类型 + 段位 + 稀有度 + 戳心描述
 │   └── salesStrategy.ts  # 12种类型对应的销售策略矩阵
 ├── utils/
-│   ├── calculateResult.ts # 评测计分逻辑（原始分→标准化→类型判定→段位）
-│   └── webhook.ts         # 前端 webhook 工具函数（sendRegisterWebhook + sendResultWebhook）
+│   ├── calculateResult.ts # 评测计分逻辑
+│   └── webhook.ts         # 前端 webhook 工具函数
 ├── lib/
-│   ├── auth.ts           # 认证hook
+│   ├── auth.ts           # 认证hook（含 hasQuizResult 字段）
 │   └── queryClient.ts    # API客户端
 server/
-├── routes.ts             # API路由（注册/登录/认证 + 双webhook路由）
-├── storage.ts            # 数据库存储层
+├── routes.ts             # API路由（注册/登录/认证 + 测评结果CRUD + 双webhook）
+├── storage.ts            # 数据库存储层（含 saveQuizResult / getLatestQuizResult）
 ├── db.ts                 # 数据库连接
-└── webhook.ts            # 企业微信Webhook（轻量注册通知 + 完整画像通知，含5分钟防刷）
+└── webhook.ts            # 企业微信Webhook
 shared/
-└── schema.ts             # 数据模型（users only）
+└── schema.ts             # 数据模型（users + quiz_results）
 ```
 
 ## 设计规范
@@ -91,36 +96,27 @@ shared/
   - 卡片: Light #FFFFFF / Dark #131826
   - 金色强调: #F0B90B（CTA按钮、选中态）
   - 科技蓝: #00D4FF（进度条、雷达图）
-  - 文字主: Light #1A1D26 / Dark #FFFFFF
-  - 文字次: Light #6B7280 / Dark #8B95A5
-- **字体**: Noto Sans SC 正文, Oswald 数字 (class: font-num)
-- **品牌**: Deltapex Trading Group logo
-- **动画**: Framer Motion spring 物理（stiffness/damping）为主，CSS keyframes（呼吸灯、浮动、扫描线）为辅
-  - 页面过渡: AnimatePresence + motion.div (fade+slide spring)
-  - 按钮: whileTap={{ scale: 0.97 }} + whileHover={{ scale: 1.02 }}
+- **动画**: Framer Motion spring 物理为主，CSS keyframes 为辅
+  - 页面过渡: AnimatePresence + motion.div (spring)
+  - 按钮: whileTap/whileHover 弹簧反馈
   - 进度条: spring 动画 (h-1.5 = 6px)
-  - XP闪现: 1000ms 生命周期, spring 弹入/淡出
-  - 段位开箱: "正在定位你的段位..." 提示文字
-  - 全局 CSS 过渡: color/background/border 0.2s ease（主题切换丝滑）
 - **底栏**: rgba(var(--bg-primary-rgb), 0.9) 主题感知透明度
-- **毛玻璃锁定**: blur(8px) + rgba(var(--bg-primary-rgb), 0.4) 遮罩
-- **分享卡**: 不显示实际分数（?? 代替），防止泄露
 - **移动端**: 375px 基准宽度, 44px 最小触控, safe-area-inset 适配
 
 ## 数据模型
 - **users**: id (serial), phone (varchar unique), password (text hashed), createdAt
+- **quiz_results**: id (serial), userId (integer), answers (jsonb), scores (jsonb), traderTypeCode (varchar), avgScore (integer), rankName (varchar), createdAt
 
 ## API接口
-- `POST /api/register` - 注册（创建数据库用户）
+- `POST /api/register` - 注册
 - `POST /api/login` - 登录
-- `GET /api/me` - 获取当前用户
+- `GET /api/me` - 获取当前用户（含 hasQuizResult）
 - `POST /api/logout` - 登出
-- `POST /api/webhook/register` - 手机号提交时推送轻量通知（节点1）
-- `POST /api/webhook/result` - 点击加客服时推送完整画像+销售策略（节点2）
+- `POST /api/quiz-result` - 保存测评结果（需登录）
+- `GET /api/quiz-result` - 获取最近一次测评结果（需登录）
+- `POST /api/webhook/register` - 注册通知（节点1）
+- `POST /api/webhook/result` - 完整画像通知（节点2）
 
 ## 企业微信
 - Webhook URL: `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1b7a8fca-f469-4cd0-9158-4e7eff0780ef`
-- Webhook节点1: AuthPage手机号提交 → 销售群收到轻量通知（微信昵称+手机号+状态）
-- Webhook节点2: 结果页点击加客服 → 销售群收到完整画像（段位+类型+六维█░进度条+🔥最强/⬆️突破口+销售策略四字段+💡快速判断）
-- 防刷机制: 同一手机号5分钟内不重复推送（server端内存Map）
 - 联系链接: `https://work.weixin.qq.com/ca/cawcde75d99eb3fce4`

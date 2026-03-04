@@ -89,7 +89,13 @@ export async function registerRoutes(
         return res.status(401).json({ message: "用户不存在" });
       }
 
-      res.json({ id: user.id, phone: user.phone });
+      const quizResult = await storage.getLatestQuizResult(userId);
+
+      res.json({
+        id: user.id,
+        phone: user.phone,
+        hasQuizResult: !!quizResult,
+      });
     } catch (err) {
       console.error("Get user error:", err);
       res.status(500).json({ message: "获取用户信息失败" });
@@ -100,6 +106,61 @@ export async function registerRoutes(
     req.session.destroy(() => {
       res.json({ ok: true });
     });
+  });
+
+  app.post("/api/quiz-result", async (req, res) => {
+    try {
+      const userId = (req.session as any)?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "未登录" });
+      }
+
+      const { answers, scores, traderTypeCode, avgScore, rankName } = req.body;
+
+      if (!Array.isArray(answers) || answers.length !== 12) {
+        return res.status(400).json({ message: "answers 必须是12个选项的数组" });
+      }
+      if (!scores || typeof scores !== 'object') {
+        return res.status(400).json({ message: "scores 必须是对象" });
+      }
+      if (typeof traderTypeCode !== 'string' || traderTypeCode.length < 2) {
+        return res.status(400).json({ message: "traderTypeCode 无效" });
+      }
+      if (typeof avgScore !== 'number' || avgScore < 0 || avgScore > 100) {
+        return res.status(400).json({ message: "avgScore 必须是0-100的数字" });
+      }
+      if (typeof rankName !== 'string' || rankName.length < 1) {
+        return res.status(400).json({ message: "rankName 无效" });
+      }
+
+      const result = await storage.saveQuizResult(userId, {
+        answers,
+        scores,
+        traderTypeCode,
+        avgScore,
+        rankName,
+      });
+
+      res.json({ success: true, id: result.id });
+    } catch (err) {
+      console.error("Save quiz result error:", err);
+      res.status(500).json({ message: "保存测评结果失败" });
+    }
+  });
+
+  app.get("/api/quiz-result", async (req, res) => {
+    try {
+      const userId = (req.session as any)?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "未登录" });
+      }
+
+      const result = await storage.getLatestQuizResult(userId);
+      res.json(result || null);
+    } catch (err) {
+      console.error("Get quiz result error:", err);
+      res.status(500).json({ message: "获取测评结果失败" });
+    }
   });
 
   app.post("/api/webhook/register", async (req, res) => {
