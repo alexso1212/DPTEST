@@ -25,7 +25,7 @@ const pageTransition = {
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -8 },
-  transition: { type: "spring" as const, stiffness: 300, damping: 30 },
+  transition: { duration: 0.22, ease: "easeOut" as const },
 };
 
 function loadResult(): QuizResult | null {
@@ -40,8 +40,8 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent-gold)', borderTopColor: 'transparent' }} />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-0)' }}>
+        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
       </div>
     );
   }
@@ -87,8 +87,8 @@ function ResultRoute({ quizResult }: { quizResult: QuizResult | null }) {
 
   if (!quizResult && isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent-gold)', borderTopColor: 'transparent' }} />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-0)' }}>
+        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
       </div>
     );
   }

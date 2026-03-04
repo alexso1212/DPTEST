@@ -35,7 +35,7 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
   }, [onDone]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden" style={{ background: 'var(--bg-0)' }}>
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {Array.from({ length: 8 }).map((_, i) => (
           <div
@@ -43,7 +43,7 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
             className="absolute w-full h-[1px] opacity-[0.08]"
             style={{
               top: `${12 + i * 12}%`,
-              background: 'var(--accent-blue)',
+              background: 'var(--info)',
               animation: `scan-line 3s linear infinite`,
               animationDelay: `${i * 0.3}s`,
             }}
@@ -57,9 +57,9 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
           style={{
             width: '220px',
             height: '300px',
-            background: cardPhase >= 1 ? 'var(--bg-card)' : 'transparent',
-            border: `2px solid ${cardPhase >= 1 ? 'rgba(var(--accent-blue-rgb), 0.4)' : 'rgba(var(--accent-blue-rgb), 0.05)'}`,
-            boxShadow: cardPhase >= 4 ? '0 0 40px rgba(0, 212, 255, 0.2), 0 0 80px rgba(240, 185, 11, 0.1)' : 'none',
+            background: cardPhase >= 1 ? 'var(--bg-1)' : 'transparent',
+            border: `2px solid ${cardPhase >= 1 ? 'rgba(var(--info-rgb), 0.4)' : 'rgba(var(--info-rgb), 0.05)'}`,
+            boxShadow: cardPhase >= 4 ? '0 0 40px rgba(var(--info-rgb), 0.2), 0 0 80px rgba(var(--accent-rgb), 0.1)' : 'none',
           }}
           animate={{
             scale: cardPhase >= 4 ? [1, 1.02, 1] : 1,
@@ -76,13 +76,13 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
               opacity: cardPhase >= 2 ? 1 : 0,
               scale: cardPhase >= 2 ? 1 : 0.5,
             }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
           >
             <div
               className="w-14 h-14 rounded-full flex items-center justify-center"
               style={{
-                background: 'rgba(var(--accent-gold-rgb), 0.1)',
-                border: '2px solid rgba(var(--accent-gold-rgb), 0.3)',
+                background: 'var(--accent-soft)',
+                border: '2px solid rgba(var(--accent-rgb), 0.3)',
               }}
             >
               <span className="text-2xl">🏆</span>
@@ -95,10 +95,10 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
             animate={{
               opacity: cardPhase >= 3 ? 1 : 0,
             }}
-            transition={{ type: "spring", stiffness: 200, damping: 25 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
           >
             <div className="text-3xl mb-2">❓</div>
-            <div className="w-24 h-3 rounded-full mx-auto" style={{ background: 'rgba(var(--accent-gold-rgb), 0.15)' }} />
+            <div className="w-24 h-3 rounded-full mx-auto" style={{ background: 'var(--accent-soft)' }} />
             <div className="w-32 h-2 rounded-full mx-auto mt-2" style={{ background: 'rgba(255,255,255,0.05)' }} />
           </motion.div>
 
@@ -108,20 +108,20 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
             animate={{
               opacity: cardPhase >= 3 ? 1 : 0,
             }}
-            transition={{ type: "spring", stiffness: 200, damping: 25, delay: 0.15 }}
+            transition={{ duration: 0.22, ease: "easeOut", delay: 0.1 }}
           >
             <svg viewBox="0 0 200 120" className="w-full opacity-30">
               <polygon
                 points="100,10 180,45 165,100 35,100 20,45"
                 fill="none"
-                stroke="var(--accent-blue)"
+                stroke="var(--info)"
                 strokeWidth="1"
                 opacity="0.4"
               />
               <polygon
                 points="100,30 150,55 140,90 60,90 50,55"
-                fill="rgba(0,212,255,0.08)"
-                stroke="var(--accent-blue)"
+                fill="rgba(56,189,248,0.08)"
+                stroke="var(--info)"
                 strokeWidth="1"
                 opacity="0.6"
               />
@@ -135,7 +135,7 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
               animate={{ opacity: [0, 0.6, 0] }}
               transition={{ duration: 0.6 }}
               style={{
-                background: 'radial-gradient(circle, rgba(0,212,255,0.3) 0%, transparent 70%)',
+                background: 'radial-gradient(circle, rgba(var(--info-rgb),0.3) 0%, transparent 70%)',
               }}
             />
           )}
@@ -144,9 +144,9 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 25 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
           className="text-center text-base font-semibold mb-8"
-          style={{ color: 'var(--text-primary)' }}
+          style={{ color: 'var(--text-strong)' }}
           data-testid="text-loading-title"
         >
           正在生成你的交易员档案...
@@ -161,25 +161,25 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
                 key={step}
                 initial={{ opacity: 0.3 }}
                 animate={{ opacity: isDone ? 1 : 0.3 }}
-                transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg"
               >
                 {isDone ? (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
                     className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
                     style={{ background: 'var(--success)' }}
                   >
                     <Check className="w-3 h-3 text-black" />
                   </motion.div>
                 ) : (
-                  <div className="w-5 h-5 rounded-full flex-shrink-0" style={{ border: '1.5px solid var(--border-color)' }} />
+                  <div className="w-5 h-5 rounded-full flex-shrink-0" style={{ border: '1.5px solid var(--border)' }} />
                 )}
                 <span
                   className="text-sm"
-                  style={{ color: isDone ? 'var(--success)' : 'var(--text-secondary)' }}
+                  style={{ color: isDone ? 'var(--success)' : 'var(--text-muted)' }}
                 >
                   {step}
                 </span>

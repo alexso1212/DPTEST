@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
-import { useTheme } from "@/components/ThemeProvider";
 import { motion } from "framer-motion";
-import { Sun, Moon, LogOut, ChevronRight, RotateCcw, Gamepad2, BookOpen, Users, FileText, Clock } from "lucide-react";
+import { LogOut, ChevronRight, RotateCcw, Gamepad2, BookOpen, Users, FileText, Clock } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
 
-const spring = { type: "spring" as const, stiffness: 260, damping: 26 };
+const ease = { duration: 0.22, ease: "easeOut" as const };
 
 const UNLOCK_HOURS = 4;
 
@@ -54,7 +53,6 @@ function useCountdown(targetTime: Date | null) {
 export default function HomePage() {
   const [, navigate] = useLocation();
   const { user, isLoading: authLoading } = useAuth();
-  const { theme, toggleTheme } = useTheme();
 
   const { data: quizResult, isLoading: quizLoading } = useQuery<StoredQuizResult | null>({
     queryKey: ["/api/quiz-result"],
@@ -76,8 +74,8 @@ export default function HomePage() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent-gold)', borderTopColor: 'transparent' }} />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-0)' }}>
+        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
       </div>
     );
   }
@@ -91,40 +89,30 @@ export default function HomePage() {
   const { remaining: countdown, unlocked: reportUnlocked } = useCountdown(unlockTime);
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-0)' }}>
       <div className="max-w-lg mx-auto px-5 pt-6 pb-10">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={spring}
+          transition={ease}
           className="flex items-center justify-between mb-6"
         >
           <div>
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>你好，</p>
-            <p className="text-lg font-bold font-num" style={{ color: 'var(--text-primary)' }} data-testid="text-user-phone">
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>你好，</p>
+            <p className="text-lg font-bold font-num" style={{ color: 'var(--text-strong)' }} data-testid="text-user-phone">
               {user.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <motion.button
-              onClick={toggleTheme}
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.92 }}
-              className="w-9 h-9 rounded-full flex items-center justify-center"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
-              data-testid="button-theme-toggle"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} /> : <Moon className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />}
-            </motion.button>
-            <motion.button
               onClick={handleLogout}
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.92 }}
-              className="w-9 h-9 rounded-full flex items-center justify-center"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-200"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
               data-testid="button-logout"
             >
-              <LogOut className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+              <LogOut className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
             </motion.button>
           </div>
         </motion.div>
@@ -132,19 +120,19 @@ export default function HomePage() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ ...spring, delay: 0.1 }}
+          transition={{ ...ease, delay: 0.08 }}
           className="rounded-2xl p-6 mb-4"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+          style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
         >
           {quizLoading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent-blue)', borderTopColor: 'transparent' }} />
+              <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
             </div>
           ) : quizResult && traderType && rank ? (
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>📊 交易能力测评</h3>
-                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(var(--accent-gold-rgb), 0.1)', color: 'var(--accent-gold)' }}>
+                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>📊 交易能力测评</h3>
+                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
                   已完成
                 </span>
               </div>
@@ -152,10 +140,10 @@ export default function HomePage() {
               <div className="flex items-center gap-4 mb-4">
                 <div className="text-4xl">{traderType.icon}</div>
                 <div>
-                  <p className="text-lg font-bold" style={{ color: 'var(--accent-gold)' }} data-testid="text-trader-type">
+                  <p className="text-lg font-bold" style={{ color: 'var(--accent)' }} data-testid="text-trader-type">
                     {traderType.name}
                   </p>
-                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                     {traderType.oneLiner}
                   </p>
                 </div>
@@ -172,7 +160,7 @@ export default function HomePage() {
                   <span className="text-2xl font-num font-bold" style={{ color: rank.color }}>
                     {quizResult.avgScore}
                   </span>
-                  <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>/100</span>
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>/100</span>
                 </div>
               </div>
 
@@ -192,9 +180,9 @@ export default function HomePage() {
                     navigate("/result");
                   }}
                   whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5"
-                  style={{ background: 'rgba(var(--accent-blue-rgb), 0.1)', color: 'var(--accent-blue)' }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-200"
+                  style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}
                   data-testid="button-view-result"
                 >
                   查看详情
@@ -203,9 +191,9 @@ export default function HomePage() {
                 <motion.button
                   onClick={() => navigate("/quiz")}
                   whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5"
-                  style={{ border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-200"
+                  style={{ border: '1px solid var(--border)', color: 'var(--text-muted)' }}
                   data-testid="button-retake"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -214,21 +202,21 @@ export default function HomePage() {
               </div>
 
               {quizResult.shareToken && (
-                <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border-color)' }}>
+                <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
                   {reportUnlocked ? (
                     <motion.button
                       onClick={() => navigate(`/report/${quizResult.shareToken}`)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
-                      className="w-full py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 text-black"
-                      style={{ background: 'var(--accent-gold)' }}
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 text-white animate-breathe transition-all duration-200"
+                      style={{ background: 'var(--accent)' }}
                       data-testid="button-view-report"
                     >
                       <FileText className="w-4 h-4" />
                       查看完整报告
                     </motion.button>
                   ) : (
-                    <div className="flex items-center justify-center gap-2 py-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    <div className="flex items-center justify-center gap-2 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
                       <Clock className="w-3.5 h-3.5" />
                       <span data-testid="text-countdown">{countdown} 后可查看完整报告</span>
                     </div>
@@ -239,18 +227,18 @@ export default function HomePage() {
           ) : (
             <div className="text-center py-4">
               <div className="text-4xl mb-3">📋</div>
-              <h3 className="text-base font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
+              <h3 className="text-base font-bold mb-1" style={{ color: 'var(--text-strong)' }}>
                 你还没有完成交易能力测评
               </h3>
-              <p className="text-xs mb-5" style={{ color: 'var(--text-secondary)' }}>
+              <p className="text-xs mb-5" style={{ color: 'var(--text-muted)' }}>
                 2分钟 · 12道实战情境题 · 发现你的交易DNA
               </p>
               <motion.button
                 onClick={() => navigate("/quiz")}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                className="w-full h-11 rounded-xl font-bold text-sm text-black"
-                style={{ background: 'var(--accent-gold)' }}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full h-11 rounded-xl font-bold text-sm text-white transition-all duration-200"
+                style={{ background: 'var(--accent)' }}
                 data-testid="button-start-quiz"
               >
                 开始测评 →
@@ -262,32 +250,32 @@ export default function HomePage() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ ...spring, delay: 0.2 }}
+          transition={{ ...ease, delay: 0.16 }}
           className="space-y-3"
         >
-          <h3 className="text-sm font-semibold px-1" style={{ color: 'var(--text-secondary)' }}>更多功能</h3>
+          <h3 className="text-sm font-semibold px-1" style={{ color: 'var(--text-muted)' }}>更多功能</h3>
 
           {[
-            { icon: <Gamepad2 className="w-5 h-5" />, title: "交易模拟游戏", desc: "即将上线", color: 'var(--accent-blue)' },
-            { icon: <BookOpen className="w-5 h-5" />, title: "学习中心", desc: "即将上线", color: 'var(--accent-gold)' },
+            { icon: <Gamepad2 className="w-5 h-5" />, title: "交易模拟游戏", desc: "即将上线", color: 'var(--info)' },
+            { icon: <BookOpen className="w-5 h-5" />, title: "学习中心", desc: "即将上线", color: 'var(--accent)' },
             { icon: <Users className="w-5 h-5" />, title: "交易社群", desc: "即将上线", color: 'var(--success)' },
           ].map((item) => (
             <div
               key={item.title}
               className="rounded-xl p-4 flex items-center gap-4 opacity-60"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+              style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
             >
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: `${item.color}15`, color: item.color }}
+                style={{ background: `color-mix(in srgb, ${item.color} 15%, transparent)`, color: item.color }}
               >
                 {item.icon}
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{item.title}</p>
-                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{item.desc}</p>
+                <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>{item.title}</p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{item.desc}</p>
               </div>
-              <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+              <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
             </div>
           ))}
         </motion.div>

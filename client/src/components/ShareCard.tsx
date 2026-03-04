@@ -16,7 +16,7 @@ export default function ShareCard({ result }: ShareCardProps) {
     try {
       const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: "#0A0E17",
+        backgroundColor: "#0B0F14",
         scale: 2,
         useCORS: true,
       });
@@ -37,7 +37,7 @@ export default function ShareCard({ result }: ShareCardProps) {
       <div
         ref={cardRef}
         className="rounded-2xl p-6"
-        style={{ background: '#0d1220', border: '1px solid rgba(255,255,255,0.1)' }}
+        style={{ background: '#0F1620', border: '1px solid rgba(255,255,255,0.08)' }}
         data-testid="share-card"
       >
         <div className="text-center mb-4">
@@ -48,14 +48,14 @@ export default function ShareCard({ result }: ShareCardProps) {
             <span className="text-4xl font-num font-bold" style={{ color: result.rank.color }}>
               ??
             </span>
-            <span className="text-sm" style={{ color: '#8B95A5' }}>/100</span>
+            <span className="text-sm" style={{ color: '#94A3B8' }}>/100</span>
           </div>
         </div>
 
         <div className="text-center mb-5">
           <div className="text-3xl mb-1">{result.traderType.icon}</div>
-          <h3 className="text-lg font-bold text-white">{result.traderType.name}</h3>
-          <p className="text-xs mt-1" style={{ color: '#F0B90B' }}>{result.traderType.oneLiner}</p>
+          <h3 className="text-lg font-bold" style={{ color: '#E5E7EB' }}>{result.traderType.name}</h3>
+          <p className="text-xs mt-1" style={{ color: '#E63946' }}>{result.traderType.oneLiner}</p>
         </div>
 
         <div className="space-y-2 mb-4">
@@ -63,8 +63,8 @@ export default function ShareCard({ result }: ShareCardProps) {
             const filled = Math.round(result.normalizedScores[dim] / 20);
             return (
               <div key={dim} className="flex items-center justify-between text-xs">
-                <span className="w-16" style={{ color: '#8B95A5' }}>{dimensionLabels[dim]}</span>
-                <span style={{ color: i === 0 ? '#F0B90B' : '#00D4FF' }}>
+                <span className="w-16" style={{ color: '#94A3B8' }}>{dimensionLabels[dim]}</span>
+                <span style={{ color: i === 0 ? '#E63946' : '#38BDF8' }}>
                   {'◆'.repeat(Math.min(5, filled))}{'◇'.repeat(Math.max(0, 5 - filled))}
                 </span>
               </div>
@@ -73,10 +73,10 @@ export default function ShareCard({ result }: ShareCardProps) {
         </div>
 
         <div className="flex items-center justify-between px-2 py-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)' }}>
-          <div className="text-xs" style={{ color: '#8B95A5' }}>
-            稀有度: <span className="font-semibold" style={{ color: '#F0B90B' }}>{result.rarity}</span>
+          <div className="text-xs" style={{ color: '#94A3B8' }}>
+            稀有度: <span className="font-semibold" style={{ color: '#E63946' }}>{result.rarity}</span>
           </div>
-          <div className="text-xs" style={{ color: '#8B95A5' }}>
+          <div className="text-xs" style={{ color: '#94A3B8' }}>
             添加顾问领取完整报告
           </div>
         </div>
@@ -88,13 +88,13 @@ export default function ShareCard({ result }: ShareCardProps) {
 
       <motion.button
         onClick={handleSave}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.97 }}
-        className="w-full mt-3 py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2"
+        whileHover={{ scale: 1.02, y: -2 }}
+        whileTap={{ scale: 0.98 }}
+        className="w-full mt-3 py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200"
         style={{
           background: 'transparent',
-          border: '1px solid var(--accent-blue)',
-          color: 'var(--accent-blue)',
+          border: '1px solid var(--accent)',
+          color: 'var(--accent)',
         }}
         data-testid="button-download-card"
       >

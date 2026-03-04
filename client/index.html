@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
@@ -11,15 +11,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-      (function() {
-        var mq = window.matchMedia('(prefers-color-scheme: dark)');
-        var saved = localStorage.getItem('theme');
-        if (saved === 'dark' || (!saved && mq.matches)) {
-          document.documentElement.classList.add('dark');
-        }
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -6,15 +6,14 @@ export default {
   theme: {
     extend: {
       borderRadius: {
-        lg: ".5625rem", /* 9px */
-        md: ".375rem", /* 6px */
-        sm: ".1875rem", /* 3px */
+        lg: "1rem",
+        md: ".75rem",
+        sm: ".375rem",
       },
       colors: {
-        // Flat / base colors (regular buttons)
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",
-        border: "hsl(var(--border) / <alpha-value>)",
+        border: "hsl(var(--border-hsl) / <alpha-value>)",
         input: "hsl(var(--input) / <alpha-value>)",
         card: {
           DEFAULT: "hsl(var(--card) / <alpha-value>)",
@@ -42,7 +41,7 @@ export default {
           border: "var(--muted-border)",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent) / <alpha-value>)",
+          DEFAULT: "hsl(var(--accent-hsl) / <alpha-value>)",
           foreground: "hsl(var(--accent-foreground) / <alpha-value>)",
           border: "var(--accent-border)",
         },
@@ -84,6 +83,7 @@ export default {
       },
       fontFamily: {
         sans: ["var(--font-sans)"],
+        heading: ["var(--font-heading)"],
         serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
       },
