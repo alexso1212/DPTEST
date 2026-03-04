@@ -9,7 +9,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
-import OnboardingPage from "@/pages/onboarding";
 import HomePage from "@/pages/home";
 import QuizPage from "@/pages/quiz";
 import LoadingPage from "@/pages/loading";
@@ -30,7 +29,7 @@ const pageTransition = {
 
 function loadResult(): QuizResult | null {
   try {
-    const raw = sessionStorage.getItem(RESULT_KEY);
+    const raw = localStorage.getItem(RESULT_KEY) || sessionStorage.getItem(RESULT_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch { return null; }
 }
@@ -94,7 +93,7 @@ function ResultRoute({ quizResult }: { quizResult: QuizResult | null }) {
   }
 
   if (!finalResult) {
-    return <Redirect to="/home" />;
+    return <Redirect to="/" />;
   }
 
   return <ResultPage result={finalResult} />;
@@ -106,17 +105,19 @@ function Router() {
 
   useEffect(() => {
     if (quizResult) {
+      localStorage.setItem(RESULT_KEY, JSON.stringify(quizResult));
       sessionStorage.setItem(RESULT_KEY, JSON.stringify(quizResult));
     }
   }, [quizResult]);
 
   const handleQuizComplete = useCallback(async (answers: number[]) => {
+    localStorage.setItem(ANSWERS_KEY, JSON.stringify(answers));
     sessionStorage.setItem(ANSWERS_KEY, JSON.stringify(answers));
     const result = calculateResult(answers);
     setQuizResult(result);
 
     try {
-      await fetch("/api/quiz-result", {
+      const res = await fetch("/api/quiz-result", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -128,10 +129,12 @@ function Router() {
         }),
         credentials: "include",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/quiz-result"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/me"] });
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: ["/api/quiz-result"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/me"] });
+      }
     } catch (err) {
-      console.error("Failed to save quiz result:", err);
+      // Will be saved later after login
     }
 
     navigate("/loading");
@@ -151,12 +154,6 @@ function Router() {
         <Switch>
           <Route path="/" component={LandingPage} />
 
-          <Route path="/onboarding">
-            <AuthGuard>
-              <OnboardingPage />
-            </AuthGuard>
-          </Route>
-
           <Route path="/home">
             <AuthGuard>
               <HomePage />
@@ -164,21 +161,15 @@ function Router() {
           </Route>
 
           <Route path="/quiz">
-            <AuthGuard>
-              <QuizPage onComplete={handleQuizComplete} />
-            </AuthGuard>
+            <QuizPage onComplete={handleQuizComplete} />
           </Route>
 
           <Route path="/loading">
-            <AuthGuard>
-              {quizResult ? <LoadingPage onDone={handleLoadingDone} /> : <Redirect to="/home" />}
-            </AuthGuard>
+            {quizResult ? <LoadingPage onDone={handleLoadingDone} /> : <Redirect to="/" />}
           </Route>
 
           <Route path="/result">
-            <AuthGuard>
-              <ResultRoute quizResult={quizResult} />
-            </AuthGuard>
+            <ResultRoute quizResult={quizResult} />
           </Route>
 
           <Route path="/report/:token" component={ReportPage} />

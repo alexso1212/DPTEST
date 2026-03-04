@@ -2,18 +2,20 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { SiWechat } from "react-icons/si";
-import { Lock, Camera, Home, X } from "lucide-react";
+import { Lock, Camera, Home, X, UserPlus } from "lucide-react";
 import RadarChartComponent from "@/components/RadarChart";
 import ShareCard from "@/components/ShareCard";
 import CountUp from "@/components/CountUp";
 import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
 import CharacterCard from "@/components/CharacterCard";
 import RankBadge from "@/components/RankBadge";
+import LoginModal from "@/components/LoginModal";
 import type { QuizResult } from "@/utils/calculateResult";
 import { dimensionLabels, type Dimension } from "@/data/questions";
 import { salesStrategy } from "@/data/salesStrategy";
 import { sendResultWebhook } from "@/utils/webhook";
 import { useAuth } from "@/lib/auth";
+import { queryClient } from "@/lib/queryClient";
 
 interface ResultPageProps {
   result: QuizResult;
@@ -241,8 +243,48 @@ export default function ResultPage({ result }: ResultPageProps) {
   const [showUnbox, setShowUnbox] = useState(true);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showCardPanel, setShowCardPanel] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [resultSaved, setResultSaved] = useState(false);
   const [c1] = traderType.colors;
   const cc = traderType.cardColors;
+
+  useEffect(() => {
+    if (!user && !showUnbox) {
+      const timer = setTimeout(() => setShowLoginModal(true), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [user, showUnbox]);
+
+  useEffect(() => {
+    if (user && !resultSaved) {
+      const answers = (() => {
+        try { return JSON.parse(localStorage.getItem('quiz_answers') || sessionStorage.getItem('quiz_answers') || '[]'); } catch { return []; }
+      })();
+      if (answers.length === 12) {
+        fetch("/api/quiz-result", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            answers,
+            scores: normalizedScores,
+            traderTypeCode: traderType.code,
+            avgScore,
+            rankName: rank.name,
+          }),
+          credentials: "include",
+        }).then(() => {
+          setResultSaved(true);
+          queryClient.invalidateQueries({ queryKey: ["/api/quiz-result"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/me"] });
+        }).catch(() => {});
+      }
+    }
+  }, [user, resultSaved, normalizedScores, traderType, avgScore, rank]);
+
+  const handleLoginSuccess = useCallback(() => {
+    setShowLoginModal(false);
+    queryClient.invalidateQueries({ queryKey: ["/api/me"] });
+  }, []);
 
   const sortedDims = useMemo(() => {
     const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
@@ -562,6 +604,36 @@ export default function ResultPage({ result }: ResultPageProps) {
               <CharacterCardPanel result={result} onClose={() => setShowCardPanel(false)} />
             )}
           </AnimatePresence>
+
+          {!user && (
+            <motion.div
+              initial={{ y: 60, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.5, ...ease }}
+              className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-5 pt-3"
+              style={{ background: 'linear-gradient(to top, #0D0F14 60%, transparent)' }}
+            >
+              <motion.button
+                onClick={() => setShowLoginModal(true)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full max-w-lg mx-auto py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 text-white transition-all duration-200"
+                style={{ background: 'var(--primary)' }}
+                data-testid="button-login-prompt"
+              >
+                <UserPlus className="w-4 h-4" />
+                登录 / 注册以保存结果
+              </motion.button>
+            </motion.div>
+          )}
+
+          <LoginModal
+            open={showLoginModal}
+            onClose={() => setShowLoginModal(false)}
+            onSuccess={handleLoginSuccess}
+            title="登录以保存你的测评结果"
+            subtitle="注册后可随时查看你的交易员档案"
+          />
         </div>
       )}
     </>
