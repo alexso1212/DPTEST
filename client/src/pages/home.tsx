@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { motion } from "framer-motion";
-import { LogOut, ChevronRight, RotateCcw, Gamepad2, BookOpen, Users, FileText, Clock } from "lucide-react";
+import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLink, Building2, Star, Radio, Wrench, Trophy } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
 
@@ -256,28 +256,56 @@ export default function HomePage() {
           <h3 className="text-sm font-semibold px-1" style={{ color: 'var(--text-muted)' }}>更多功能</h3>
 
           {[
-            { icon: <Gamepad2 className="w-5 h-5" />, title: "交易模拟游戏", desc: "即将上线", color: 'var(--info)' },
-            { icon: <BookOpen className="w-5 h-5" />, title: "学习中心", desc: "即将上线", color: 'var(--primary)' },
-            { icon: <Users className="w-5 h-5" />, title: "交易社群", desc: "即将上线", color: 'var(--success)' },
-          ].map((item) => (
-            <div
-              key={item.title}
-              className="rounded-xl p-4 flex items-center gap-4 opacity-60"
-              style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
-            >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: `color-mix(in srgb, ${item.color} 15%, transparent)`, color: item.color }}
+            { icon: <Building2 className="w-5 h-5" />, title: "PropFirm 汇总", desc: "期货自营公司推荐 & 专属折扣码", color: 'var(--primary)', href: "https://deltapex.zeabur.app" },
+            { icon: <Star className="w-5 h-5" />, title: "知识星球", desc: "每日美盘深度逻辑 & 订单流复盘", color: 'var(--warning)', href: "https://deltapex.zeabur.app" },
+            { icon: <Radio className="w-5 h-5" />, title: "官方直播间", desc: "实盘直播 & Ali交易日志", color: 'var(--info)', href: "https://deltapex.zeabur.app" },
+            { icon: <Wrench className="w-5 h-5" />, title: "交易工具", desc: "ATAS订单流 & EBC极速开户", color: 'var(--success)', href: "https://deltapex.zeabur.app" },
+            { icon: <Trophy className="w-5 h-5" />, title: "学员案例", desc: "真实学员通过考核业绩展示", color: 'var(--info)', href: "https://deltapex.zeabur.app" },
+            { icon: <Gamepad2 className="w-5 h-5" />, title: "交易模拟游戏", desc: "即将上线", color: 'var(--text-muted)', href: null },
+          ].map((item) => {
+            const content = (
+              <>
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: `color-mix(in srgb, ${item.color} 15%, transparent)`, color: item.color }}
+                >
+                  {item.icon}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>{item.title}</p>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{item.desc}</p>
+                </div>
+                {item.href ? (
+                  <ExternalLink className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
+                ) : (
+                  <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
+                )}
+              </>
+            );
+
+            return item.href ? (
+              <a
+                key={item.title}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-xl p-4 flex items-center gap-4 transition-all duration-200"
+                style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
+                data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
               >
-                {item.icon}
+                {content}
+              </a>
+            ) : (
+              <div
+                key={item.title}
+                className="rounded-xl p-4 flex items-center gap-4 opacity-60"
+                style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
+                data-testid="card-coming-soon"
+              >
+                {content}
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>{item.title}</p>
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{item.desc}</p>
-              </div>
-              <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-            </div>
-          ))}
+            );
+          })}
         </motion.div>
       </div>
     </div>

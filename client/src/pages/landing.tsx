@@ -300,6 +300,16 @@ export default function LandingPage() {
             注册即可免费获取交易能力测评<br />
             发现你的交易 DNA
           </p>
+          <a
+            href="https://deltapex.zeabur.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mt-3 text-xs transition-all duration-200 hover:underline"
+            style={{ color: 'var(--text-muted)' }}
+            data-testid="link-official-site"
+          >
+            访问 Deltapex 官网 →
+          </a>
         </motion.div>
       </div>
     </div>
