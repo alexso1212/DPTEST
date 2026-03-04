@@ -1,35 +1,53 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
+import { dimensionLabels, type Dimension } from "@/data/questions";
 
 interface LoadingPageProps {
   onDone: () => void;
+  scores?: Record<Dimension, number>;
 }
 
-const analysisSteps = [
-  "风险偏好已识别",
-  "交易心理已评估",
-  "能力边界已定位",
-  "档案生成完毕",
+const dims: { key: Dimension; icon: string; color: string }[] = [
+  { key: 'RISK', icon: '🛡', color: '#E85D5D' },
+  { key: 'MENTAL', icon: '🧠', color: '#A78BFA' },
+  { key: 'SYSTEM', icon: '⚙️', color: '#38BDF8' },
+  { key: 'ADAPT', icon: '🌊', color: '#22C55E' },
+  { key: 'EXEC', icon: '⚡', color: '#F59E0B' },
+  { key: 'EDGE', icon: '🔭', color: '#C9A456' },
 ];
 
-export default function LoadingPage({ onDone }: LoadingPageProps) {
-  const [completedSteps, setCompletedSteps] = useState(0);
-  const [cardPhase, setCardPhase] = useState(0);
+const statusTexts = [
+  { text: '正在扫描你的交易记忆...', duration: 1600 },
+  { text: '正在匹配交易人格数据库...', duration: 1200 },
+  { text: '找到了。', duration: 800 },
+];
+
+export default function LoadingPage({ onDone, scores }: LoadingPageProps) {
+  const [revealedDims, setRevealedDims] = useState(0);
+  const [statusIdx, setStatusIdx] = useState(0);
+  const [titleChars, setTitleChars] = useState(0);
+  const title = '正在分析你的交易DNA...';
 
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    timers.push(setTimeout(() => setCardPhase(1), 200));
-    timers.push(setTimeout(() => setCardPhase(2), 1000));
-    timers.push(setTimeout(() => setCardPhase(3), 2000));
-    timers.push(setTimeout(() => setCardPhase(4), 3000));
-
-    for (let i = 0; i < analysisSteps.length; i++) {
-      timers.push(setTimeout(() => setCompletedSteps(i + 1), 800 * (i + 1)));
+    for (let i = 0; i <= title.length; i++) {
+      timers.push(setTimeout(() => setTitleChars(i), 60 * i));
     }
 
-    timers.push(setTimeout(() => onDone(), 4000));
+    const dimStart = 800;
+    for (let i = 0; i < dims.length; i++) {
+      timers.push(setTimeout(() => setRevealedDims(i + 1), dimStart + i * 400));
+    }
+
+    const statusStart = dimStart + dims.length * 400 + 200;
+    let accum = statusStart;
+    for (let i = 0; i < statusTexts.length; i++) {
+      timers.push(setTimeout(() => setStatusIdx(i), accum));
+      accum += statusTexts[i].duration;
+    }
+
+    timers.push(setTimeout(() => onDone(), accum + 300));
 
     return () => timers.forEach(clearTimeout);
   }, [onDone]);
@@ -37,155 +55,105 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden" style={{ background: 'var(--bg-0)' }}>
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
-            className="absolute w-full h-[1px] opacity-[0.08]"
+            className="absolute w-full h-[1px] opacity-[0.05]"
             style={{
-              top: `${12 + i * 12}%`,
-              background: 'var(--info)',
+              top: `${15 + i * 14}%`,
+              background: 'var(--gold)',
               animation: `scan-line 3s linear infinite`,
-              animationDelay: `${i * 0.3}s`,
+              animationDelay: `${i * 0.4}s`,
             }}
           />
         ))}
       </div>
 
-      <div className="relative z-10 w-full max-w-xs mx-auto">
+      <div className="relative z-10 w-full max-w-sm mx-auto">
         <motion.div
-          className="relative mx-auto rounded-2xl overflow-hidden mb-8"
-          style={{
-            width: '220px',
-            height: '300px',
-            background: cardPhase >= 1 ? 'var(--bg-1)' : 'transparent',
-            border: `2px solid ${cardPhase >= 1 ? 'rgba(var(--info-rgb), 0.4)' : 'rgba(var(--info-rgb), 0.05)'}`,
-            boxShadow: cardPhase >= 4 ? '0 0 40px rgba(var(--info-rgb), 0.2), 0 0 80px rgba(var(--primary-rgb), 0.1)' : 'none',
-          }}
-          animate={{
-            scale: cardPhase >= 4 ? [1, 1.02, 1] : 1,
-          }}
-          transition={{
-            scale: { duration: 0.6, ease: "easeInOut" },
-            default: { duration: 0.8, ease: "easeOut" },
-          }}
-        >
-          <motion.div
-            className="absolute top-6 left-0 right-0 flex justify-center"
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{
-              opacity: cardPhase >= 2 ? 1 : 0,
-              scale: cardPhase >= 2 ? 1 : 0.5,
-            }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-          >
-            <div
-              className="w-14 h-14 rounded-full flex items-center justify-center"
-              style={{
-                background: 'var(--primary-soft)',
-                border: '2px solid rgba(var(--primary-rgb), 0.3)',
-              }}
-            >
-              <span className="text-2xl">🏆</span>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="absolute top-[40%] left-0 right-0 text-center"
-            initial={{ opacity: 0 }}
-            animate={{
-              opacity: cardPhase >= 3 ? 1 : 0,
-            }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-          >
-            <div className="text-3xl mb-2">❓</div>
-            <div className="w-24 h-3 rounded-full mx-auto" style={{ background: 'var(--primary-soft)' }} />
-            <div className="w-32 h-2 rounded-full mx-auto mt-2" style={{ background: 'rgba(255,255,255,0.05)' }} />
-          </motion.div>
-
-          <motion.div
-            className="absolute bottom-6 left-4 right-4"
-            initial={{ opacity: 0 }}
-            animate={{
-              opacity: cardPhase >= 3 ? 1 : 0,
-            }}
-            transition={{ duration: 0.22, ease: "easeOut", delay: 0.1 }}
-          >
-            <svg viewBox="0 0 200 120" className="w-full opacity-30">
-              <polygon
-                points="100,10 180,45 165,100 35,100 20,45"
-                fill="none"
-                stroke="var(--info)"
-                strokeWidth="1"
-                opacity="0.4"
-              />
-              <polygon
-                points="100,30 150,55 140,90 60,90 50,55"
-                fill="rgba(56,189,248,0.08)"
-                stroke="var(--info)"
-                strokeWidth="1"
-                opacity="0.6"
-              />
-            </svg>
-          </motion.div>
-
-          {cardPhase >= 4 && (
-            <motion.div
-              className="absolute inset-0 rounded-2xl"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.6, 0] }}
-              transition={{ duration: 0.6 }}
-              style={{
-                background: 'radial-gradient(circle, rgba(var(--info-rgb),0.3) 0%, transparent 70%)',
-              }}
-            />
-          )}
-        </motion.div>
-
-        <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.22, ease: "easeOut" }}
-          className="text-center text-base font-semibold mb-8"
-          style={{ color: 'var(--text-strong)' }}
-          data-testid="text-loading-title"
+          className="text-center mb-10"
         >
-          正在生成你的交易员档案...
-        </motion.p>
+          <h2
+            className="font-serif text-xl font-semibold"
+            style={{ color: 'var(--text-strong)' }}
+            data-testid="text-loading-title"
+          >
+            {title.slice(0, titleChars)}
+            <span
+              className="inline-block w-[2px] h-5 ml-0.5 align-middle"
+              style={{
+                background: 'var(--gold)',
+                animation: 'typewriter-cursor 0.8s ease-in-out infinite',
+              }}
+            />
+          </h2>
+        </motion.div>
 
-        <div className="space-y-2.5">
-          {analysisSteps.map((step, i) => {
-            const isDone = i < completedSteps;
+        <div className="space-y-3 mb-10">
+          {dims.map((dim, i) => {
+            const isRevealed = i < revealedDims;
+            const score = scores?.[dim.key] ?? Math.round(40 + Math.random() * 50);
 
             return (
               <motion.div
-                key={step}
-                initial={{ opacity: 0.3 }}
-                animate={{ opacity: isDone ? 1 : 0.3 }}
-                transition={{ duration: 0.22, ease: "easeOut" }}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg"
+                key={dim.key}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{
+                  opacity: isRevealed ? 1 : 0.15,
+                  x: isRevealed ? 0 : -20,
+                }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className="flex items-center gap-3"
               >
-                {isDone ? (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.18, ease: "easeOut" }}
-                    className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'var(--success)' }}
-                  >
-                    <Check className="w-3 h-3 text-black" />
-                  </motion.div>
-                ) : (
-                  <div className="w-5 h-5 rounded-full flex-shrink-0" style={{ border: '1.5px solid var(--border)' }} />
-                )}
-                <span
-                  className="text-sm"
-                  style={{ color: isDone ? 'var(--success)' : 'var(--text-muted)' }}
-                >
-                  {step}
+                <span className="text-base w-6 text-center">{dim.icon}</span>
+                <span className="text-xs w-16 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
+                  {dimensionLabels[dim.key]}
                 </span>
+                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                  <motion.div
+                    className="h-full rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: isRevealed ? `${score}%` : '0%' }}
+                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+                    style={{ background: dim.color }}
+                  />
+                </div>
+                <motion.span
+                  className="text-sm font-num w-8 text-right font-semibold"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: isRevealed ? 1 : 0 }}
+                  transition={{ duration: 0.3, delay: 0.3 }}
+                  style={{ color: dim.color }}
+                >
+                  {isRevealed ? score : ''}
+                </motion.span>
               </motion.div>
             );
           })}
+        </div>
+
+        <div className="text-center">
+          <motion.p
+            key={statusIdx}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="text-sm"
+            style={{
+              color: statusIdx === statusTexts.length - 1 ? 'var(--gold)' : 'var(--text-muted)',
+              fontWeight: statusIdx === statusTexts.length - 1 ? 600 : 400,
+              fontFamily: statusIdx === statusTexts.length - 1 ? 'var(--font-serif)' : 'inherit',
+            }}
+          >
+            {statusIdx < statusTexts.length && (
+              <>
+                {statusIdx < statusTexts.length - 1 && <span className="mr-1">✦</span>}
+                {statusTexts[statusIdx].text}
+              </>
+            )}
+          </motion.p>
         </div>
       </div>
     </div>

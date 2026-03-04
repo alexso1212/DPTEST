@@ -6,6 +6,8 @@ import { SiWechat } from "react-icons/si";
 import { traderTypes, rankTiers } from "@/data/traderTypes";
 import { dimensionLabels, type Dimension } from "@/data/questions";
 import RadarChartComponent from "@/components/RadarChart";
+import CharacterIcon from "@/components/CharacterIcon";
+import RankBadge from "@/components/RankBadge";
 
 const ease = { duration: 0.22, ease: "easeOut" as const };
 
@@ -83,6 +85,8 @@ function ReportContent({
   scores: Record<Dimension, number>;
   avgScore: number;
 }) {
+  const [c1, c2] = traderType?.colors ?? ['#C9A456', '#94A3B8'];
+
   const sortedDims = useMemo(() => {
     const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
     return [...dims].sort((a, b) => scores[b] - scores[a]);
@@ -108,33 +112,67 @@ function ReportContent({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, ...ease }}
-          className="rounded-2xl p-5 text-center"
-          style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
+          className="rounded-2xl p-5 text-center relative overflow-hidden"
+          style={{
+            background: `linear-gradient(145deg, ${c1}12, var(--bg-1), ${c1}08)`,
+            border: `1px solid ${c2}30`,
+            boxShadow: `0 0 30px ${c1}10`,
+          }}
         >
-          <div className="text-3xl mb-1">{rank.icon}</div>
-          <div className="text-xl font-heading font-bold font-num" style={{ color: rank.color }} data-testid="text-rank">
-            {rank.name}
+          <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 0%, ${c1}15, transparent 60%)` }} />
+          <div className="relative">
+            <div className="flex justify-center mb-3">
+              <RankBadge tier={rank} size="lg" />
+            </div>
+            <div className="text-xl font-heading font-bold font-num" style={{ color: rank.color }} data-testid="text-rank">
+              {rank.name}
+            </div>
+            <div className="flex items-baseline justify-center gap-1 mt-1">
+              <span className="text-3xl font-num font-bold" style={{ color: rank.color }}>{avgScore}</span>
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>/100</span>
+            </div>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{rank.description}</p>
           </div>
-          <div className="flex items-baseline justify-center gap-1 mt-1">
-            <span className="text-3xl font-num font-bold" style={{ color: rank.color }}>{avgScore}</span>
-            <span className="text-sm" style={{ color: 'var(--text-muted)' }}>/100</span>
-          </div>
-          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{rank.description}</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.12, ...ease }}
-          className="rounded-2xl p-6 text-center"
-          style={{ background: 'var(--bg-1)', border: `2px solid ${rank.color}40`, boxShadow: `0 0 30px ${rank.color}15` }}
+          className="rounded-2xl p-6 text-center relative overflow-hidden"
+          style={{
+            background: `linear-gradient(145deg, ${c1}15, var(--bg-1))`,
+            border: `1.5px solid ${c2}40`,
+            boxShadow: `0 0 30px ${c1}15`,
+          }}
         >
-          <div className="text-5xl mb-3">{traderType.icon}</div>
-          <h3 className="text-xl font-bold mb-1" style={{ color: 'var(--primary)' }} data-testid="text-type-name">
+          {traderType?.element && (
+          <div className="flex items-center gap-1 justify-start mb-2">
+            <span className="text-xs font-tag" style={{ color: c2, opacity: 0.7 }}>
+              {traderType.element.icon} {traderType.element.name}
+            </span>
+          </div>
+          )}
+          <div className="flex justify-center mb-3">
+            <CharacterIcon typeCode={traderType.code} size={120} />
+          </div>
+          <h3 className="text-xl font-serif font-bold mb-1" style={{ color: c1 }} data-testid="text-type-name">
             {traderType.name}
           </h3>
-          <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>{traderType.subtitle}</p>
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-strong)' }} data-testid="text-one-liner">
+          <p className="text-xs font-tag tracking-widest mb-2" style={{ color: c2 }}>
+            {traderType.subtitle}
+          </p>
+          <div className="flex items-center gap-2 justify-center mb-3">
+            <div className="flex-1 h-[1px] max-w-[60px]" style={{ background: `linear-gradient(to right, transparent, var(--gold))` }} />
+            <span className="text-xs" style={{ color: 'var(--gold)' }}>✦</span>
+            <div className="flex-1 h-[1px] max-w-[60px]" style={{ background: `linear-gradient(to left, transparent, var(--gold))` }} />
+          </div>
+          {traderType?.quote && (
+          <p className="text-sm font-serif italic leading-relaxed" style={{ color: 'var(--gold)' }}>
+            "{traderType.quote}"
+          </p>
+          )}
+          <p className="text-sm leading-relaxed mt-3" style={{ color: 'var(--text-strong)' }} data-testid="text-one-liner">
             {traderType.oneLiner}
           </p>
         </motion.div>
@@ -169,7 +207,7 @@ function ReportContent({
                   <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{dimensionLabels[dim]}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-num font-bold" style={{ color: 'var(--text-strong)' }}>{scores[dim]}</span>
-                    {i === 0 && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'var(--primary-soft)', color: 'var(--primary)' }}>🔥最强</span>}
+                    {i === 0 && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: `${c1}20`, color: c1 }}>🔥最强</span>}
                     {i === sortedDims.length - 1 && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(var(--info-rgb), 0.15)', color: 'var(--info)' }}>⬆️突破口</span>}
                   </div>
                 </div>
@@ -179,7 +217,7 @@ function ReportContent({
                     initial={{ width: 0 }}
                     animate={{ width: `${scores[dim]}%` }}
                     transition={{ delay: 0.25 + i * 0.06, duration: 0.5, ease: "easeOut" }}
-                    style={{ background: i === 0 ? 'var(--primary)' : i === sortedDims.length - 1 ? 'var(--info)' : 'var(--text-muted)' }}
+                    style={{ background: i === 0 ? c1 : i === sortedDims.length - 1 ? 'var(--info)' : 'var(--text-muted)' }}
                   />
                 </div>
               </div>
@@ -237,7 +275,7 @@ function ReportContent({
           <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--text-strong)' }}>
             🔍 你可能经常遇到这种情况：
           </h3>
-          <div className="pl-4 py-1" style={{ borderLeft: '3px solid var(--primary)' }}>
+          <div className="pl-4 py-1" style={{ borderLeft: `3px solid ${c1}` }}>
             <p className="text-sm leading-[1.8]" style={{ color: 'var(--text)' }} data-testid="text-piercing">
               "{traderType.piercingDescription}"
             </p>

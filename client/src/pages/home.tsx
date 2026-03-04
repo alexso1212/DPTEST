@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLink, Building2, Radio, Wrench, Trophy } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
+import CharacterIcon from "@/components/CharacterIcon";
+import RankBadge from "@/components/RankBadge";
 
 const ease = { duration: 0.22, ease: "easeOut" as const };
 
@@ -121,9 +123,15 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...ease, delay: 0.08 }}
-          className="rounded-2xl p-6 mb-4"
-          style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
+          className="rounded-2xl p-6 mb-4 relative overflow-hidden"
+          style={{
+            background: traderType ? `linear-gradient(145deg, ${traderType.colors[0]}10, var(--bg-1), ${traderType.colors[0]}06)` : 'var(--bg-1)',
+            border: traderType ? `1px solid ${traderType.colors[1]}25` : '1px solid var(--border)',
+            boxShadow: traderType ? `0 0 20px ${traderType.colors[0]}08` : 'none',
+          }}
         >
+          {traderType && <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(circle at 80% 10%, ${traderType.colors[0]}10, transparent 60%)` }} />}
+          <div className="relative">
           {quizLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
@@ -132,15 +140,22 @@ export default function HomePage() {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>📊 交易能力测评</h3>
-                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--primary-soft)', color: 'var(--primary)' }}>
+                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: `${traderType.colors[0]}20`, color: traderType.colors[0] }}>
                   已完成
                 </span>
               </div>
 
               <div className="flex items-center gap-4 mb-4">
-                <div className="text-4xl">{traderType.icon}</div>
-                <div>
-                  <p className="text-lg font-bold" style={{ color: 'var(--primary)' }} data-testid="text-trader-type">
+                <div className="flex-shrink-0">
+                  <CharacterIcon typeCode={quizResult.traderTypeCode} size={64} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-xs font-tag" style={{ color: traderType.colors[1], opacity: 0.7 }}>
+                      {traderType.element.icon} {traderType.element.name}
+                    </span>
+                  </div>
+                  <p className="text-lg font-serif font-bold" style={{ color: traderType.colors[0] }} data-testid="text-trader-type">
                     {traderType.name}
                   </p>
                   <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -149,9 +164,9 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 mb-5">
+              <div className="flex items-center gap-4 mb-3">
+                <RankBadge tier={rank} size="sm" />
                 <div className="flex items-center gap-2">
-                  <span className="text-sm">{rank.icon}</span>
                   <span className="text-sm font-bold font-num" style={{ color: rank.color }}>
                     {rank.name}
                   </span>
@@ -163,6 +178,10 @@ export default function HomePage() {
                   <span className="text-xs" style={{ color: 'var(--text-muted)' }}>/100</span>
                 </div>
               </div>
+
+              <p className="text-xs font-serif italic mb-4 leading-relaxed" style={{ color: 'var(--gold)' }}>
+                "{traderType.quote}"
+              </p>
 
               <div className="flex gap-2">
                 <motion.button
@@ -245,6 +264,7 @@ export default function HomePage() {
               </motion.button>
             </div>
           )}
+          </div>
         </motion.div>
 
         <motion.div

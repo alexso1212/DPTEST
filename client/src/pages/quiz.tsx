@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { questions } from "@/data/questions";
 import { dimensionLabels } from "@/data/questions";
-import ProgressBar from "@/components/ProgressBar";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
 
@@ -29,7 +28,7 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
     xpTimerRef.current = setTimeout(() => {
       setXpFlash(null);
       xpTimerRef.current = null;
-    }, 1000);
+    }, 1200);
 
     setTimeout(() => {
       const newAnswers = [...answers];
@@ -42,22 +41,40 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
       } else {
         onComplete(newAnswers);
       }
-    }, 400);
+    }, 600);
   }, [selecting, answers, currentQ, onComplete]);
 
   const question = questions[currentQ];
   const optionLabels = ['A', 'B', 'C', 'D'];
+  const total = questions.length;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-0)' }}>
       <div className="sticky top-0 z-20 px-5 pt-4 pb-3" style={{ background: 'var(--bg-0)', borderBottom: '1px solid var(--border)' }}>
         <div className="max-w-lg mx-auto">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium" style={{ color: 'var(--text-strong)' }}>
-              <span className="font-num">{currentQ + 1}/{questions.length}</span>
-            </span>
+          <div className="flex items-center justify-center gap-1.5 py-1" data-testid="progress-dots">
+            {Array.from({ length: total }).map((_, i) => {
+              const isAnswered = i < currentQ || (i === currentQ && selecting !== null);
+              const isCurrent = i === currentQ && selecting === null;
+              return (
+                <div
+                  key={i}
+                  className="rounded-full transition-all duration-300"
+                  style={{
+                    width: isCurrent ? 10 : 6,
+                    height: isCurrent ? 10 : 6,
+                    background: isAnswered
+                      ? 'var(--gold)'
+                      : isCurrent
+                        ? 'var(--gold)'
+                        : 'rgba(255,255,255,0.15)',
+                    boxShadow: isCurrent ? '0 0 8px rgba(var(--gold-rgb), 0.6)' : 'none',
+                    animation: isCurrent ? 'dot-pulse 1.5s ease-in-out infinite' : 'none',
+                  }}
+                />
+              );
+            })}
           </div>
-          <ProgressBar current={currentQ} total={questions.length} />
         </div>
       </div>
 
@@ -71,43 +88,65 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
             transition={{ duration: 0.22, ease: "easeOut" }}
             className="flex-1 flex flex-col gpu-accelerate"
           >
-            <div className="mb-8">
-              <h2 className="text-lg font-bold leading-relaxed" style={{ color: 'var(--text-strong)' }} data-testid="text-question">
+            <div className="mb-2">
+              <span className="font-tag text-[11px] tracking-wider" style={{ color: 'var(--gold)', opacity: 0.7 }}>
+                SCENARIO {currentQ + 1}/{total}
+              </span>
+            </div>
+            <div className="mb-6">
+              <h2 className="text-[17px] font-semibold leading-relaxed" style={{ color: 'var(--text-strong)' }} data-testid="text-question">
                 {question.text}
               </h2>
             </div>
 
-            <div className="space-y-3 flex-1">
+            <div className="grid grid-cols-2 gap-3 flex-1 content-start">
               {question.options.map((option, idx) => {
                 const isSelected = selecting === idx;
+                const isDimmed = selecting !== null && !isSelected;
 
                 return (
                   <motion.button
                     key={idx}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.18, ease: "easeOut", delay: idx * 0.05 }}
-                    whileHover={{ scale: 1.01, y: -1 }}
-                    whileTap={{ scale: 0.98 }}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{
+                      opacity: isDimmed ? 0.35 : 1,
+                      y: 0,
+                      scale: isDimmed ? 0.97 : 1,
+                    }}
+                    transition={{ duration: 0.2, ease: "easeOut", delay: idx * 0.05 }}
+                    whileHover={selecting === null ? { scale: 1.03, y: -2 } : {}}
+                    whileTap={selecting === null ? { scale: 0.97 } : {}}
                     onClick={() => handleSelect(idx)}
-                    className="w-full text-left p-4 rounded-2xl flex items-start gap-3 gpu-accelerate transition-colors duration-200"
+                    className="text-left p-3.5 rounded-xl flex flex-col gap-2 gpu-accelerate transition-all duration-300 min-h-[110px]"
                     style={{
-                      background: isSelected ? 'var(--primary-soft)' : 'var(--bg-1)',
-                      border: isSelected ? '1px solid var(--primary)' : '1px solid var(--border)',
+                      background: isSelected
+                        ? 'var(--gold-soft)'
+                        : 'rgba(255,255,255,0.04)',
+                      border: isSelected
+                        ? '1.5px solid var(--gold)'
+                        : '1px solid rgba(255,255,255,0.08)',
+                      boxShadow: isSelected
+                        ? '0 0 20px rgba(var(--gold-rgb), 0.15), inset 0 -2px 0 var(--gold)'
+                        : 'none',
                     }}
                     data-testid={`button-option-${idx}`}
                   >
-                    <span
-                      className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-colors duration-200"
-                      style={{
-                        background: isSelected ? 'var(--primary)' : 'transparent',
-                        color: isSelected ? '#fff' : 'var(--primary)',
-                        border: isSelected ? 'none' : '1.5px solid var(--primary)',
-                      }}
-                    >
-                      {isSelected ? <Check className="w-3.5 h-3.5" /> : optionLabels[idx]}
-                    </span>
-                    <span className="text-sm leading-relaxed pt-0.5" style={{ color: 'var(--text-strong)' }}>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-bold font-tag transition-colors duration-200"
+                        style={{
+                          background: isSelected ? 'var(--gold)' : 'transparent',
+                          color: isSelected ? '#0D0F14' : 'var(--gold)',
+                          border: isSelected ? 'none' : '1.5px solid rgba(var(--gold-rgb), 0.4)',
+                        }}
+                      >
+                        {isSelected ? <Check className="w-3 h-3" /> : optionLabels[idx]}
+                      </span>
+                      <span className="text-[10px] font-tag" style={{ color: 'var(--text-muted)' }}>
+                        {option.tag}
+                      </span>
+                    </div>
+                    <span className="text-[13px] leading-snug" style={{ color: 'var(--text-strong)' }}>
                       {option.text}
                     </span>
                   </motion.button>
@@ -129,9 +168,9 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
               <div
                 className="px-5 py-2.5 rounded-full text-sm font-semibold"
                 style={{
-                  background: 'var(--primary-soft)',
-                  color: 'var(--primary)',
-                  border: '1px solid rgba(var(--primary-rgb), 0.3)',
+                  background: 'var(--gold-soft)',
+                  color: 'var(--gold)',
+                  border: '1px solid rgba(var(--gold-rgb), 0.3)',
                   backdropFilter: 'blur(8px)',
                 }}
                 data-testid="text-xp-flash"

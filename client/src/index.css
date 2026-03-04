@@ -69,9 +69,15 @@
   --sidebar-ring: 355 82% 53%;
 
   --font-sans: 'Noto Sans SC', system-ui, -apple-system, sans-serif;
-  --font-serif: Georgia, serif;
+  --font-serif: 'Noto Serif SC', Georgia, serif;
   --font-heading: 'Oswald', system-ui, sans-serif;
-  --font-mono: 'Oswald', monospace;
+  --font-mono: 'Space Mono', monospace;
+  --font-num: 'Barlow Condensed', 'Oswald', monospace;
+
+  --gold: #C9A456;
+  --gold-rgb: 201, 164, 86;
+  --gold-soft: rgba(201,164,86,0.14);
+  --gold-hover: #D4B06A;
   --radius: .75rem;
 
   --shadow-2xs: 0 1px 2px rgba(0,0,0,0.2);
@@ -151,6 +157,37 @@
   100% { transform: rotate(360deg); }
 }
 
+@keyframes card-summon {
+  0%   { opacity: 0; transform: scale(0.8) rotateY(180deg); filter: blur(20px); }
+  50%  { opacity: 0.6; transform: scale(1.05) rotateY(90deg); filter: blur(5px); }
+  80%  { opacity: 1; transform: scale(1.02) rotateY(10deg); filter: blur(0); }
+  100% { opacity: 1; transform: scale(1) rotateY(0deg); filter: blur(0); }
+}
+
+@keyframes card-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 0.8; }
+}
+
+@keyframes rotate-border {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes dot-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50%      { transform: scale(1.4); opacity: 1; }
+}
+
+@keyframes typewriter-cursor {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
 @keyframes bar-fill {
   from { width: 0; }
 }
@@ -176,8 +213,16 @@
 }
 
 .font-num {
-  font-family: 'Oswald', 'DIN Alternate', monospace;
+  font-family: var(--font-num);
   font-weight: 500;
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-tag {
+  font-family: var(--font-mono);
 }
 
 .font-heading {

@@ -64,6 +64,8 @@ export default {
         success: "var(--success)",
         warning: "var(--warning)",
         danger: "var(--danger)",
+        gold: "var(--gold)",
+        goldSoft: "var(--gold-soft)",
         chart: {
           "1": "hsl(var(--chart-1) / <alpha-value>)",
           "2": "hsl(var(--chart-2) / <alpha-value>)",
@@ -100,6 +102,7 @@ export default {
         heading: ["var(--font-heading)"],
         serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
+        num: ["var(--font-num)"],
       },
       boxShadow: {
         soft: "0 8px 30px rgba(0,0,0,0.25)",
