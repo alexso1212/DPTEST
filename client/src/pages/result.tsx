@@ -618,6 +618,14 @@ export default function ResultPage({ result }: ResultPageProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, ...ease }}
+            >
+              <TierRoadmap type={traderType.code} currentTier={user?.tier ?? 0} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, ...ease }}
               className="rounded-2xl p-6 relative overflow-hidden"
               style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
@@ -714,15 +722,6 @@ export default function ResultPage({ result }: ResultPageProps) {
                 "我们不教你怎么赚钱——<br />
                 我们让你亲眼看到专业交易是什么样的"
               </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.6 }}
-              className="px-5"
-            >
-              <TierRoadmap type={traderType.code} currentTier={user?.tier ?? 0} />
             </motion.div>
 
             <div className="h-4" />

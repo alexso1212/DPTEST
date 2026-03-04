@@ -7,6 +7,7 @@ import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLin
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
 import CharacterSVG from "@/components/character/CharacterSVG";
+import TierRoadmap from "@/components/character/TierRoadmap";
 import RankBadge from "@/components/RankBadge";
 import { usePageView, useTracking } from "@/hooks/use-tracking";
 
@@ -291,6 +292,15 @@ export default function HomePage() {
                 {traderType.storyHint}
               </motion.p>
             )}
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...ease, delay: 0.31 }}
+              className="mb-6"
+            >
+              <TierRoadmap type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} />
+            </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 10 }}
