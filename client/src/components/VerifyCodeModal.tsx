@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Copy, Check, ExternalLink, X } from "lucide-react";
 import { SiWechat } from "react-icons/si";
 
+const WECHAT_CONTACT = "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4";
+
 interface VerifyCodeModalProps {
   open: boolean;
   onClose: () => void;
@@ -13,11 +15,9 @@ interface VerifyCodeModalProps {
 export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }: VerifyCodeModalProps) {
   const [copied, setCopied] = useState(false);
 
-  const copyCode = async () => {
+  const copyCode = () => {
     try {
-      await navigator.clipboard.writeText(verifyCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      navigator.clipboard.writeText(verifyCode);
     } catch {
       const ta = document.createElement("textarea");
       ta.value = verifyCode;
@@ -27,17 +27,9 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
       ta.select();
       document.execCommand("copy");
       document.body.removeChild(ta);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
-  };
-
-  const handleProceed = async () => {
-    await copyCode();
-    setTimeout(() => {
-      onProceed();
-      onClose();
-    }, 300);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -125,18 +117,25 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
               顾问将根据此验证码为您匹配测评报告，提供专属交易指导
             </p>
 
-            <motion.button
-              onClick={handleProceed}
+            <motion.a
+              href={WECHAT_CONTACT}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                copyCode();
+                onProceed();
+                setTimeout(() => onClose(), 300);
+              }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200"
+              className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer"
               style={{ background: '#07C160', color: '#fff' }}
               data-testid="button-copy-and-add"
             >
               <Copy className="w-3.5 h-3.5" />
               复制验证码并添加顾问
               <ExternalLink className="w-3 h-3 opacity-60" />
-            </motion.button>
+            </motion.a>
 
             {copied && (
               <motion.p

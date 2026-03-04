@@ -101,6 +101,28 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/reset-password", async (req, res) => {
+    try {
+      const { phone, newPassword } = req.body;
+      if (!phone || !newPassword || newPassword.length < 6) {
+        return res.status(400).json({ message: "请输入手机号和新密码（至少6位）" });
+      }
+
+      const user = await storage.getUserByPhone(phone);
+      if (!user) {
+        return res.json({ ok: true });
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await storage.updateUserPassword(user.id, hashedPassword);
+
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("Reset password error:", err);
+      res.status(500).json({ message: "重置失败，请稍后重试" });
+    }
+  });
+
   app.get("/api/me", async (req, res) => {
     try {
       const userId = (req.session as any)?.userId;

@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Smartphone, Lock, Eye, EyeOff, X } from "lucide-react";
+import { Smartphone, Lock, Eye, EyeOff, X, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { sendRegisterWebhook } from "@/utils/webhook";
 import { queryClient } from "@/lib/queryClient";
@@ -18,14 +18,16 @@ interface LoginModalProps {
 export default function LoginModal({ open, onClose, onSuccess, title, subtitle, defaultTab = 'register' }: LoginModalProps) {
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
+  const [tab, setTab] = useState<'login' | 'register' | 'reset'>(defaultTab);
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [phoneValid, setPhoneValid] = useState(false);
   const [phoneTouched, setPhoneTouched] = useState(false);
   const [phoneFocused, setPhoneFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [newPasswordFocused, setNewPasswordFocused] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const phoneRegex = /^1[3-9]\d{9}$/;
@@ -36,13 +38,43 @@ export default function LoginModal({ open, onClose, onSuccess, title, subtitle, 
     setPhoneValid(phoneRegex.test(digits));
   }, []);
 
-  const canSubmit = phoneValid && (tab === 'login' ? password.length >= 1 : password.length >= 6) && !isSubmitting;
+  const canSubmit = (() => {
+    if (isSubmitting) return false;
+    if (!phoneValid) return false;
+    if (tab === 'login') return password.length >= 1;
+    if (tab === 'register') return password.length >= 6;
+    if (tab === 'reset') return newPassword.length >= 6;
+    return false;
+  })();
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return;
     setIsSubmitting(true);
 
     try {
+      if (tab === 'reset') {
+        const res = await fetch('/api/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, newPassword }),
+          credentials: 'include',
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          toast({ title: data.message || "重置失败", variant: "destructive" });
+          setIsSubmitting(false);
+          return;
+        }
+
+        toast({ title: "密码已重置，请使用新密码登录" });
+        setPassword("");
+        setNewPassword("");
+        setTab('login');
+        setIsSubmitting(false);
+        return;
+      }
+
       const endpoint = tab === 'register' ? '/api/register' : '/api/login';
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -76,7 +108,14 @@ export default function LoginModal({ open, onClose, onSuccess, title, subtitle, 
       toast({ title: "网络错误，请重试", variant: "destructive" });
       setIsSubmitting(false);
     }
-  }, [canSubmit, tab, phone, password, onSuccess, toast]);
+  }, [canSubmit, tab, phone, password, newPassword, onSuccess, toast]);
+
+  const submitLabel = (() => {
+    if (isSubmitting) return '处理中...';
+    if (tab === 'register') return '注册';
+    if (tab === 'reset') return '重置密码';
+    return '登录';
+  })();
 
   return (
     <AnimatePresence>
@@ -109,38 +148,59 @@ export default function LoginModal({ open, onClose, onSuccess, title, subtitle, 
             </button>
 
             <div className="text-center mb-5">
-              <h3 className="text-base font-bold" style={{ color: 'var(--text-strong)' }}>
-                {title || "登录以保存结果"}
-              </h3>
-              {subtitle && (
-                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{subtitle}</p>
+              {tab === 'reset' ? (
+                <>
+                  <h3 className="text-base font-bold" style={{ color: 'var(--text-strong)' }}>重置密码</h3>
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>输入注册手机号和新密码</p>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-base font-bold" style={{ color: 'var(--text-strong)' }}>
+                    {title || "登录以保存结果"}
+                  </h3>
+                  {subtitle && (
+                    <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{subtitle}</p>
+                  )}
+                </>
               )}
             </div>
 
-            <div className="flex mb-5 rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
+            {tab === 'reset' ? (
               <button
-                onClick={() => setTab('login')}
-                className="flex-1 py-2 text-sm font-semibold rounded-xl transition-colors duration-200"
-                style={{
-                  background: tab === 'login' ? 'var(--primary)' : 'transparent',
-                  color: tab === 'login' ? '#fff' : 'var(--text-muted)',
-                }}
-                data-testid="modal-tab-login"
+                onClick={() => { setTab('login'); setNewPassword(""); setPassword(""); }}
+                className="flex items-center gap-1 mb-4 text-xs transition-colors"
+                style={{ color: 'var(--text-muted)' }}
+                data-testid="button-back-to-login"
               >
-                登录
+                <ArrowLeft className="w-3.5 h-3.5" />
+                返回登录
               </button>
-              <button
-                onClick={() => setTab('register')}
-                className="flex-1 py-2 text-sm font-semibold rounded-xl transition-colors duration-200"
-                style={{
-                  background: tab === 'register' ? 'var(--primary)' : 'transparent',
-                  color: tab === 'register' ? '#fff' : 'var(--text-muted)',
-                }}
-                data-testid="modal-tab-register"
-              >
-                注册
-              </button>
-            </div>
+            ) : (
+              <div className="flex mb-5 rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
+                <button
+                  onClick={() => setTab('login')}
+                  className="flex-1 py-2 text-sm font-semibold rounded-xl transition-colors duration-200"
+                  style={{
+                    background: tab === 'login' ? 'var(--primary)' : 'transparent',
+                    color: tab === 'login' ? '#fff' : 'var(--text-muted)',
+                  }}
+                  data-testid="modal-tab-login"
+                >
+                  登录
+                </button>
+                <button
+                  onClick={() => setTab('register')}
+                  className="flex-1 py-2 text-sm font-semibold rounded-xl transition-colors duration-200"
+                  style={{
+                    background: tab === 'register' ? 'var(--primary)' : 'transparent',
+                    color: tab === 'register' ? '#fff' : 'var(--text-muted)',
+                  }}
+                  data-testid="modal-tab-register"
+                >
+                  注册
+                </button>
+              </div>
+            )}
 
             <div className="space-y-3">
               <div>
@@ -170,41 +230,89 @@ export default function LoginModal({ open, onClose, onSuccess, title, subtitle, 
                 )}
               </div>
 
-              <div>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Lock className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
-                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                    {tab === 'register' ? '设置密码（至少6位）' : '密码'}
-                  </span>
+              {tab !== 'reset' && (
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Lock className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {tab === 'register' ? '设置密码（至少6位）' : '密码'}
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder={tab === 'register' ? '设置密码' : '请输入密码'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onFocus={() => setPasswordFocused(true)}
+                      onBlur={() => setPasswordFocused(false)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                      className="w-full px-4 py-3 pr-10 rounded-xl text-sm outline-none transition-all duration-200"
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        border: `1px solid ${passwordFocused ? 'var(--primary)' : 'var(--border)'}`,
+                        color: 'var(--text-strong)',
+                        boxShadow: passwordFocused ? '0 0 0 3px rgba(var(--primary-rgb), 0.15)' : 'none',
+                      }}
+                      data-testid="modal-input-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {tab === 'login' && (
+                    <button
+                      onClick={() => setTab('reset')}
+                      className="text-xs mt-1.5 transition-colors hover:underline"
+                      style={{ color: 'var(--info)' }}
+                      data-testid="button-forgot-password"
+                    >
+                      忘记密码？
+                    </button>
+                  )}
                 </div>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder={tab === 'register' ? '设置密码' : '请输入密码'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onFocus={() => setPasswordFocused(true)}
-                    onBlur={() => setPasswordFocused(false)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-                    className="w-full px-4 py-3 pr-10 rounded-xl text-sm outline-none transition-all duration-200"
-                    style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: `1px solid ${passwordFocused ? 'var(--primary)' : 'var(--border)'}`,
-                      color: 'var(--text-strong)',
-                      boxShadow: passwordFocused ? '0 0 0 3px rgba(var(--primary-rgb), 0.15)' : 'none',
-                    }}
-                    data-testid="modal-input-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
-                    style={{ color: 'var(--text-muted)' }}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+              )}
+
+              {tab === 'reset' && (
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Lock className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>设置新密码（至少6位）</span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="请输入新密码"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      onFocus={() => setNewPasswordFocused(true)}
+                      onBlur={() => setNewPasswordFocused(false)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                      className="w-full px-4 py-3 pr-10 rounded-xl text-sm outline-none transition-all duration-200"
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        border: `1px solid ${newPasswordFocused ? 'var(--primary)' : 'var(--border)'}`,
+                        color: 'var(--text-strong)',
+                        boxShadow: newPasswordFocused ? '0 0 0 3px rgba(var(--primary-rgb), 0.15)' : 'none',
+                      }}
+                      data-testid="modal-input-new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <motion.button
                 onClick={handleSubmit}
@@ -218,7 +326,7 @@ export default function LoginModal({ open, onClose, onSuccess, title, subtitle, 
                 }}
                 data-testid="modal-button-submit"
               >
-                {isSubmitting ? '处理中...' : tab === 'register' ? '注册' : '登录'}
+                {submitLabel}
               </motion.button>
             </div>
           </motion.div>

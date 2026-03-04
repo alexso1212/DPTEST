@@ -14,6 +14,7 @@ export interface IStorage {
     tags?: string[];
     lastActiveAt?: Date;
   }): Promise<void>;
+  updateUserPassword(userId: number, hashedPassword: string): Promise<void>;
   saveQuizResult(userId: number, data: {
     answers: number[];
     scores: Record<string, number>;
@@ -69,6 +70,10 @@ export class DatabaseStorage implements IStorage {
     if (Object.keys(updates).length > 0) {
       await db.update(users).set(updates).where(eq(users.id, userId));
     }
+  }
+
+  async updateUserPassword(userId: number, hashedPassword: string): Promise<void> {
+    await db.update(users).set({ password: hashedPassword }).where(eq(users.id, userId));
   }
 
   async saveQuizResult(userId: number, data: {
