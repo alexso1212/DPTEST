@@ -8,6 +8,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
 import CharacterSVG from "@/components/character/CharacterSVG";
 import TierBadge from "@/components/character/TierBadge";
+import TierRoadmap from "@/components/character/TierRoadmap";
 import RankBadge from "@/components/RankBadge";
 import { usePageView, useTracking } from "@/hooks/use-tracking";
 
@@ -181,6 +182,23 @@ export default function HomePage() {
             </motion.div>
 
             <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...ease, delay: 0.08 }}
+              className="flex items-center justify-center gap-3"
+            >
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: "4px",
+                background: "rgba(201,164,86,0.06)", padding: "3px 10px", borderRadius: "16px",
+                border: "1px solid rgba(201,164,86,0.15)",
+                fontSize: "11px", color: "#C9A456",
+              }}>
+                <RankBadge tier={rank} size="sm" />
+                {rank.name} · {quizResult.avgScore}/100
+              </span>
+            </motion.div>
+
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ ...ease, delay: 0.1 }}
@@ -213,27 +231,10 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ ...ease, delay: 0.2 }}
-              className="flex items-center justify-center gap-3 mt-1"
-            >
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: "4px",
-                background: "rgba(201,164,86,0.06)", padding: "3px 10px", borderRadius: "16px",
-                border: "1px solid rgba(201,164,86,0.15)",
-                fontSize: "11px", color: "#C9A456",
-              }}>
-                <RankBadge tier={rank} size="sm" />
-                {rank.name} · {quizResult.avgScore}/100
-              </span>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
               transition={{ ...ease, delay: 0.22 }}
               className="flex justify-center mt-1"
             >
-              <svg viewBox="0 0 200 200" style={{ width: "130px", height: "130px" }}>
+              <svg viewBox="0 0 200 200" style={{ width: "180px", height: "180px" }}>
                 {[0.3, 0.6, 0.9].map((s, i) => {
                   const pts = [0,1,2,3,4,5].map(j => {
                     const a = (Math.PI*2*j)/6 - Math.PI/2;
@@ -268,7 +269,16 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ ...ease, delay: 0.32 }}
+              transition={{ ...ease, delay: 0.28 }}
+              className="mt-2"
+            >
+              <TierRoadmap type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...ease, delay: 0.36 }}
               className="flex gap-2 mb-2 mt-1"
             >
               <motion.button

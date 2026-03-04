@@ -9,6 +9,7 @@ import ShareCard from "@/components/ShareCard";
 import CountUp from "@/components/CountUp";
 import CharacterSVG from "@/components/character/CharacterSVG";
 import TierBadge from "@/components/character/TierBadge";
+import TierRoadmap from "@/components/character/TierRoadmap";
 import CharacterCard from "@/components/CharacterCard";
 import RankBadge from "@/components/RankBadge";
 import LoginModal from "@/components/LoginModal";
@@ -602,7 +603,15 @@ export default function ResultPage({ result }: ResultPageProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, ...ease }}
+              transition={{ delay: 0.28, ...ease }}
+            >
+              <TierRoadmap type={traderType.code} currentTier={user?.tier ?? 0} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, ...ease }}
               className="rounded-2xl p-6"
               style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
             >
