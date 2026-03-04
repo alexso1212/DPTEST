@@ -7,10 +7,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
-import RegisterPage from "@/pages/register";
-import LoginPage from "@/pages/login";
 import QuizPage from "@/pages/quiz";
 import LoadingPage from "@/pages/loading";
+import AuthPage from "@/pages/auth";
 import ResultPage from "@/pages/result";
 import { calculateResult, type QuizResult } from "@/utils/calculateResult";
 
@@ -56,23 +55,24 @@ function Router() {
   }, [navigate]);
 
   const handleLoadingDone = useCallback(() => {
-    if (quizResult) {
-      navigate("/result");
-    } else {
-      navigate("/");
-    }
-  }, [quizResult, navigate]);
+    navigate("/auth");
+  }, [navigate]);
+
+  const handleAuthComplete = useCallback(() => {
+    navigate("/result");
+  }, [navigate]);
 
   return (
     <Switch>
       <Route path="/" component={LandingPage} />
-      <Route path="/register" component={RegisterPage} />
-      <Route path="/login" component={LoginPage} />
       <Route path="/quiz">
         <QuizPage onComplete={handleQuizComplete} />
       </Route>
       <Route path="/loading">
         {quizResult ? <LoadingPage onDone={handleLoadingDone} /> : <Redirect to="/" />}
+      </Route>
+      <Route path="/auth">
+        {quizResult ? <AuthPage onComplete={handleAuthComplete} /> : <Redirect to="/" />}
       </Route>
       <Route path="/result">
         {quizResult ? <ResultPage result={quizResult} /> : <Redirect to="/" />}

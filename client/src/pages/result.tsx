@@ -1,7 +1,7 @@
-import { useMemo, useCallback } from "react";
-import { motion } from "framer-motion";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { SiWechat } from "react-icons/si";
-import { ArrowRight, Lock } from "lucide-react";
+import { Lock, Camera } from "lucide-react";
 import RadarChartComponent from "@/components/RadarChart";
 import ShareCard from "@/components/ShareCard";
 import CountUp from "@/components/CountUp";
@@ -14,17 +14,214 @@ interface ResultPageProps {
   result: QuizResult;
 }
 
+function RankUnbox({ result, onDone }: { result: QuizResult; onDone: () => void }) {
+  const [phase, setPhase] = useState(0);
+
+  useEffect(() => {
+    const timers = [
+      setTimeout(() => setPhase(1), 500),
+      setTimeout(() => setPhase(2), 1800),
+      setTimeout(() => setPhase(3), 2500),
+      setTimeout(() => onDone(), 3500),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, [onDone]);
+
+  const particles = useMemo(() =>
+    Array.from({ length: 24 }).map((_, i) => ({
+      angle: (i / 24) * 360,
+      distance: 60 + Math.random() * 80,
+      size: 3 + Math.random() * 4,
+      delay: Math.random() * 0.3,
+    })), []);
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: 'var(--bg-primary)' }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      {phase < 2 && (
+        <motion.div
+          className="w-24 h-24 rounded-full"
+          style={{
+            background: `radial-gradient(circle, ${result.rank.color}40, transparent 70%)`,
+            boxShadow: `0 0 60px ${result.rank.color}30, 0 0 120px ${result.rank.color}15`,
+          }}
+          animate={{
+            scale: [1, 1.2, 1, 1.15, 1],
+            opacity: phase >= 2 ? 0 : 1,
+          }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        />
+      )}
+
+      {phase >= 2 && (
+        <>
+          {particles.map((p, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full"
+              style={{
+                width: p.size,
+                height: p.size,
+                background: result.rank.color,
+              }}
+              initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+              animate={{
+                x: Math.cos((p.angle * Math.PI) / 180) * p.distance,
+                y: Math.sin((p.angle * Math.PI) / 180) * p.distance,
+                opacity: 0,
+                scale: 0,
+              }}
+              transition={{ duration: 0.8, delay: p.delay, ease: "easeOut" }}
+            />
+          ))}
+
+          <motion.div
+            className="text-center"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+          >
+            <div className="text-5xl mb-4">{result.rank.icon}</div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <div
+                className="text-[28px] font-bold font-num mb-2"
+                style={{ color: result.rank.color }}
+              >
+                {result.rank.name}
+              </div>
+              <div className="flex items-baseline justify-center gap-1 mb-3">
+                <CountUp
+                  end={result.avgScore}
+                  duration={1500}
+                  className="text-5xl font-num font-bold"
+                  style={{ color: result.rank.color }}
+                />
+                <span className="text-lg" style={{ color: 'var(--text-secondary)' }}>/100</span>
+              </div>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                {result.rank.description}
+              </p>
+            </motion.div>
+          </motion.div>
+        </>
+      )}
+    </motion.div>
+  );
+}
+
+function TypeCardFlip({ result }: { result: QuizResult }) {
+  const [flipped, setFlipped] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setFlipped(true), 1500);
+    return () => clearTimeout(t);
+  }, []);
+
+  const { traderType, rarity } = result;
+  const topDims = traderType.dims;
+
+  return (
+    <div
+      className="mx-auto cursor-pointer"
+      style={{ width: '280px', height: '380px', perspective: '1000px' }}
+      onClick={() => setFlipped(true)}
+      data-testid="card-type-flip"
+    >
+      <motion.div
+        className="relative w-full h-full"
+        style={{ transformStyle: 'preserve-3d' }}
+        animate={{ rotateY: flipped ? 180 : 0 }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
+      >
+        <div
+          className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center"
+          style={{
+            backfaceVisibility: 'hidden',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+          }}
+        >
+          <div className="text-6xl mb-4 opacity-60">❓</div>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            你的交易员人格是...
+          </p>
+          <p className="text-xs mt-2 animate-pulse" style={{ color: 'var(--accent-blue)' }}>
+            点击揭晓
+          </p>
+        </div>
+
+        <div
+          className="absolute inset-0 rounded-2xl p-6 flex flex-col items-center justify-between overflow-hidden"
+          style={{
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            background: 'var(--bg-card)',
+            border: `2px solid ${result.rank.color}40`,
+            boxShadow: `0 0 30px ${result.rank.color}15, inset 0 0 30px ${result.rank.color}05`,
+          }}
+        >
+          <div className="flex items-center gap-1 self-start">
+            <span className="text-xs" style={{ color: 'var(--accent-gold)' }}>
+              {'★'.repeat(Math.min(5, Math.ceil(parseFloat(rarity) < 6 ? 5 : parseFloat(rarity) < 8 ? 4 : parseFloat(rarity) < 10 ? 3 : 2)))}
+              {'☆'.repeat(Math.max(0, 5 - Math.ceil(parseFloat(rarity) < 6 ? 5 : parseFloat(rarity) < 8 ? 4 : parseFloat(rarity) < 10 ? 3 : 2)))}
+            </span>
+            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+              稀有度 {rarity}
+            </span>
+          </div>
+
+          <div className="text-center flex-1 flex flex-col items-center justify-center">
+            <div className="text-5xl mb-3">{traderType.icon}</div>
+            <h3
+              className="text-xl font-bold mb-1"
+              style={{ color: 'var(--accent-gold)' }}
+              data-testid="text-type-name"
+            >
+              {traderType.name}
+            </h3>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }} data-testid="text-one-liner">
+              {traderType.oneLiner}
+            </p>
+          </div>
+
+          <div className="w-full space-y-2">
+            {topDims.map((dim) => {
+              const score = result.normalizedScores[dim];
+              const filled = Math.round(score / 20);
+              return (
+                <div key={dim} className="flex items-center justify-between text-xs">
+                  <span style={{ color: 'var(--text-secondary)' }}>{dimensionLabels[dim]}</span>
+                  <span style={{ color: 'var(--accent-blue)' }}>
+                    {'◆'.repeat(Math.min(5, filled))}{'◇'.repeat(Math.max(0, 5 - filled))}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function ResultPage({ result }: ResultPageProps) {
   const { traderType, rank, rarity, normalizedScores, avgScore } = result;
   const { user } = useAuth();
+  const [showUnbox, setShowUnbox] = useState(true);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const sortedDims = useMemo(() => {
     const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
-    return dims.sort((a, b) => normalizedScores[b] - normalizedScores[a]);
+    return [...dims].sort((a, b) => normalizedScores[b] - normalizedScores[a]);
   }, [normalizedScores]);
-
-  const maxDim = sortedDims[0];
-  const minDim = sortedDims[sortedDims.length - 1];
 
   const handleContactWeChat = useCallback(() => {
     const strategy = salesStrategy[traderType.code];
@@ -48,251 +245,248 @@ export default function ResultPage({ result }: ResultPageProps) {
   }, [traderType, rank, avgScore, rarity, normalizedScores, user]);
 
   return (
-    <div className="min-h-screen pb-10" style={{ background: 'var(--bg-primary)' }}>
-      <div className="max-w-lg mx-auto px-5 pt-6 space-y-4">
+    <>
+      <AnimatePresence>
+        {showUnbox && (
+          <RankUnbox result={result} onDone={() => setShowUnbox(false)} />
+        )}
+      </AnimatePresence>
 
-        <motion.div
-          initial={{ y: -40, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
-          className="rounded-2xl p-6 text-center"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
-        >
-          <div className="text-5xl mb-3">{traderType.icon}</div>
-          <div
-            className="text-2xl font-bold font-num mb-1"
-            style={{ color: rank.color }}
-            data-testid="text-rank"
-          >
-            {rank.name}
-          </div>
-          <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
-            {rank.description}
-          </p>
-          <div className="flex items-center justify-center gap-1 mb-4" style={{ color: 'var(--text-secondary)' }}>
-            <span className="text-xs">综合评分</span>
-          </div>
-          <div className="flex items-baseline justify-center gap-1">
-            <CountUp
-              end={avgScore}
-              duration={1500}
-              className="text-5xl font-num font-bold"
-              style={{ color: rank.color }}
-            />
-            <span className="text-lg" style={{ color: 'var(--text-secondary)' }}>/100</span>
-          </div>
-        </motion.div>
+      {!showUnbox && (
+        <div className="min-h-screen pb-24" style={{ background: 'var(--bg-primary)' }}>
+          <div className="max-w-lg mx-auto px-5 pt-6 space-y-5">
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="rounded-2xl p-6"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
-        >
-          <div className="text-3xl mb-2">{traderType.icon}</div>
-          <h2 className="text-xl font-bold mb-1" style={{ color: 'var(--text-primary)' }} data-testid="text-type-name">
-            {traderType.name}
-          </h2>
-          <p className="text-sm mb-3" style={{ color: 'var(--accent-gold)' }} data-testid="text-one-liner">
-            {traderType.oneLiner}
-          </p>
-          <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }} data-testid="text-description">
-            {traderType.description}
-          </p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="rounded-2xl p-5 text-center"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+            >
+              <div className="text-3xl mb-1">{rank.icon}</div>
+              <div className="text-xl font-bold font-num" style={{ color: rank.color }} data-testid="text-rank">
+                {rank.name}
+              </div>
+              <div className="flex items-baseline justify-center gap-1 mt-1">
+                <span className="text-3xl font-num font-bold" style={{ color: rank.color }}>{avgScore}</span>
+                <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>/100</span>
+              </div>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>{rank.description}</p>
+            </motion.div>
 
-          <div
-            className="rounded-xl p-4 mb-4"
-            style={{ background: 'rgba(var(--accent-gold-rgb), 0.06)', border: '1px solid rgba(var(--accent-gold-rgb), 0.15)' }}
-          >
-            <p className="text-sm leading-relaxed italic" style={{ color: 'var(--accent-gold)' }} data-testid="text-piercing">
-              "{traderType.piercingDescription}"
-            </p>
-          </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <TypeCardFlip result={result} />
+            </motion.div>
 
-          <div
-            className="inline-flex items-center px-3 py-1 rounded-full text-xs"
-            style={{
-              background: 'rgba(var(--accent-gold-rgb), 0.1)',
-              color: 'var(--accent-gold)',
-            }}
-            data-testid="text-rarity"
-          >
-            仅 {rarity} 的测评者是此类型
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="rounded-2xl p-6"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
-        >
-          <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>能力雷达图</h3>
-          <RadarChartComponent scores={normalizedScores} />
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="rounded-2xl p-6"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
-        >
-          <div className="space-y-4 mb-4">
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--success)' }}>
-                核心优势
-              </h4>
-              <ul className="space-y-2">
-                {traderType.strengths.map((s, i) => (
-                  <motion.li
-                    key={i}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.7 + i * 0.1 }}
-                    className="flex items-start gap-2 text-sm"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--success)' }} />
-                    {s}
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--warning)' }}>
-                潜在盲区
-              </h4>
-              <ul className="space-y-2">
-                {traderType.blindSpots.map((b, i) => (
-                  <motion.li
-                    key={i}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.9 + i * 0.1 }}
-                    className="flex items-start gap-2 text-sm"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--warning)' }} />
-                    {b}
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent-blue)' }}>
-                提升建议
-              </h4>
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }} data-testid="text-advice">
-                {traderType.advice}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="rounded-2xl p-6"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+            >
+              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                🕸️ 你的能力轮廓
+              </h3>
+              <RadarChartComponent scores={normalizedScores} hideScores />
+              <p className="text-xs text-center mt-3" style={{ color: 'var(--text-secondary)' }}>
+                具体分数和详细分析在完整报告中
               </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+              className="rounded-2xl p-6"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+            >
+              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                🔍 你可能经常遇到这种情况：
+              </h3>
+              <div
+                className="pl-4 py-1"
+                style={{ borderLeft: '3px solid var(--accent-gold)' }}
+              >
+                <p
+                  className="text-base leading-[1.8]"
+                  style={{ color: 'var(--text-primary)' }}
+                  data-testid="text-piercing"
+                >
+                  "{traderType.piercingDescription}"
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.0 }}
+              className="rounded-2xl p-6 relative overflow-hidden"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+            >
+              <div className="relative" style={{ filter: 'blur(6px)', pointerEvents: 'none', userSelect: 'none' }}>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>📊 六维详细分数</span>
+                </div>
+                <div className="space-y-2">
+                  {sortedDims.map((dim, i) => (
+                    <div key={dim} className="flex items-center gap-2">
+                      <span className="text-xs w-16" style={{ color: 'var(--text-secondary)' }}>{dimensionLabels[dim]}</span>
+                      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--border-color)' }}>
+                        <div className="h-full rounded-full" style={{ width: `${normalizedScores[dim]}%`, background: i === 0 ? 'var(--accent-gold)' : 'var(--accent-blue)' }} />
+                      </div>
+                      <span className="text-xs font-num w-6 text-right" style={{ color: 'var(--text-primary)' }}>{normalizedScores[dim]}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4">
+                  <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>💪 你的核心优势</span>
+                  <div className="mt-2 space-y-1">
+                    <div className="h-3 rounded bg-green-500/20 w-full" />
+                    <div className="h-3 rounded bg-green-500/20 w-4/5" />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>⚠️ 你的致命盲区</span>
+                  <div className="mt-2 space-y-1">
+                    <div className="h-3 rounded bg-yellow-500/20 w-full" />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>💡 个性化提升路径</span>
+                  <div className="mt-2 space-y-1">
+                    <div className="h-3 rounded bg-blue-500/20 w-full" />
+                    <div className="h-3 rounded bg-blue-500/20 w-3/4" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(10,14,23,0.3)' }}>
+                <div className="text-center">
+                  <Lock className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--accent-gold)' }} />
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>添加顾问解锁完整报告</p>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.2 }}
+              className="rounded-2xl p-6"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+            >
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                🔓 解锁你的完整交易能力诊断
+              </h3>
+
+              <div className="space-y-2 mb-5">
+                {[
+                  "六维详细分数 + 维度排名",
+                  "你的核心优势和致命盲区",
+                  "个性化提升路径",
+                  "免费实盘直播间观摩入口",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    <span style={{ color: 'var(--success)' }}>✓</span>
+                    {item}
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={handleContactWeChat}
+                className="w-full py-3.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 active:scale-[0.97] transition-transform mb-4"
+                style={{ background: '#07C160' }}
+                data-testid="button-wechat-contact"
+              >
+                <SiWechat className="w-5 h-5" />
+                添加专属顾问，30秒发送完整报告
+              </button>
+
+              <p className="text-xs italic text-center leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                "我们不教你怎么赚钱——<br />
+                我们让你亲眼看到专业交易是什么样的"
+              </p>
+            </motion.div>
+
+            <div className="h-4" />
+          </div>
+
+          <div
+            className="fixed bottom-0 left-0 right-0 z-40"
+            style={{
+              background: 'rgba(10, 14, 23, 0.9)',
+              backdropFilter: 'blur(12px)',
+              borderTop: '1px solid var(--border-color)',
+              paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
+            }}
+          >
+            <div className="max-w-lg mx-auto px-5 pt-3 flex gap-3">
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="flex-1 py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--accent-blue)',
+                  color: 'var(--accent-blue)',
+                }}
+                data-testid="button-save-image"
+              >
+                <Camera className="w-4 h-4" />
+                生成交易员卡片
+              </button>
+              <button
+                onClick={handleContactWeChat}
+                className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-all text-black"
+                style={{ background: 'var(--accent-gold)' }}
+                data-testid="button-unlock-report"
+              >
+                <Lock className="w-4 h-4" />
+                领取完整报告
+              </button>
             </div>
           </div>
-        </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="rounded-2xl p-6"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
-        >
-          <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>维度详情</h3>
-          <div className="space-y-3">
-            {sortedDims.map((dim, i) => {
-              const score = normalizedScores[dim];
-              const isMax = dim === maxDim;
-              const isMin = dim === minDim;
-              const barColor = isMax ? 'var(--accent-gold)' : isMin ? 'var(--warning)' : 'var(--accent-blue)';
-
-              return (
+          <AnimatePresence>
+            {showShareModal && (
+              <motion.div
+                className="fixed inset-0 z-50 flex items-center justify-center p-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                style={{ background: 'rgba(0,0,0,0.8)' }}
+                onClick={() => setShowShareModal(false)}
+              >
                 <motion.div
-                  key={dim}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.9 + i * 0.1 }}
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="max-w-sm w-full max-h-[85vh] overflow-y-auto"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{dimensionLabels[dim]}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-num font-semibold" style={{ color: 'var(--text-primary)' }}>{score}</span>
-                      {isMax && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(var(--accent-gold-rgb), 0.15)', color: 'var(--accent-gold)' }}>
-                          MAX
-                        </span>
-                      )}
-                      {isMin && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(255, 167, 38, 0.15)', color: 'var(--warning)' }}>
-                          可提升
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--border-color)' }}>
-                    <motion.div
-                      className="h-full rounded-full gpu-accelerate"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${score}%` }}
-                      transition={{ duration: 1, delay: 1 + i * 0.1, ease: "easeOut" }}
-                      style={{ background: barColor }}
-                    />
-                  </div>
+                  <ShareCard result={result} />
+                  <button
+                    onClick={() => setShowShareModal(false)}
+                    className="w-full mt-3 py-3 rounded-xl text-sm"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    关闭
+                  </button>
                 </motion.div>
-              );
-            })}
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2 }}
-        >
-          <ShareCard result={result} />
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.4 }}
-          className="rounded-2xl p-6"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <Lock className="w-4 h-4" style={{ color: 'var(--accent-gold)' }} />
-            <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>想要更深度的交易能力分析？</span>
-          </div>
-          <ul className="space-y-2 mb-5">
-            {["个性化策略建议", "适合你的交易品种推荐", "详细提升路径规划"].map((item) => (
-              <li key={item} className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--success)' }} />
-                {item}
-              </li>
-            ))}
-          </ul>
-
-          <p className="text-sm text-center mb-4" style={{ color: 'var(--accent-gold)' }}>
-            扫码添加，免费获取专属分析
-          </p>
-
-          <button
-            onClick={handleContactWeChat}
-            className="w-full py-3.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 active:scale-[0.97] transition-transform"
-            style={{ background: '#07C160' }}
-            data-testid="button-wechat-contact"
-          >
-            <SiWechat className="w-5 h-5" />
-            添加企业微信顾问
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </motion.div>
-
-        <div className="h-[env(safe-area-inset-bottom)]" />
-      </div>
-    </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+    </>
   );
 }

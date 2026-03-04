@@ -4,13 +4,14 @@ import { motion } from "framer-motion";
 
 interface RadarChartProps {
   scores: Record<Dimension, number>;
+  hideScores?: boolean;
 }
 
-export default function RadarChartComponent({ scores }: RadarChartProps) {
+export default function RadarChartComponent({ scores, hideScores = false }: RadarChartProps) {
   const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
 
   const data = dims.map((dim) => ({
-    dimension: `${dimensionLabels[dim]} ${scores[dim]}`,
+    dimension: hideScores ? dimensionLabels[dim] : `${dimensionLabels[dim]} ${scores[dim]}`,
     score: scores[dim],
     fullMark: 100,
   }));
@@ -20,7 +21,7 @@ export default function RadarChartComponent({ scores }: RadarChartProps) {
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 1, ease: "easeOut" }}
-      className="w-full aspect-square max-w-[300px] mx-auto gpu-accelerate"
+      className="w-full aspect-square max-w-[280px] mx-auto gpu-accelerate"
       data-testid="radar-chart"
     >
       <ResponsiveContainer width="100%" height="100%">

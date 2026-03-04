@@ -1,5 +1,4 @@
 import { useLocation } from "wouter";
-import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/components/ThemeProvider";
 import { motion } from "framer-motion";
 import { Sun, Moon } from "lucide-react";
@@ -7,16 +6,7 @@ import logoImg from "@assets/IMG_2951_1772566874804.jpeg";
 
 export default function LandingPage() {
   const [, navigate] = useLocation();
-  const { user, isLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
-
-  const handleStart = () => {
-    if (user) {
-      navigate("/quiz");
-    } else {
-      navigate("/register");
-    }
-  };
 
   return (
     <div className="min-h-screen flex flex-col overflow-hidden relative" style={{ background: 'var(--bg-primary)' }}>
@@ -71,11 +61,8 @@ export default function LandingPage() {
               color: 'var(--accent-blue)',
             }}
           >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: 'var(--accent-blue)' }} />
-              <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: 'var(--accent-blue)' }} />
-            </span>
-            2分钟测出你的交易段位
+            <span>⚡</span>
+            2分钟 · 12道实战情境题
           </div>
 
           <h1
@@ -87,7 +74,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-sm leading-relaxed mb-6 max-w-xs mx-auto" style={{ color: 'var(--text-secondary)' }} data-testid="text-subtitle">
-            12道情境题，解锁你的交易能力DNA
+            测出你的交易能力DNA
           </p>
         </motion.div>
 
@@ -98,11 +85,11 @@ export default function LandingPage() {
           className="mb-10"
         >
           <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
-            <span>6维雷达图</span>
+            <span>📊 6维能力雷达</span>
             <span style={{ color: 'var(--border-color)' }}>·</span>
-            <span>12种人格</span>
+            <span>🎴 12种交易员人格</span>
             <span style={{ color: 'var(--border-color)' }}>·</span>
-            <span>专属建议</span>
+            <span>🏆 段位评定</span>
           </div>
         </motion.div>
 
@@ -113,9 +100,8 @@ export default function LandingPage() {
           className="w-full max-w-sm mx-auto space-y-4"
         >
           <button
-            onClick={handleStart}
-            disabled={isLoading}
-            className="w-[80%] mx-auto block h-12 rounded-xl font-bold text-base text-black active:scale-[0.97] transition-transform disabled:opacity-50 animate-breathe"
+            onClick={() => navigate("/quiz")}
+            className="w-[80%] mx-auto block h-12 rounded-xl font-bold text-base text-black active:scale-[0.97] transition-transform animate-breathe"
             style={{ background: 'var(--accent-gold)' }}
             data-testid="button-start"
           >
@@ -128,22 +114,20 @@ export default function LandingPage() {
             transition={{ delay: 0.8 }}
             className="text-center text-xs" style={{ color: 'var(--text-secondary)' }}
           >
-            已有 <span className="font-num" style={{ color: 'var(--accent-gold)' }}>12,847</span> 人完成测评
+            已有 <span className="font-num" style={{ color: 'var(--accent-gold)' }}>23,847</span> 位交易员完成测评
           </motion.div>
+        </motion.div>
 
-          {!user && (
-            <p className="text-center text-xs" style={{ color: 'var(--text-secondary)' }}>
-              已有账号？
-              <button
-                className="ml-1 underline underline-offset-2"
-                style={{ color: 'var(--accent-blue)' }}
-                onClick={() => navigate("/login")}
-                data-testid="link-login"
-              >
-                直接登录
-              </button>
-            </p>
-          )}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.0 }}
+          className="mt-10 text-center max-w-xs mx-auto"
+        >
+          <p className="text-xs italic leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+            "这不是一个教你赚钱的测试。<br />
+            这是一面镜子——让你看清自己卡在哪里。"
+          </p>
         </motion.div>
       </div>
     </div>

@@ -1,0 +1,437 @@
+# 🔗 交易员能力评测系统 — 最终版 Part 3/3：后端 Webhook 与销售通知
+
+**前置条件：Part 1（数据层）和 Part 2（UI）完成后再执行本文档。**
+
+-----
+
+## 一、架构概览
+
+```
+前端                           后端                        企微机器人
+                                                          
+[用户输入手机号]  → POST /api/webhook/register  →  📋 轻量通知
+                                                   (有人在测，准备好)
+                                                          
+[用户点击加客服]  → POST /api/webhook/result    →  🎯 完整画像
+                                                   + 销售策略建议
+```
+
+Webhook URL 只存在后端，前端不暴露。
+
+-----
+
+## 二、后端完整代码 (server/index.js)
+
+```javascript
+import express from 'express';
+import fetch from 'node-fetch';
+import cors from 'cors';
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const WECHAT_WEBHOOK = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1b7a8fca-f469-4cd0-9158-4e7eff0780ef';
+
+// ============================================
+// 防刷：同一手机号5分钟内不重复推送
+// ============================================
+const recentSubmits = new Map();
+function canSubmit(phone) {
+  if (recentSubmits.has(phone) && Date.now() - recentSubmits.get(phone) < 300000) {
+    return false;
+  }
+  recentSubmits.set(phone, Date.now());
+  return true;
+}
+
+
+// ============================================
+// API 1：手机号注册时推送（轻量通知）
+// 触发时机：用户在 AuthPage 输入手机号并提交
+// ============================================
+app.post('/api/webhook/register', async (req, res) => {
+  try {
+    const { phone, wechatName } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({ error: '缺少手机号' });
+    }
+
+    if (!canSubmit(phone)) {
+      return res.json({ success: true, note: '已通知过，跳过重复推送' });
+    }
+
+    const content = [
+      `## 📋 新用户测评通知`,
+      ``,
+      `> 有新用户完成了交易能力测评，正在查看结果`,
+      ``,
+      `**微信昵称：** ${wechatName || '未授权'}`,
+      `**手机号：** <font color="warning">${phone}</font>`,
+      `**状态：** 正在查看部分结果，尚未领取完整报告`,
+      ``,
+      `---`,
+      `⏳ 如果该用户点击"领取完整报告"，你将收到完整画像和跟进策略`,
+    ].join('\n');
+
+    const webhookRes = await fetch(WECHAT_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ msgtype: 'markdown', markdown: { content } })
+    });
+
+    const data = await webhookRes.json();
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error('register webhook error:', err);
+    res.json({ success: true, webhookError: true });
+  }
+});
+
+
+// ============================================
+// API 2：用户点击"加客服领取完整报告"时推送
+// 触发时机：PartialResult 页面点击 CTA
+// 包含：完整客户画像 + 销售策略建议
+// ============================================
+app.post('/api/webhook/result', async (req, res) => {
+  try {
+    const {
+      phone,
+      wechatName,
+      scores,         // { RISK: 85, MENTAL: 72, SYSTEM: 91, ADAPT: 52, EXEC: 68, EDGE: 76 }
+      traderType,     // { code: 'ER', name: '格局掌控者', emoji: '🏛️' }
+      rank,           // { name: '大师交易员', emoji: '🏆' }
+      avgScore,       // 76
+      salesStrategy   // { attitude, opening, avoid, keyHook }
+    } = req.body;
+
+    // 构造分数排名
+    const dimNames = {
+      RISK: '风险管理', MENTAL: '交易心理', SYSTEM: '系统思维',
+      ADAPT: '市场适应', EXEC: '执行力', EDGE: '认知格局'
+    };
+
+    const scoreEntries = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+    const scoreLines = scoreEntries.map(([dim, score], i) => {
+      const bar = '█'.repeat(Math.round(score / 10)) + '░'.repeat(10 - Math.round(score / 10));
+      const label = i === 0 ? ' 🔥最强' : (i === scoreEntries.length - 1 ? ' ⬆️突破口' : '');
+      return `${dimNames[dim]}　${bar} **${score}**${label}`;
+    }).join('\n');
+
+    const weakestDim = dimNames[scoreEntries[scoreEntries.length - 1][0]];
+    const strongestDim = dimNames[scoreEntries[0][0]];
+
+    const content = [
+      `## 🎯 完整客户画像 — 请立即跟进`,
+      ``,
+      `### 👤 客户信息`,
+      `**微信昵称：** ${wechatName || '未授权'}`,
+      `**手机号：** <font color="warning">${phone}</font>`,
+      ``,
+      `### 📊 测评结果`,
+      `**段位：** ${rank.emoji} ${rank.name}（综合 **${avgScore}**/100）`,
+      `**类型：** ${traderType.emoji} ${traderType.name}`,
+      ``,
+      `### 🕸️ 六维能力`,
+      scoreLines,
+      ``,
+      `### 🎯 销售跟进策略`,
+      `**沟通态度：** <font color="warning">${salesStrategy.attitude}</font>`,
+      ``,
+      `**开场白参考：**`,
+      `> ${salesStrategy.opening}`,
+      ``,
+      `**注意避免：** ${salesStrategy.avoid}`,
+      ``,
+      `**核心钩子：** <font color="info">${salesStrategy.keyHook}</font>`,
+      ``,
+      `---`,
+      `💡 **快速判断：** 该客户最强维度「${strongestDim}」，最弱维度「${weakestDim}」。从「${weakestDim}」切入沟通，用「${strongestDim}」给予肯定。`,
+    ].join('\n');
+
+    const webhookRes = await fetch(WECHAT_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ msgtype: 'markdown', markdown: { content } })
+    });
+
+    const data = await webhookRes.json();
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error('result webhook error:', err);
+    res.json({ success: true, webhookError: true });
+  }
+});
+
+
+// ============================================
+// 静态文件服务
+// ============================================
+app.use(express.static('dist'));
+app.get('*', (req, res) => {
+  res.sendFile('index.html', { root: 'dist' });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+```
+
+-----
+
+## 三、前端调用封装 (src/utils/webhook.js)
+
+```javascript
+const API_BASE = '';
+
+// 节点1：手机号注册时
+export async function sendRegisterWebhook({ phone, wechatName }) {
+  try {
+    const res = await fetch('/api/webhook/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, wechatName })
+    });
+    return await res.json();
+  } catch (err) {
+    console.error('注册 webhook 失败:', err);
+    return { success: true, webhookError: true };
+  }
+}
+
+// 节点2：点击加客服时
+export async function sendResultWebhook({ phone, wechatName, scores, traderType, rank, avgScore, salesStrategy }) {
+  try {
+    const res = await fetch('/api/webhook/result', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, wechatName, scores, traderType, rank, avgScore, salesStrategy })
+    });
+    return await res.json();
+  } catch (err) {
+    console.error('结果 webhook 失败:', err);
+    return { success: true, webhookError: true };
+  }
+}
+```
+
+-----
+
+## 四、调用时机
+
+### 时机1：AuthPage 手机号提交
+
+```javascript
+// AuthPage.jsx
+const handleSubmit = async () => {
+  if (!validatePhone(phone)) return;
+  setLoading(true);
+  
+  // 发送轻量通知
+  await sendRegisterWebhook({ phone, wechatName: wechatUser?.name });
+  
+  // 跳转部分结果页
+  setCurrentPage('partial');
+  setLoading(false);
+};
+```
+
+### 时机2：PartialResult CTA 点击
+
+```javascript
+// PartialResult.jsx
+const handleUnlockClick = () => {
+  // 从 salesStrategy.js 获取对应类型的策略
+  const strategy = salesStrategy[result.traderType.code];
+  
+  // 发送完整画像（不 await，不阻断体验）
+  sendResultWebhook({
+    phone,
+    wechatName: wechatUser?.name,
+    scores: result.normalized,
+    traderType: result.traderType,
+    rank: result.rank,
+    avgScore: result.avgScore,
+    salesStrategy: strategy
+  });
+  
+  // 可选：显示一个弹窗告诉用户"已通知专属顾问，请扫码添加"
+  setShowQRModal(true);
+};
+```
+
+-----
+
+## 五、销售端收到的消息效果
+
+### 消息1（手机号提交瞬间）
+
+```
+📋 新用户测评通知
+
+> 有新用户完成了交易能力测评，正在查看结果
+
+微信昵称：交易小李
+手机号：138xxxx8888
+状态：正在查看部分结果，尚未领取完整报告
+
+---
+⏳ 如果该用户点击"领取完整报告"，你将收到完整画像和跟进策略
+```
+
+### 消息2（点击加客服瞬间）
+
+```
+🎯 完整客户画像 — 请立即跟进
+
+👤 客户信息
+微信昵称：交易小李
+手机号：138xxxx8888
+
+📊 测评结果
+段位：🏆 大师交易员（综合 76/100）
+类型：🏛️ 格局掌控者
+
+🕸️ 六维能力
+系统思维　████████████░░░░ 91 🔥最强
+风险管理　██████████░░░░░░ 85
+认知格局　████████░░░░░░░░ 76
+执行力　　███████░░░░░░░░░ 68
+交易心理　██████░░░░░░░░░░ 60
+市场适应　█████░░░░░░░░░░░ 52 ⬆️突破口
+
+🎯 销售跟进策略
+沟通态度：平等切磋型
+
+开场白参考：
+> 你的测评显示你对市场有不错的宏观理解力，同时风控意识也很强。
+> 我们直播间里有些类似风格的职业交易员，你可以来看看他们是怎么
+> 用资金流数据来精确定位入场点的。
+
+注意避免：不要用'教你'的口吻，不要暗示他水平不够
+
+核心钩子：帮他解决'看对了但入场不精确'的痛点
+
+---
+💡 快速判断：该客户最强维度「系统思维」，最弱维度「市场适应」。
+从「市场适应」切入沟通，用「系统思维」给予肯定。
+```
+
+**销售在客户扫码加过来的那一秒，就已经知道该用什么态度、说什么话、避免什么雷区。**
+
+-----
+
+## 六、Replit 配置
+
+### package.json
+
+```json
+{
+  "dependencies": {
+    "express": "^4.18.0",
+    "node-fetch": "^3.3.0",
+    "cors": "^2.8.5"
+  }
+}
+```
+
+### Vite 代理（开发阶段）
+
+```javascript
+// vite.config.js
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: { '/api': 'http://localhost:3000' }
+  }
+});
+```
+
+### 部署：`npm run build` → `node server/index.js`
+
+-----
+
+## 七、安全与防刷
+
+1. **Webhook URL 不在前端**
+1. **同一手机号5分钟防重复**（已在代码中实现）
+1. **可选增强**：`express-rate-limit`
+
+```javascript
+import rateLimit from 'express-rate-limit';
+const limiter = rateLimit({ windowMs: 60000, max: 10 });
+app.use('/api/', limiter);
+```
+
+-----
+
+## 八、微信授权说明
+
+### 在微信内打开（主流场景）
+
+使用微信 OAuth 2.0 网页授权：
+
+- scope=snsapi_userinfo（需要用户确认，能拿到昵称头像）
+- 或 scope=snsapi_base（静默授权，只能拿到openid）
+- 需要有已认证的微信公众号/服务号
+- 授权回调域名配置在微信后台
+
+**如果暂时没有服务号**：AuthPage 可以改成只收手机号（跳过微信授权步骤），微信昵称改为选填文本框。这样功能完全不受影响，只是少了微信头像展示。
+
+### 不在微信环境中打开
+
+- 检测 `navigator.userAgent` 中是否有 `MicroMessenger`
+- 如果不在微信中，隐藏微信授权步骤，只显示手机号输入
+
+```javascript
+const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
+```
+
+-----
+
+## 九、测试检查清单
+
+- [ ] 开屏页 → 点击开始 → 进入答题页
+- [ ] 答题页 → 12题全部可以完成 → 进入加载页
+- [ ] 加载页 → ID卡生成动画 → 4秒后进入授权页
+- [ ] 授权页 → 输入手机号 → **企微群收到消息1（轻量通知）**
+- [ ] 部分结果页 → 段位开箱动画正常播放
+- [ ] 部分结果页 → 卡牌翻转动画正常
+- [ ] 部分结果页 → 雷达图显示（无分数）
+- [ ] 部分结果页 → 戳心描述与类型匹配
+- [ ] 部分结果页 → 完整报告区域有毛玻璃模糊效果
+- [ ] 部分结果页 → 点击加客服 CTA → **企微群收到消息2（完整画像+销售策略）**
+- [ ] 分享图片 → 生成正常，包含段位+类型+雷达图+二维码
+- [ ] 手机端微信内全流程通畅
+- [ ] Webhook 失败不影响用户体验
+- [ ] 同一手机号重复提交不重复推送
+
+-----
+
+## 十、开发优先级
+
+|优先级|步骤                                                |对应文档      |
+|---|--------------------------------------------------|----------|
+|P0 |questions.js + calculateResult.js + traderTypes.js|Part 1    |
+|P0 |salesStrategy.js                                  |Part 1    |
+|P0 |server/index.js + webhook 测试                      |**Part 3**|
+|P1 |App.jsx 页面流程框架                                    |Part 2    |
+|P1 |QuizPage（答题交互）                                    |Part 2    |
+|P1 |AuthPage（手机号收集 + webhook调用）                       |Part 2 + 3|
+|P1 |PartialResult（部分结果 + webhook调用）                   |Part 2 + 3|
+|P2 |LoadingPage（ID卡动画）                                |Part 2    |
+|P2 |LandingPage                                       |Part 2    |
+|P2 |段位开箱 + 卡牌翻转动画                                     |Part 2    |
+|P2 |雷达图 + 毛玻璃效果                                       |Part 2    |
+|P3 |ShareCard 分享图片                                    |Part 2    |
+|P3 |答题经验值闪现动画                                         |Part 2    |
+|—  |替换真实企微二维码                                         |—         |
+|—  |微信 OAuth 接入（如有服务号）                                |Part 3    |
+|—  |手机端+微信全流程测试                                       |—         |
+
+-----
+
+**三份文档全部完成。执行顺序：Part 1（数据）→ Part 3（后端webhook）→ Part 2（UI）。先确保数据正确和webhook通了，再做界面和动画。**

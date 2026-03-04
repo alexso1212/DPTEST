@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-import { useLocation } from "wouter";
-import { useAuth } from "@/lib/auth";
+import { useState, useCallback } from "react";
 import { questions } from "@/data/questions";
+import { dimensionLabels } from "@/data/questions";
 import ProgressBar from "@/components/ProgressBar";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
@@ -11,27 +10,25 @@ interface QuizPageProps {
 }
 
 export default function QuizPage({ onComplete }: QuizPageProps) {
-  const [, navigate] = useLocation();
-  const { user, isLoading } = useAuth();
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [selecting, setSelecting] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!isLoading && !user) {
-      navigate("/register");
-    }
-  }, [user, isLoading, navigate]);
+  const [xpFlash, setXpFlash] = useState<string | null>(null);
 
   const handleSelect = useCallback((optionIndex: number) => {
     if (selecting !== null) return;
     setSelecting(optionIndex);
+
+    const question = questions[currentQ];
+    const mainDim = question.dimension;
+    setXpFlash(`+${dimensionLabels[mainDim]}`);
 
     setTimeout(() => {
       const newAnswers = [...answers];
       newAnswers[currentQ] = optionIndex;
       setAnswers(newAnswers);
       setSelecting(null);
+      setXpFlash(null);
 
       if (currentQ < questions.length - 1) {
         setCurrentQ(currentQ + 1);
@@ -40,14 +37,6 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
       }
     }, 400);
   }, [selecting, answers, currentQ, onComplete]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-        <div className="animate-pulse" style={{ color: 'var(--text-secondary)' }}>加载中...</div>
-      </div>
-    );
-  }
 
   const question = questions[currentQ];
   const optionLabels = ['A', 'B', 'C', 'D'];
@@ -58,14 +47,14 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-              第 <span className="font-num">{currentQ + 1}/{questions.length}</span> 题
+              <span className="font-num">{currentQ + 1}/{questions.length}</span>
             </span>
           </div>
           <ProgressBar current={currentQ} total={questions.length} />
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col px-5 py-6 max-w-lg mx-auto w-full" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+      <div className="flex-1 flex flex-col px-5 py-6 max-w-lg mx-auto w-full relative" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={currentQ}
@@ -117,6 +106,30 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
               })}
             </div>
           </motion.div>
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {xpFlash && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="fixed bottom-8 left-0 right-0 flex justify-center z-30 pointer-events-none"
+            >
+              <div
+                className="px-4 py-2 rounded-full text-sm font-semibold"
+                style={{
+                  background: 'rgba(var(--accent-gold-rgb), 0.15)',
+                  color: 'var(--accent-gold)',
+                  border: '1px solid rgba(var(--accent-gold-rgb), 0.3)',
+                }}
+                data-testid="text-xp-flash"
+              >
+                {xpFlash}
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </div>
