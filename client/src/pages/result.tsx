@@ -11,6 +11,8 @@ import CharacterCard from "@/components/CharacterCard";
 import RankBadge from "@/components/RankBadge";
 import LoginModal from "@/components/LoginModal";
 import WeChatContactModal, { useWeChatContact } from "@/components/WeChatContactModal";
+import VerifyCodeModal from "@/components/VerifyCodeModal";
+import { generateVerifyCode } from "@/utils/verifyCode";
 import type { QuizResult } from "@/utils/calculateResult";
 import { dimensionLabels, type Dimension } from "@/data/questions";
 import { usePageView, useTracking } from "@/hooks/use-tracking";
@@ -430,6 +432,7 @@ export default function ResultPage({ result }: ResultPageProps) {
   const [showCardPanel, setShowCardPanel] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showWeChatModal, setShowWeChatModal] = useState(false);
+  const [showVerifyCodeModal, setShowVerifyCodeModal] = useState(false);
   const [resultSaved, setResultSaved] = useState(false);
   const [c1] = traderType.colors;
   const cc = traderType.cardColors;
@@ -478,6 +481,8 @@ export default function ResultPage({ result }: ResultPageProps) {
     return [...dims].sort((a, b) => normalizedScores[b] - normalizedScores[a]);
   }, [normalizedScores]);
 
+  const verifyCode = useMemo(() => generateVerifyCode(user?.phone, traderType.name), [user?.phone, traderType.name]);
+
   const handleContactWeChat = useCallback(() => {
     trackEvent("wechat_click", { page: "result", traderType: traderType.code });
     const strategy = salesStrategy[traderType.code];
@@ -489,13 +494,18 @@ export default function ResultPage({ result }: ResultPageProps) {
         rank: { name: rank.name, emoji: rank.icon },
         avgScore,
         salesStrategy: strategy,
+        verifyCode,
       });
     }
+    setShowVerifyCodeModal(true);
+  }, [traderType, rank, avgScore, normalizedScores, user, trackEvent, verifyCode]);
+
+  const handleVerifyProceed = useCallback(() => {
     const mobileHandled = handleWeChatMobile();
     if (!mobileHandled) {
       setShowWeChatModal(true);
     }
-  }, [traderType, rank, avgScore, normalizedScores, user, handleWeChatMobile, trackEvent]);
+  }, [handleWeChatMobile]);
 
   return (
     <>
@@ -817,6 +827,13 @@ export default function ResultPage({ result }: ResultPageProps) {
               </motion.button>
             </motion.div>
           )}
+
+          <VerifyCodeModal
+            open={showVerifyCodeModal}
+            onClose={() => setShowVerifyCodeModal(false)}
+            verifyCode={verifyCode}
+            onProceed={handleVerifyProceed}
+          />
 
           <WeChatContactModal
             open={showWeChatModal}

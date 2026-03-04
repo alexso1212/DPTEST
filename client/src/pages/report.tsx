@@ -10,6 +10,8 @@ import RadarChartComponent from "@/components/RadarChart";
 import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
 import RankBadge from "@/components/RankBadge";
 import WeChatContactModal, { useWeChatContact } from "@/components/WeChatContactModal";
+import VerifyCodeModal from "@/components/VerifyCodeModal";
+import { generateVerifyCode } from "@/utils/verifyCode";
 import { usePageView, useTracking } from "@/hooks/use-tracking";
 
 const ease = { duration: 0.22, ease: "easeOut" as const };
@@ -101,13 +103,20 @@ function ReportContent({
   const [c1, c2] = traderType?.colors ?? ['#C9A456', '#94A3B8'];
   const cc = traderType?.cardColors;
   const [showWeChatModal, setShowWeChatModal] = useState(false);
+  const [showVerifyCodeModal, setShowVerifyCodeModal] = useState(false);
   const { handleContact: handleWeChatMobile } = useWeChatContact();
   const primaryColor = cc?.primary || c1;
   const { trackEvent } = useTracking();
   usePageView("report");
 
+  const verifyCode = useMemo(() => generateVerifyCode(undefined, traderType?.name || ''), [traderType?.name]);
+
   const handleContactWeChat = () => {
     trackEvent("wechat_click", { page: "report" });
+    setShowVerifyCodeModal(true);
+  };
+
+  const handleVerifyProceed = () => {
     const mobileHandled = handleWeChatMobile();
     if (!mobileHandled) {
       setShowWeChatModal(true);
@@ -594,6 +603,13 @@ function ReportContent({
           </p>
         </div>
       </div>
+
+      <VerifyCodeModal
+        open={showVerifyCodeModal}
+        onClose={() => setShowVerifyCodeModal(false)}
+        verifyCode={verifyCode}
+        onProceed={handleVerifyProceed}
+      />
 
       <WeChatContactModal
         open={showWeChatModal}

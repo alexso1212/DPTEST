@@ -16,6 +16,7 @@ interface ResultWebhookParams {
     avoid: string;
     keyHook: string;
   };
+  verifyCode?: string;
 }
 
 export async function sendRegisterWebhook({ phone, wechatName }: RegisterWebhookParams) {
@@ -32,12 +33,12 @@ export async function sendRegisterWebhook({ phone, wechatName }: RegisterWebhook
   }
 }
 
-export async function sendResultWebhook({ phone, wechatName, scores, traderType, rank, avgScore, salesStrategy }: ResultWebhookParams) {
+export async function sendResultWebhook({ phone, wechatName, scores, traderType, rank, avgScore, salesStrategy, verifyCode }: ResultWebhookParams) {
   try {
     const res = await fetch('/api/webhook/result', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, wechatName, scores, traderType, rank, avgScore, salesStrategy }),
+      body: JSON.stringify({ phone, wechatName, scores, traderType, rank, avgScore, salesStrategy, verifyCode }),
     });
     return await res.json();
   } catch (err) {

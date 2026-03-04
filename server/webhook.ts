@@ -62,6 +62,7 @@ interface ResultWebhookPayload {
     keyHook: string;
   };
   reportUrl?: string;
+  verifyCode?: string;
 }
 
 const dimNames: Record<string, string> = {
@@ -92,6 +93,10 @@ export async function sendResultNotification(payload: ResultWebhookPayload): Pro
     `### 👤 客户信息`,
     `**微信昵称：** ${payload.wechatName || '未授权'}`,
     `**手机号：** <font color="warning">${payload.phone}</font>`,
+    ...(payload.verifyCode ? [
+      `**身份验证码：** <font color="warning">${payload.verifyCode}</font>`,
+      `> 用户添加好友后会发送此验证码，请留意匹配`,
+    ] : []),
     ``,
     `### 📊 测评结果`,
     `**段位：** ${payload.rank.emoji} ${payload.rank.name}（综合 **${payload.avgScore}**/100）`,

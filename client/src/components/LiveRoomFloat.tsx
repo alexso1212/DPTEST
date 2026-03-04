@@ -134,7 +134,7 @@ export default function LiveRoomFloat() {
       <motion.div
         ref={containerRef}
         className="fixed left-3 z-[90]"
-        style={{ top: '65%', y: springY }}
+        style={{ top: '45%', y: springY }}
         drag="y"
         dragConstraints={{ top: -200, bottom: 200 }}
         dragElastic={0.15}
@@ -199,7 +199,7 @@ export default function LiveRoomFloat() {
     <motion.div
       ref={containerRef}
       className="fixed left-5 z-[90]"
-      style={{ top: '50%', y: springY }}
+      style={{ top: '40%', y: springY }}
       drag="y"
       dragConstraints={{ top: -250, bottom: 250 }}
       dragElastic={0.12}

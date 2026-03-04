@@ -308,7 +308,7 @@ export async function registerRoutes(
 
   app.post("/api/webhook/result", async (req, res) => {
     try {
-      const { phone, wechatName, scores, traderType, rank, avgScore, salesStrategy } = req.body;
+      const { phone, wechatName, scores, traderType, rank, avgScore, salesStrategy, verifyCode } = req.body;
       if (!phone || !traderType) {
         return res.status(400).json({ message: "缺少必要字段" });
       }
@@ -324,7 +324,7 @@ export async function registerRoutes(
         }
       }
 
-      sendResultNotification({ phone, wechatName, scores, traderType, rank, avgScore, salesStrategy, reportUrl });
+      sendResultNotification({ phone, wechatName, scores, traderType, rank, avgScore, salesStrategy, reportUrl, verifyCode });
       res.json({ success: true });
     } catch (err) {
       console.error("Result webhook error:", err);

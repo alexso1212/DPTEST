@@ -157,7 +157,8 @@ client/src/
 │   ├── ProgressBar.tsx   # 答题进度条（accent红，spring动画）
 │   ├── RadarChart.tsx    # 雷达图（recharts，accent红填充）
 │   ├── WeChatContactModal.tsx # 企微联系弹窗（移动端直跳/桌面端QR码）
-│   ├── LiveRoomFloat.tsx  # 全局浮动直播间入口（移动端右下角/桌面端右侧，仅在home/result/report显示）
+│   ├── LiveRoomFloat.tsx  # 全局浮动直播间入口（左侧可拖拽，弹簧物理，移动端top:45%/桌面端top:40%，仅在home/result/report显示）
+│   ├── VerifyCodeModal.tsx  # 身份验证码弹窗（添加企微顾问前展示，含手机尾号+交易员类型验证码，一键复制）
 │   └── ShareCard.tsx     # 分享卡片（角色卡风格，不显示实际分数）
 ├── hooks/
 │   ├── use-mobile.tsx    # 响应式检测 (768px breakpoint)
@@ -168,7 +169,8 @@ client/src/
 │   └── salesStrategy.ts  # 16种类型对应的销售策略矩阵
 ├── utils/
 │   ├── calculateResult.ts # 评测计分逻辑
-│   └── webhook.ts         # 前端 webhook 工具函数
+│   ├── webhook.ts         # 前端 webhook 工具函数
+│   └── verifyCode.ts      # 身份验证码生成（手机尾4位+交易员类型）
 ├── lib/
 │   ├── auth.ts           # 认证hook（含 hasQuizResult + traderTypeCode + avgScore + rankName + quizCompletedAt）
 │   └── queryClient.ts    # API客户端
