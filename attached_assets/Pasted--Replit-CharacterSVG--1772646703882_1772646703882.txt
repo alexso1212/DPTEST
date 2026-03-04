@@ -1,0 +1,428 @@
+# Replit 开发指令：角色卡牌进阶系统 + 黑影预览
+
+-----
+
+## 一、核心架构原则
+
+> **改一处，全局变。** 所有角色建模集中在 `CharacterSVG` 组件中，卡牌、预览、黑影全部从这个唯一源头渲染。未来改建模只改 `CharacterSVG`，其他所有地方自动更新。
+
+```
+CharacterSVG (唯一建模源) 
+  ├── CharacterCard（正常渲染，解锁阶段）
+  ├── SilhouettePreview（CSS filter 黑影，锁定阶段）
+  └── TierRoadmap（用户晋升路线图，混合正常+黑影）
+```
+
+-----
+
+## 二、导入角色卡牌组件
+
+将 `trader-cards-evolution.jsx` 的内容拆成以下模块放入项目：
+
+```
+src/
+  components/
+    character/
+      CharacterSVG.jsx      ← 唯一建模源（所有15个角色 × 4阶SVG）
+      CharacterCard.jsx      ← 单张卡牌展示
+      TierRoadmap.jsx        ← 晋升路线预览（新增）
+      SilhouettePreview.jsx  ← 黑影渲染器（新增）
+    data/
+      characters.js          ← CHARACTERS 常量数据
+      tiers.js               ← TIER_DATA 常量数据
+```
+
+### 拆分方法
+
+从 `trader-cards-evolution.jsx` 中提取：
+
+1. **characters.js** — `CHARACTERS` 对象
+1. **tiers.js** — `TIER_DATA` 数组
+1. **CharacterSVG.jsx** — 所有共享组件（Aura, Wings, Burst, Armor, Body, Head, Shoulders, Arm, Eyes）+ 所有武器（Weapons对象）+ 所有坐骑（MountDragon等）+ `CharacterSVG` 主组件
+1. **CharacterCard.jsx** — `CharacterCard` 组件
+1. **TierRoadmap.jsx** — 新建，见下方代码
+1. **SilhouettePreview.jsx** — 新建，见下方代码
+
+-----
+
+## 三、黑影预览组件（核心新功能）
+
+### SilhouettePreview.jsx
+
+```jsx
+import CharacterSVG from './CharacterSVG';
+
+/**
+ * 渲染角色的黑影轮廓
+ * 原理：直接复用 CharacterSVG，通过 CSS filter 变成纯黑剪影 + 微光边缘
+ * 
+ * 关键：不需要单独维护黑影版本！
+ * 改了 CharacterSVG 建模 → 黑影自动跟着变
+ */
+export default function SilhouettePreview({ type, tier, size = 160 }) {
+  return (
+    <div style={{
+      position: 'relative',
+      width: size,
+      height: size * 1.38,
+    }}>
+      {/* 黑影层：把所有颜色变成黑色剪影 */}
+      <div style={{
+        filter: 'brightness(0) saturate(0)',  // 变全黑
+        opacity: 0.85,
+      }}>
+        <CharacterSVG type={type} size={size} tier={tier} />
+      </div>
+      
+      {/* 微光边缘层：给黑影加一层模糊的彩色轮廓 */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        filter: 'brightness(0) saturate(0) drop-shadow(0 0 6px rgba(255,255,255,0.15))',
+        opacity: 0.3,
+        pointerEvents: 'none',
+      }}>
+        <CharacterSVG type={type} size={size} tier={tier} />
+      </div>
+
+      {/* 锁定图标 */}
+      <div style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        fontSize: size * 0.15,
+        opacity: 0.6,
+      }}>
+        🔒
+      </div>
+    </div>
+  );
+}
+```
+
+### 为什么用 CSS filter 而不是单独画黑影？
+
+- **一处改，全局变**：CharacterSVG 改了武器/翅膀/坐骑 → 黑影自动跟着变形状
+- **零维护成本**：不需要为15个角色×4阶各维护一套黑影SVG
+- **效果好**：`brightness(0)` 把所有颜色压成纯黑，`drop-shadow` 加微光边缘，既神秘又能看到轮廓差异
+
+-----
+
+## 四、晋升路线图组件（新增核心功能）
+
+### TierRoadmap.jsx
+
+```jsx
+import { CHARACTERS } from '../data/characters';
+import { TIER_DATA } from '../data/tiers';
+import CharacterSVG from './CharacterSVG';
+import SilhouettePreview from './SilhouettePreview';
+
+/**
+ * 晋升路线图：展示用户当前阶段 + 未来阶段黑影
+ * 
+ * Props:
+ *   type: 角色类型 ID（如 "ER"）
+ *   currentTier: 用户当前阶段 (0-3)
+ *   scores: 雷达图分数
+ */
+export default function TierRoadmap({ type, currentTier = 0, scores }) {
+  const char = CHARACTERS[type];
+  if (!char) return null;
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '20px',
+      padding: '24px',
+      background: '#0D0F14',
+    }}>
+      {/* 标题 */}
+      <h3 style={{
+        color: '#E8E6E1',
+        fontFamily: "Georgia, 'Noto Serif SC', serif",
+        fontSize: '18px',
+        letterSpacing: '3px',
+        margin: 0,
+      }}>
+        晋升之路
+      </h3>
+
+      {/* 四阶横向展示 */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-end',
+        gap: '12px',
+        overflowX: 'auto',
+        padding: '10px 0',
+        width: '100%',
+        justifyContent: 'center',
+      }}>
+        {TIER_DATA.map((td, tierIndex) => {
+          const isUnlocked = tierIndex <= currentTier;
+          const isCurrent = tierIndex === currentTier;
+          const size = isCurrent ? 140 : 100; // 当前阶段放大
+
+          return (
+            <div
+              key={tierIndex}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '8px',
+                opacity: isUnlocked ? 1 : 0.7,
+                transition: 'all 0.3s ease',
+              }}
+            >
+              {/* 阶段徽章 */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '3px 8px',
+                borderRadius: '12px',
+                background: isCurrent
+                  ? char.colors.primary + '33'
+                  : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${isCurrent
+                  ? char.colors.primary + '66'
+                  : 'rgba(255,255,255,0.06)'}`,
+              }}>
+                <span style={{ fontSize: '12px' }}>{td.badge}</span>
+                <span style={{
+                  fontSize: '9px',
+                  color: isCurrent ? '#E8E6E1' : '#5a5a6a',
+                  letterSpacing: '1px',
+                }}>
+                  {td.name}
+                </span>
+              </div>
+
+              {/* 角色渲染：解锁=真实，锁定=黑影 */}
+              <div style={{
+                border: isCurrent
+                  ? `2px solid ${char.colors.primary}88`
+                  : '1px solid rgba(255,255,255,0.04)',
+                borderRadius: '12px',
+                padding: '8px',
+                background: isCurrent
+                  ? char.colors.dark
+                  : 'rgba(255,255,255,0.01)',
+                boxShadow: isCurrent
+                  ? `0 0 20px ${char.colors.glow}`
+                  : 'none',
+              }}>
+                {isUnlocked ? (
+                  // 已解锁：显示真实角色
+                  <CharacterSVG
+                    type={type}
+                    size={size}
+                    tier={tierIndex}
+                  />
+                ) : (
+                  // 未解锁：显示黑影
+                  <SilhouettePreview
+                    type={type}
+                    tier={tierIndex}
+                    size={size}
+                  />
+                )}
+              </div>
+
+              {/* 阶段标签 */}
+              <span style={{
+                fontSize: '10px',
+                color: isCurrent ? char.colors.accent : '#4a4a5a',
+                letterSpacing: '1px',
+              }}>
+                Lv.{td.level}
+              </span>
+
+              {/* 解锁条件（仅未解锁显示） */}
+              {!isUnlocked && (
+                <p style={{
+                  fontSize: '9px',
+                  color: 'rgba(255,255,255,0.25)',
+                  textAlign: 'center',
+                  maxWidth: '100px',
+                  lineHeight: 1.4,
+                  margin: 0,
+                }}>
+                  {td.criteria}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 连接线 */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0',
+        marginTop: '-10px',
+      }}>
+        {[0, 1, 2].map(i => (
+          <div
+            key={i}
+            style={{
+              width: '60px',
+              height: '2px',
+              background: i < currentTier
+                ? char.colors.primary
+                : 'rgba(255,255,255,0.08)',
+              borderRadius: '1px',
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+-----
+
+## 五、在用户个人页面集成
+
+### 在用户结果页调用
+
+```jsx
+import TierRoadmap from '@/components/character/TierRoadmap';
+import CharacterCard from '@/components/character/CharacterCard';
+
+function UserProfilePage({ userResult }) {
+  // userResult 来自后端，包含：
+  // - type: "ER" (角色类型)
+  // - tier: 0-3 (当前阶段)
+  // - scores: { EDGE: 78, RISK: 72, ... }
+
+  return (
+    <div>
+      {/* 主卡牌 */}
+      <CharacterCard
+        type={userResult.type}
+        tier={userResult.tier}
+        scores={userResult.scores}
+        showAnimation={true}
+      />
+
+      {/* 晋升路线图 */}
+      <TierRoadmap
+        type={userResult.type}
+        currentTier={userResult.tier}
+        scores={userResult.scores}
+      />
+    </div>
+  );
+}
+```
+
+-----
+
+## 六、给 Replit 的完整 Prompt
+
+直接复制以下内容粘贴给 Replit：
+
+-----
+
+### Replit Prompt（复制这段）
+
+```
+我要在项目中集成一个角色卡牌晋升系统。请完成以下任务：
+
+## 1. 导入角色组件
+
+我会上传一个 `trader-cards-evolution.jsx` 文件，包含完整的 15 个角色 SVG 建模 + 4 阶进化系统。
+
+请将它拆分为模块化结构：
+- `src/components/character/CharacterSVG.jsx` — 所有 SVG 渲染逻辑（Aura, Wings, Burst, Armor, Body, Head, Shoulders, Arm, Weapons, Mounts, CharacterSVG 主组件）
+- `src/components/character/CharacterCard.jsx` — 卡牌展示组件
+- `src/data/characters.js` — CHARACTERS 数据常量
+- `src/data/tiers.js` — TIER_DATA 数据常量
+
+## 2. 新增：黑影预览组件
+
+创建 `src/components/character/SilhouettePreview.jsx`：
+- 接收 props: type, tier, size
+- 内部直接渲染 `<CharacterSVG>`，用 CSS filter `brightness(0) saturate(0)` 变成纯黑剪影
+- 加一层 `drop-shadow(0 0 6px rgba(255,255,255,0.15))` 做微光边缘
+- 中间放 🔒 图标
+- 关键：不要单独画黑影 SVG，直接复用 CharacterSVG + CSS filter。这样以后改建模黑影自动变。
+
+## 3. 新增：晋升路线图组件
+
+创建 `src/components/character/TierRoadmap.jsx`：
+- 接收 props: type, currentTier, scores
+- 横向展示 4 个阶段（学徒 → 交易者 → 精英 → 职业操盘手）
+- 已解锁阶段（tierIndex <= currentTier）：显示真实角色 CharacterSVG
+- 未解锁阶段（tierIndex > currentTier）：显示黑影 SilhouettePreview
+- 当前阶段放大显示（size=140），其他阶段较小（size=100）
+- 当前阶段有主题色边框和光效
+- 未解锁阶段下方显示解锁条件文字
+- 阶段之间有连接线，已过阶段亮色，未过阶段暗色
+
+## 4. 集成到用户结果页
+
+在测评完成后的结果页面中：
+- 顶部显示 `CharacterCard` 组件（用户当前阶段的完整卡牌）
+- 下方显示 `TierRoadmap` 组件（晋升路线图）
+- 用户能看到自己当前阶段的真实角色，以及未来阶段的黑影轮廓
+
+## 5. 后端阶段数据
+
+用户的 tier 值存储在数据库中：
+- 初始完成测评：tier = 0（学徒）
+- 通过邮件验证升级：tier = 1, 2, 3
+- API 端点 `PATCH /api/user/tier` 用于升级
+- 卡牌组件从用户 session/profile 读取 tier 值
+
+## 关键架构原则
+
+- **CharacterSVG 是唯一建模源** — 卡牌、黑影预览、路线图全部从这个组件渲染
+- **黑影用 CSS filter 实现** — 不要单独维护黑影版本
+- **改建模只改 CharacterSVG** — 其他所有地方自动更新
+- **tier 参数驱动一切视觉变化** — 传入 tier=0/1/2/3，组件自动渲染对应阶段的翅膀/武器/坐骑/光效
+```
+
+-----
+
+## 七、以后改建模怎么办？
+
+只需要修改 `CharacterSVG.jsx` 中的以下部分：
+
+|想改什么     |改哪里                          |
+|---------|-----------------------------|
+|武器外观     |`Weapons` 对象中对应角色的函数         |
+|翅膀形状     |`Wings` 组件                   |
+|坐骑外观     |`MountDragon`/`MountWolf` 等组件|
+|身体/衣服    |`Body` 组件                    |
+|肩甲护甲     |`Armor` + `Shoulders` 组件     |
+|眼睛效果     |`Eyes` + `Head` 组件           |
+|光环粒子     |`Aura` + `Burst` 组件          |
+|手臂动作     |`Arm` 组件的 pose 参数            |
+|某个角色的坐骑类型|`MOUNT_MAP` 对象               |
+
+改完之后：
+
+- ✅ 卡牌自动更新
+- ✅ 黑影轮廓自动更新（CSS filter 从同一源渲染）
+- ✅ 路线图预览自动更新
+- ✅ 不需要重新写 prompt 给 Replit
+
+-----
+
+## 八、视觉变化速查表
+
+|阶段          |翅膀   |武器       |坐骑       |光效           |护甲      |粒子 |
+|------------|-----|---------|---------|-------------|--------|---|
+|🔰 学徒 Lv.1   |无    |小型基础武器   |无        |微弱光环         |无       |6个 |
+|📊 交易者 Lv.2  |肩部能量线|中型武器+特效  |无        |中等光环         |无       |18个|
+|⚜️ 精英 Lv.3   |多羽翼展开|大型武器+脉冲环 |✅ 小型坐骑   |大光环+底环       |肩甲+胸甲   |18个|
+|👑 职业操盘手 Lv.4|巨翅+光环|超大武器+爆发光效|✅ 大型坐骑+细节|超大光环+地面魔法阵+漂浮|全套+皇冠+宝石|35个|
