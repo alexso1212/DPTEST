@@ -1,14 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/components/ThemeProvider";
 import { motion } from "framer-motion";
-import { Sun, Moon, LogOut, ChevronRight, RotateCcw, Gamepad2, BookOpen, Users } from "lucide-react";
+import { Sun, Moon, LogOut, ChevronRight, RotateCcw, Gamepad2, BookOpen, Users, FileText, Clock } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
 
 const spring = { type: "spring" as const, stiffness: 260, damping: 26 };
+
+const UNLOCK_HOURS = 4;
 
 interface StoredQuizResult {
   id: number;
@@ -16,7 +18,37 @@ interface StoredQuizResult {
   avgScore: number;
   rankName: string;
   scores: Record<string, number>;
+  shareToken: string;
   createdAt: string;
+}
+
+function useCountdown(targetTime: Date | null) {
+  const [remaining, setRemaining] = useState('');
+  const [unlocked, setUnlocked] = useState(false);
+
+  useEffect(() => {
+    if (!targetTime) return;
+
+    function tick() {
+      const diff = targetTime!.getTime() - Date.now();
+      if (diff <= 0) {
+        setUnlocked(true);
+        setRemaining('');
+        return;
+      }
+      setUnlocked(false);
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setRemaining(`${h}小时${m}分${s}秒`);
+    }
+
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [targetTime]);
+
+  return { remaining, unlocked };
 }
 
 export default function HomePage() {
@@ -52,6 +84,11 @@ export default function HomePage() {
 
   const traderType = quizResult ? traderTypes[quizResult.traderTypeCode] : null;
   const rank = quizResult ? rankTiers.find(r => r.name === quizResult.rankName) : null;
+
+  const unlockTime = quizResult?.createdAt
+    ? new Date(new Date(quizResult.createdAt).getTime() + UNLOCK_HOURS * 3600000)
+    : null;
+  const { remaining: countdown, unlocked: reportUnlocked } = useCountdown(unlockTime);
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
@@ -175,6 +212,29 @@ export default function HomePage() {
                   重新测评
                 </motion.button>
               </div>
+
+              {quizResult.shareToken && (
+                <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border-color)' }}>
+                  {reportUnlocked ? (
+                    <motion.button
+                      onClick={() => navigate(`/report/${quizResult.shareToken}`)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="w-full py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 text-black"
+                      style={{ background: 'var(--accent-gold)' }}
+                      data-testid="button-view-report"
+                    >
+                      <FileText className="w-4 h-4" />
+                      查看完整报告
+                    </motion.button>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2 py-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                      <Clock className="w-3.5 h-3.5" />
+                      <span data-testid="text-countdown">{countdown} 后可查看完整报告</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-4">

@@ -1,6 +1,7 @@
 import { users, quizResults, type User, type InsertUser } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
+import crypto from "crypto";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -14,6 +15,11 @@ export interface IStorage {
     rankName: string;
   }): Promise<typeof quizResults.$inferSelect>;
   getLatestQuizResult(userId: number): Promise<typeof quizResults.$inferSelect | undefined>;
+  getQuizResultByToken(token: string): Promise<typeof quizResults.$inferSelect | undefined>;
+}
+
+function generateShareToken(): string {
+  return crypto.randomBytes(16).toString('hex');
 }
 
 export class DatabaseStorage implements IStorage {
@@ -46,6 +52,7 @@ export class DatabaseStorage implements IStorage {
       traderTypeCode: data.traderTypeCode,
       avgScore: data.avgScore,
       rankName: data.rankName,
+      shareToken: generateShareToken(),
     }).returning();
     return result;
   }
@@ -57,6 +64,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(quizResults.userId, userId))
       .orderBy(desc(quizResults.createdAt))
       .limit(1);
+    return result || undefined;
+  }
+
+  async getQuizResultByToken(token: string) {
+    const [result] = await db
+      .select()
+      .from(quizResults)
+      .where(eq(quizResults.shareToken, token));
     return result || undefined;
   }
 }

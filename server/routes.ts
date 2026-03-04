@@ -95,6 +95,10 @@ export async function registerRoutes(
         id: user.id,
         phone: user.phone,
         hasQuizResult: !!quizResult,
+        traderTypeCode: quizResult?.traderTypeCode || null,
+        avgScore: quizResult?.avgScore || null,
+        rankName: quizResult?.rankName || null,
+        quizCompletedAt: quizResult?.createdAt || null,
       });
     } catch (err) {
       console.error("Get user error:", err);
@@ -141,7 +145,7 @@ export async function registerRoutes(
         rankName,
       });
 
-      res.json({ success: true, id: result.id });
+      res.json({ success: true, id: result.id, shareToken: result.shareToken });
     } catch (err) {
       console.error("Save quiz result error:", err);
       res.status(500).json({ message: "保存测评结果失败" });
@@ -160,6 +164,31 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Get quiz result error:", err);
       res.status(500).json({ message: "获取测评结果失败" });
+    }
+  });
+
+  app.get("/api/report/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      if (!token || token.length < 8) {
+        return res.status(400).json({ message: "无效的报告链接" });
+      }
+
+      const result = await storage.getQuizResultByToken(token);
+      if (!result) {
+        return res.status(404).json({ message: "报告不存在或链接已失效" });
+      }
+
+      res.json({
+        scores: result.scores,
+        traderTypeCode: result.traderTypeCode,
+        avgScore: result.avgScore,
+        rankName: result.rankName,
+        createdAt: result.createdAt,
+      });
+    } catch (err) {
+      console.error("Get report error:", err);
+      res.status(500).json({ message: "获取报告失败" });
     }
   });
 
@@ -183,7 +212,19 @@ export async function registerRoutes(
       if (!phone || !traderType) {
         return res.status(400).json({ message: "缺少必要字段" });
       }
-      sendResultNotification({ phone, wechatName, scores, traderType, rank, avgScore, salesStrategy });
+
+      const userId = (req.session as any)?.userId;
+      let reportUrl: string | undefined;
+      if (userId) {
+        const quizResult = await storage.getLatestQuizResult(userId);
+        if (quizResult?.shareToken) {
+          const baseUrl = process.env.BASE_URL
+            || `${req.get('x-forwarded-proto') || req.protocol}://${req.get('host') || 'localhost'}`;
+          reportUrl = `${baseUrl}/report/${quizResult.shareToken}`;
+        }
+      }
+
+      sendResultNotification({ phone, wechatName, scores, traderType, rank, avgScore, salesStrategy, reportUrl });
       res.json({ success: true });
     } catch (err) {
       console.error("Result webhook error:", err);

@@ -61,6 +61,7 @@ interface ResultWebhookPayload {
     avoid: string;
     keyHook: string;
   };
+  reportUrl?: string;
 }
 
 const dimNames: Record<string, string> = {
@@ -111,6 +112,10 @@ export async function sendResultNotification(payload: ResultWebhookPayload): Pro
     ``,
     `---`,
     `💡 **快速判断：** 该客户最强维度「${strongestDim}」，最弱维度「${weakestDim}」。从「${weakestDim}」切入沟通，用「${strongestDim}」给予肯定。`,
+    ...(payload.reportUrl ? [
+      ``,
+      `📎 **完整报告链接（发给客户）：** [点击查看完整报告](${payload.reportUrl})`,
+    ] : []),
   ].join('\n');
 
   try {

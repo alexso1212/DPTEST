@@ -14,6 +14,7 @@ import HomePage from "@/pages/home";
 import QuizPage from "@/pages/quiz";
 import LoadingPage from "@/pages/loading";
 import ResultPage from "@/pages/result";
+import ReportPage from "@/pages/report";
 import { calculateResult, type QuizResult } from "@/utils/calculateResult";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
 
@@ -179,6 +180,8 @@ function Router() {
               <ResultRoute quizResult={quizResult} />
             </AuthGuard>
           </Route>
+
+          <Route path="/report/:token" component={ReportPage} />
 
           <Route component={NotFound} />
         </Switch>

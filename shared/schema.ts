@@ -18,6 +18,7 @@ export const quizResults = pgTable("quiz_results", {
   traderTypeCode: varchar("trader_type_code", { length: 10 }).notNull(),
   avgScore: integer("avg_score").notNull(),
   rankName: varchar("rank_name", { length: 50 }).notNull(),
+  shareToken: varchar("share_token", { length: 32 }).notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
