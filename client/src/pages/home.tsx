@@ -102,20 +102,20 @@ export default function HomePage() {
       className="min-h-screen relative"
       style={{
         background: hasResult
-          ? `linear-gradient(180deg, ${cc.dark} 0%, #0a0c10 30%, #0d0f14 60%, #0d0f14 100%)`
+          ? `linear-gradient(180deg, ${cc.dark} 0%, ${cc.dark}cc 25%, ${cc.dark}66 50%, #0d0f14 85%)`
           : '#0D0F14',
       }}
     >
       {hasResult && (
         <>
           <div className="absolute inset-0 pointer-events-none" style={{
-            background: `radial-gradient(ellipse 80% 50% at 50% 15%, ${cc.primary}18, transparent 70%)`,
+            background: `radial-gradient(ellipse 90% 45% at 50% 18%, ${cc.primary}22, transparent 65%)`,
           }} />
           <div className="absolute inset-0 pointer-events-none" style={{
-            background: `radial-gradient(ellipse 60% 30% at 30% 25%, ${cc.glow.replace('0.4', '0.06')}, transparent 60%)`,
+            background: `radial-gradient(ellipse 70% 40% at 25% 40%, ${cc.primary}0c, transparent 55%)`,
           }} />
           <div className="absolute inset-0 pointer-events-none" style={{
-            background: `radial-gradient(ellipse 40% 20% at 70% 10%, ${cc.secondary || cc.primary}08, transparent 50%)`,
+            background: `radial-gradient(ellipse 70% 40% at 75% 60%, ${cc.primary}08, transparent 55%)`,
           }} />
         </>
       )}
