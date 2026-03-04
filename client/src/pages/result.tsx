@@ -2,7 +2,8 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { SiWechat } from "react-icons/si";
-import { Lock, Camera, Home, X, UserPlus } from "lucide-react";
+import { Lock, Camera, Home, X, UserPlus, LogIn } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import RadarChartComponent from "@/components/RadarChart";
 import ShareCard from "@/components/ShareCard";
 import CountUp from "@/components/CountUp";
@@ -428,12 +429,13 @@ export default function ResultPage({ result }: ResultPageProps) {
   const [showUnbox, setShowUnbox] = useState(true);
   const [showShareModal, setShowShareModal] = useState(false);
   const { trackEvent } = useTracking();
+  const { toast } = useToast();
   usePageView("result");
   const [showCardPanel, setShowCardPanel] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showWeChatModal, setShowWeChatModal] = useState(false);
   const [showVerifyCodeModal, setShowVerifyCodeModal] = useState(false);
-  const [resultSaved, setResultSaved] = useState(false);
+  const [resultSaved, setResultSaved] = useState(!!user);
   const [c1] = traderType.colors;
   const cc = traderType.cardColors;
   const { handleContact: handleWeChatMobile } = useWeChatContact();
@@ -474,7 +476,8 @@ export default function ResultPage({ result }: ResultPageProps) {
   const handleLoginSuccess = useCallback(() => {
     setShowLoginModal(false);
     queryClient.invalidateQueries({ queryKey: ["/api/me"] });
-  }, []);
+    toast({ title: "登录成功，结果已保存" });
+  }, [toast]);
 
   const sortedDims = useMemo(() => {
     const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
@@ -726,18 +729,19 @@ export default function ResultPage({ result }: ResultPageProps) {
           >
             <div className="max-w-lg md:max-w-2xl mx-auto px-5 pt-3 flex gap-3">
               <motion.button
-                onClick={() => navigate("/home")}
+                onClick={() => user ? navigate("/home") : setShowLoginModal(true)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="py-3 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-200"
                 style={{
                   background: 'transparent',
-                  border: '1px solid var(--border)',
-                  color: 'var(--text-muted)',
+                  border: `1px solid ${user ? 'var(--gold)' : 'var(--border)'}`,
+                  color: user ? 'var(--gold)' : 'var(--text-muted)',
                 }}
                 data-testid="button-go-home"
               >
-                <Home className="w-4 h-4" />
+                {user ? <Home className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+                {user && <span>首页</span>}
               </motion.button>
               <motion.button
                 onClick={() => setShowShareModal(true)}

@@ -183,6 +183,14 @@ export async function registerRoutes(
         return res.status(400).json({ message: "rankName 无效" });
       }
 
+      const existing = await storage.getLatestQuizResult(userId);
+      if (existing && existing.traderTypeCode === traderTypeCode && existing.avgScore === avgScore) {
+        const createdAt = new Date(existing.createdAt!).getTime();
+        if (Date.now() - createdAt < 60000) {
+          return res.json({ success: true, id: existing.id, shareToken: existing.shareToken });
+        }
+      }
+
       const result = await storage.saveQuizResult(userId, {
         answers,
         scores,

@@ -98,6 +98,7 @@ export default function LoginModal({ open, onClose, onSuccess, title, subtitle, 
       }
 
       await queryClient.invalidateQueries({ queryKey: ["/api/me"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/me"] });
 
       if (tab === 'register') {
         sendRegisterWebhook({ phone });
@@ -106,6 +107,7 @@ export default function LoginModal({ open, onClose, onSuccess, title, subtitle, 
       onSuccess();
     } catch {
       toast({ title: "网络错误，请重试", variant: "destructive" });
+    } finally {
       setIsSubmitting(false);
     }
   }, [canSubmit, tab, phone, password, newPassword, onSuccess, toast]);

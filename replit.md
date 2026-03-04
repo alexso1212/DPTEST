@@ -217,6 +217,12 @@ shared/
 | order_flow_click | 点击订单流工具 | 前端 |
 | community_click | 点击交易社区 | 前端 |
 
+## 流程保护机制
+- **首页按钮**: result.tsx 底部首页按钮，未登录时显示登录图标并弹出LoginModal（不跳转/home），已登录时显示首页图标+文字并跳转
+- **结果去重**: result.tsx 使用 `resultSaved = !!user` 初始化，已登录用户在App.tsx中已保存不会重复；后端 POST /api/quiz-result 有60秒内同结果幂等检查
+- **登录session**: LoginModal 的 handleSubmit 在 invalidateQueries + refetchQueries 完成后才调用 onSuccess，确保session建立完整
+- **忘记密码**: LoginModal 支持3-tab（登录/注册/重置），POST /api/reset-password 返回通用响应防止用户枚举
+
 ## 企业微信
 - Webhook URL: `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1b7a8fca-f469-4cd0-9158-4e7eff0780ef`
 - 联系链接: `https://work.weixin.qq.com/ca/cawcde75d99eb3fce4`
