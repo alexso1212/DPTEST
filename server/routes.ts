@@ -18,6 +18,14 @@ let salesCounter = 0;
 const contactHealthCache: Map<string, { alive: boolean; checkedAt: number }> = new Map();
 const HEALTH_CACHE_TTL = 5 * 60 * 1000;
 
+const BLOCKED_KEYWORDS = [
+  "已停用", "无法访问", "已暂停", "异常", "已失效",
+  "不存在", "已离职", "已过期", "已关闭", "无法添加",
+  "帐号已", "账号已", "联系方式已", "页面不存在",
+  "系统错误", "请求失败", "暂时无法",
+];
+const HEALTHY_KEYWORD = "添加我为微信好友";
+
 async function checkContactAlive(url: string): Promise<boolean> {
   const cached = contactHealthCache.get(url);
   if (cached && Date.now() - cached.checkedAt < HEALTH_CACHE_TTL) {
@@ -30,14 +38,16 @@ async function checkContactAlive(url: string): Promise<boolean> {
       method: "GET",
       signal: controller.signal,
       redirect: "follow",
-      headers: { "User-Agent": "Mozilla/5.0" },
+      headers: { "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.38" },
     });
     clearTimeout(timeout);
     const text = await res.text();
-    const blocked = res.status >= 400 || text.includes("已停用") || text.includes("无法访问") || text.includes("已暂停");
-    const alive = !blocked;
+    const hasBlockedKeyword = BLOCKED_KEYWORDS.some(kw => text.includes(kw));
+    const hasHealthyKeyword = text.includes(HEALTHY_KEYWORD);
+    const alive = res.status < 400 && !hasBlockedKeyword && hasHealthyKeyword;
     contactHealthCache.set(url, { alive, checkedAt: Date.now() });
-    console.log(`[wechat-health] ${url} → ${alive ? "OK" : "BLOCKED"} (status=${res.status})`);
+    const reason = hasBlockedKeyword ? "BLOCKED_KEYWORD" : !hasHealthyKeyword ? "MISSING_HEALTHY_KEYWORD" : "OK";
+    console.log(`[wechat-health] ${url} → ${alive ? "OK" : "DEAD"} (status=${res.status}, reason=${reason})`);
     return alive;
   } catch (err) {
     contactHealthCache.set(url, { alive: false, checkedAt: Date.now() });
@@ -46,7 +56,7 @@ async function checkContactAlive(url: string): Promise<boolean> {
   }
 }
 
-async function getAliveContacts(): Promise<typeof SALES_CONTACTS> {
+async function getAliveContacts(): Promise<{ contacts: typeof SALES_CONTACTS; allDead: boolean }> {
   const results = await Promise.all(
     SALES_CONTACTS.map(async (c) => ({
       ...c,
@@ -54,7 +64,8 @@ async function getAliveContacts(): Promise<typeof SALES_CONTACTS> {
     }))
   );
   const alive = results.filter(r => r.alive);
-  return alive.length > 0 ? alive : [SALES_CONTACTS[0]];
+  if (alive.length > 0) return { contacts: alive, allDead: false };
+  return { contacts: [SALES_CONTACTS[0]], allDead: true };
 }
 
 export async function registerRoutes(
@@ -436,22 +447,23 @@ export async function registerRoutes(
       if (sess.assignedContact) {
         const stillAlive = await checkContactAlive(sess.assignedContact.url);
         if (stillAlive) {
-          return res.json(sess.assignedContact);
+          return res.json({ ...sess.assignedContact, verified: true });
         }
+        console.log(`[wechat-contact] previously assigned ${sess.assignedContact.name} is dead, re-routing`);
         sess.assignedContact = null;
       }
-      const alive = await getAliveContacts();
+      const { contacts: alive, allDead } = await getAliveContacts();
       const picked = alive[salesCounter % alive.length];
       salesCounter++;
       const contact = { name: picked.name, url: picked.url };
       sess.assignedContact = contact;
-      res.json(contact);
+      res.json({ ...contact, verified: !allDead });
     } catch (err) {
       console.error("[wechat-contact] error:", err);
       const contact = SALES_CONTACTS[salesCounter % SALES_CONTACTS.length];
       salesCounter++;
       sess.assignedContact = contact;
-      res.json(contact);
+      res.json({ ...contact, verified: false });
     }
   });
 

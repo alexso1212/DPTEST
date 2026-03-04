@@ -1,6 +1,6 @@
 import { useCallback, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Smartphone, ShieldCheck } from "lucide-react";
+import { X, Smartphone, ShieldCheck, AlertTriangle, RefreshCw } from "lucide-react";
 import { SiWechat } from "react-icons/si";
 import { QRCodeSVG } from "qrcode.react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -10,6 +10,7 @@ const FALLBACK_URL = "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4";
 interface SalesContact {
   name: string;
   url: string;
+  verified?: boolean;
 }
 
 interface WeChatContactModalProps {
@@ -136,21 +137,31 @@ export default function WeChatContactModal({ open, onClose }: WeChatContactModal
   const [contact, setContact] = useState<SalesContact | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const doFetch = useCallback(() => {
+    setLoading(true);
+    setContact(null);
+    fetch("/api/wechat-contact", { credentials: "include" })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setContact(data); setLoading(false); })
+      .catch(() => { setLoading(false); });
+  }, []);
+
   useEffect(() => {
     if (open && !contact) {
-      setLoading(true);
-      fetch("/api/wechat-contact", { credentials: "include" })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => { if (data) setContact(data); setLoading(false); })
-        .catch(() => { setLoading(false); });
+      doFetch();
     }
   }, [open]);
 
   const url = contact?.url || FALLBACK_URL;
+  const verified = contact?.verified !== false;
 
   const handleQRClick = useCallback(() => {
     window.location.href = url;
   }, [url]);
+
+  const handleRetry = useCallback(() => {
+    doFetch();
+  }, [doFetch]);
 
   return (
     <AnimatePresence>
@@ -243,7 +254,34 @@ export default function WeChatContactModal({ open, onClose }: WeChatContactModal
                   </motion.button>
                 </div>
 
-                <p className="text-[10px] text-center mb-4" style={{ color: 'var(--text-muted)' }}>
+                {verified ? (
+                  <div className="flex items-center gap-1.5 justify-center mb-3">
+                    <ShieldCheck className="w-3 h-3" style={{ color: '#07C160' }} />
+                    <span className="text-[10px]" style={{ color: '#07C160' }}>
+                      已验证可用
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 mb-3">
+                    <div className="flex items-center gap-1.5">
+                      <AlertTriangle className="w-3 h-3" style={{ color: '#F59E0B' }} />
+                      <span className="text-[10px]" style={{ color: '#F59E0B' }}>
+                        顾问状态未确认，可能无法添加
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleRetry}
+                      className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px]"
+                      style={{ background: 'rgba(7,193,96,0.1)', color: '#07C160', border: '1px solid rgba(7,193,96,0.2)' }}
+                      data-testid="button-retry-wechat"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      重新检测
+                    </button>
+                  </div>
+                )}
+
+                <p className="text-[10px] text-center mb-3" style={{ color: 'var(--text-muted)' }}>
                   点击二维码可直接用电脑微信打开
                 </p>
 
