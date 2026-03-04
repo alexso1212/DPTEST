@@ -130,16 +130,16 @@ export default function HomePage() {
         </>
       )}
 
-      <div className="relative max-w-lg md:max-w-2xl mx-auto px-5 pt-6 pb-10">
+      <div className="relative max-w-lg md:max-w-2xl mx-auto px-5 pt-3 pb-10">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={ease}
-          className="flex items-center justify-between mb-4"
+          className="flex items-center justify-between mb-2"
         >
-          <div>
+          <div className="flex items-center gap-2">
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>你好，</p>
-            <p className="text-lg font-bold font-num" style={{ color: 'var(--text-strong)' }} data-testid="text-user-phone">
+            <p className="text-sm font-bold font-num" style={{ color: 'var(--text-strong)' }} data-testid="text-user-phone">
               {user.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')}
             </p>
           </div>
@@ -186,7 +186,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...ease, delay: 0.08 }}
-              className="flex justify-center mb-2"
+              className="flex justify-center mb-1"
             >
               <TierBadge type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} />
             </motion.div>
@@ -196,14 +196,14 @@ export default function HomePage() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ ...ease, delay: 0.1 }}
               className="flex justify-center relative"
-              style={{ marginBottom: '-8px' }}
+              style={{ marginBottom: '-12px' }}
             >
               <div style={{
-                position: "absolute", width: "180px", height: "180px", borderRadius: "50%", top: "50%", left: "50%",
+                position: "absolute", width: "140px", height: "140px", borderRadius: "50%", top: "50%", left: "50%",
                 transform: "translate(-50%,-50%)",
                 background: `radial-gradient(circle, ${cc.primary}28 0%, transparent 70%)`,
               }} />
-              <CharacterSVG type={quizResult.traderTypeCode} size={240} tier={user?.tier ?? 0} />
+              <CharacterSVG type={quizResult.traderTypeCode} size={180} tier={user?.tier ?? 0} />
             </motion.div>
 
             <motion.div
@@ -211,24 +211,24 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...ease, delay: 0.16 }}
             >
-              <div className="flex items-center gap-2.5 justify-center mb-2">
-                <div className="flex-1 h-[1px] max-w-[60px]" style={{ background: "linear-gradient(90deg, transparent, #C9A456, transparent)" }} />
+              <div className="flex items-center gap-2.5 justify-center mb-1">
+                <div className="flex-1 h-[1px] max-w-[50px]" style={{ background: "linear-gradient(90deg, transparent, #C9A456, transparent)" }} />
                 <span style={{ color: "#C9A456", fontSize: "10px" }}>✦</span>
-                <div className="flex-1 h-[1px] max-w-[60px]" style={{ background: "linear-gradient(90deg, transparent, #C9A456, transparent)" }} />
+                <div className="flex-1 h-[1px] max-w-[50px]" style={{ background: "linear-gradient(90deg, transparent, #C9A456, transparent)" }} />
               </div>
 
               <div className="text-center">
-                <h2 className="font-serif font-bold" style={{ fontSize: "26px", color: "#E8E6E1", letterSpacing: "5px" }} data-testid="text-trader-type">
+                <h2 className="font-serif font-bold" style={{ fontSize: "22px", color: "#E8E6E1", letterSpacing: "4px" }} data-testid="text-trader-type">
                   {traderType.name}
                 </h2>
-                <p className="font-tag tracking-widest mt-1" style={{ fontSize: "11px", color: cc.primary }}>
+                <p className="font-tag tracking-widest" style={{ fontSize: "10px", color: cc.primary }}>
                   {traderType.subtitle}
                 </p>
               </div>
 
               {traderType.quote && (
-                <div className="text-center px-4 mt-4">
-                  <p className="font-serif italic leading-relaxed" style={{ fontSize: "13px", color: "#C9A456" }}>
+                <div className="text-center px-4 mt-2">
+                  <p className="font-serif italic leading-snug" style={{ fontSize: "12px", color: "#C9A456" }}>
                     "{traderType.quote}"
                   </p>
                 </div>
@@ -239,9 +239,9 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...ease, delay: 0.22 }}
-              className="flex justify-center mt-5"
+              className="flex justify-center mt-2"
             >
-              <svg viewBox="0 0 200 200" style={{ width: "150px", height: "150px" }}>
+              <svg viewBox="0 0 200 200" style={{ width: "140px", height: "140px" }}>
                 {[0.3, 0.6, 0.9].map((s, i) => {
                   const pts = [0,1,2,3,4,5].map(j => {
                     const a = (Math.PI*2*j)/6 - Math.PI/2;
@@ -277,7 +277,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...ease, delay: 0.26 }}
-              className="text-center mt-3 mb-6"
+              className="text-center mt-2 mb-4"
             >
               <span style={{
                 display: "inline-flex", alignItems: "center", gap: "6px",
@@ -295,8 +295,8 @@ export default function HomePage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.4 }}
                 transition={{ ...ease, delay: 0.3 }}
-                className="text-center italic leading-relaxed mb-6 px-4"
-                style={{ fontSize: "11px", color: "#8B95A5" }}
+                className="text-center italic leading-snug mb-3 px-4"
+                style={{ fontSize: "10px", color: "#8B95A5" }}
               >
                 {traderType.storyHint}
               </motion.p>
