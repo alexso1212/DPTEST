@@ -15,6 +15,8 @@ interface ResultPageProps {
   result: QuizResult;
 }
 
+const spring = { type: "spring" as const, stiffness: 260, damping: 26 };
+
 function RankUnbox({ result, onDone }: { result: QuizResult; onDone: () => void }) {
   const [phase, setPhase] = useState(0);
 
@@ -38,24 +40,35 @@ function RankUnbox({ result, onDone }: { result: QuizResult; onDone: () => void 
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center"
       style={{ background: 'var(--bg-primary)' }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
       {phase < 2 && (
-        <motion.div
-          className="w-24 h-24 rounded-full"
-          style={{
-            background: `radial-gradient(circle, ${result.rank.color}40, transparent 70%)`,
-            boxShadow: `0 0 60px ${result.rank.color}30, 0 0 120px ${result.rank.color}15`,
-          }}
-          animate={{
-            scale: [1, 1.2, 1, 1.15, 1],
-            opacity: phase >= 2 ? 0 : 1,
-          }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        />
+        <>
+          <motion.div
+            className="w-24 h-24 rounded-full"
+            style={{
+              background: `radial-gradient(circle, ${result.rank.color}40, transparent 70%)`,
+              boxShadow: `0 0 60px ${result.rank.color}30, 0 0 120px ${result.rank.color}15`,
+            }}
+            animate={{
+              scale: [1, 1.2, 1, 1.15, 1],
+              opacity: phase >= 2 ? 0 : 1,
+            }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: [0.4, 0.8, 0.4] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="mt-6 text-sm"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            正在定位你的段位...
+          </motion.p>
+        </>
       )}
 
       {phase >= 2 && (
@@ -84,13 +97,13 @@ function RankUnbox({ result, onDone }: { result: QuizResult; onDone: () => void 
             className="text-center"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+            transition={{ delay: 0.3, ...spring }}
           >
             <div className="text-5xl mb-4">{result.rank.icon}</div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.5, ...spring }}
             >
               <div
                 className="text-[28px] font-bold font-num mb-2"
@@ -254,7 +267,7 @@ export default function ResultPage({ result }: ResultPageProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              transition={{ delay: 0.1, ...spring }}
               className="rounded-2xl p-5 text-center"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
             >
@@ -272,7 +285,7 @@ export default function ResultPage({ result }: ResultPageProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.2, ...spring }}
             >
               <TypeCardFlip result={result} />
             </motion.div>
@@ -280,7 +293,7 @@ export default function ResultPage({ result }: ResultPageProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
+              transition={{ delay: 0.3, ...spring }}
               className="rounded-2xl p-6"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
             >
@@ -296,11 +309,11 @@ export default function ResultPage({ result }: ResultPageProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
+              transition={{ delay: 0.4, ...spring }}
               className="rounded-2xl p-6"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
             >
-              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <h3 className="text-base font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                 🔍 你可能经常遇到这种情况：
               </h3>
               <div
@@ -320,11 +333,11 @@ export default function ResultPage({ result }: ResultPageProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.0 }}
+              transition={{ delay: 0.5, ...spring }}
               className="rounded-2xl p-6 relative overflow-hidden"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
             >
-              <div className="relative" style={{ filter: 'blur(6px)', pointerEvents: 'none', userSelect: 'none' }}>
+              <div className="relative" style={{ filter: 'blur(8px)', pointerEvents: 'none', userSelect: 'none' }}>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>📊 六维详细分数</span>
                 </div>
@@ -364,7 +377,10 @@ export default function ResultPage({ result }: ResultPageProps) {
                 </div>
               </div>
 
-              <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(10,14,23,0.3)' }}>
+              <div
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ background: 'rgba(var(--bg-primary-rgb), 0.4)' }}
+              >
                 <div className="text-center">
                   <Lock className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--accent-gold)' }} />
                   <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>添加顾问解锁完整报告</p>
@@ -375,7 +391,7 @@ export default function ResultPage({ result }: ResultPageProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2 }}
+              transition={{ delay: 0.6, ...spring }}
               className="rounded-2xl p-6"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
             >
@@ -397,15 +413,17 @@ export default function ResultPage({ result }: ResultPageProps) {
                 ))}
               </div>
 
-              <button
+              <motion.button
                 onClick={handleContactWeChat}
-                className="w-full py-3.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 active:scale-[0.97] transition-transform mb-4"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                className="w-full py-3.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 mb-4"
                 style={{ background: '#07C160' }}
                 data-testid="button-wechat-contact"
               >
                 <SiWechat className="w-5 h-5" />
                 添加专属顾问，30秒发送完整报告
-              </button>
+              </motion.button>
 
               <p className="text-xs italic text-center leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 "我们不教你怎么赚钱——<br />
@@ -419,16 +437,18 @@ export default function ResultPage({ result }: ResultPageProps) {
           <div
             className="fixed bottom-0 left-0 right-0 z-40"
             style={{
-              background: 'rgba(10, 14, 23, 0.9)',
+              background: 'rgba(var(--bg-primary-rgb), 0.9)',
               backdropFilter: 'blur(12px)',
               borderTop: '1px solid var(--border-color)',
               paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
             }}
           >
             <div className="max-w-lg mx-auto px-5 pt-3 flex gap-3">
-              <button
+              <motion.button
                 onClick={() => setShowShareModal(true)}
-                className="flex-1 py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                className="flex-1 py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2"
                 style={{
                   background: 'transparent',
                   border: '1px solid var(--accent-blue)',
@@ -438,16 +458,18 @@ export default function ResultPage({ result }: ResultPageProps) {
               >
                 <Camera className="w-4 h-4" />
                 生成交易员卡片
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 onClick={handleContactWeChat}
-                className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-all text-black"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 text-black"
                 style={{ background: 'var(--accent-gold)' }}
                 data-testid="button-unlock-report"
               >
                 <Lock className="w-4 h-4" />
                 领取完整报告
-              </button>
+              </motion.button>
             </div>
           </div>
 
@@ -465,17 +487,19 @@ export default function ResultPage({ result }: ResultPageProps) {
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.9, opacity: 0 }}
+                  transition={spring}
                   className="max-w-sm w-full max-h-[85vh] overflow-y-auto"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <ShareCard result={result} />
-                  <button
+                  <motion.button
                     onClick={() => setShowShareModal(false)}
+                    whileTap={{ scale: 0.97 }}
                     className="w-full mt-3 py-3 rounded-xl text-sm"
                     style={{ color: 'var(--text-secondary)' }}
                   >
                     关闭
-                  </button>
+                  </motion.button>
                 </motion.div>
               </motion.div>
             )}

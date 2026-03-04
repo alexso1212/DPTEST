@@ -7,7 +7,7 @@ interface CountUpProps {
   style?: React.CSSProperties;
 }
 
-export default function CountUp({ end, duration = 1500, className, style }: CountUpProps) {
+export default function CountUp({ end, duration = 2000, className, style }: CountUpProps) {
   const [value, setValue] = useState(0);
   const rafRef = useRef<number>(0);
 
@@ -29,5 +29,7 @@ export default function CountUp({ end, duration = 1500, className, style }: Coun
     return () => cancelAnimationFrame(rafRef.current);
   }, [end, duration]);
 
-  return <span className={className} style={style}>{value}</span>;
+  const formatted = value.toLocaleString('en-US');
+
+  return <span className={className} style={style}>{formatted}</span>;
 }

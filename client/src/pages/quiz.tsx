@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { questions } from "@/data/questions";
 import { dimensionLabels } from "@/data/questions";
 import ProgressBar from "@/components/ProgressBar";
@@ -14,6 +14,7 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
   const [answers, setAnswers] = useState<number[]>([]);
   const [selecting, setSelecting] = useState<number | null>(null);
   const [xpFlash, setXpFlash] = useState<string | null>(null);
+  const xpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSelect = useCallback((optionIndex: number) => {
     if (selecting !== null) return;
@@ -21,14 +22,20 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
 
     const question = questions[currentQ];
     const mainDim = question.dimension;
+
+    if (xpTimerRef.current) clearTimeout(xpTimerRef.current);
     setXpFlash(`+${dimensionLabels[mainDim]}`);
+
+    xpTimerRef.current = setTimeout(() => {
+      setXpFlash(null);
+      xpTimerRef.current = null;
+    }, 1000);
 
     setTimeout(() => {
       const newAnswers = [...answers];
       newAnswers[currentQ] = optionIndex;
       setAnswers(newAnswers);
       setSelecting(null);
-      setXpFlash(null);
 
       if (currentQ < questions.length - 1) {
         setCurrentQ(currentQ + 1);
@@ -58,10 +65,10 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentQ}
-            initial={{ opacity: 0, x: 60 }}
+            initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -60 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="flex-1 flex flex-col gpu-accelerate"
           >
             <div className="mb-8">
@@ -77,11 +84,13 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
                 return (
                   <motion.button
                     key={idx}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.08, duration: 0.3 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25, delay: idx * 0.06 }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => handleSelect(idx)}
-                    className="w-full text-left p-4 rounded-xl transition-all duration-200 flex items-start gap-3 active:scale-[0.98] gpu-accelerate"
+                    className="w-full text-left p-4 rounded-xl flex items-start gap-3 gpu-accelerate"
                     style={{
                       background: isSelected ? 'rgba(var(--accent-gold-rgb), 0.1)' : 'var(--bg-card)',
                       border: isSelected ? '1px solid var(--accent-gold)' : '1px solid var(--border-color)',
@@ -89,7 +98,7 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
                     data-testid={`button-option-${idx}`}
                   >
                     <span
-                      className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-colors"
+                      className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
                       style={{
                         background: isSelected ? 'var(--accent-gold)' : 'transparent',
                         color: isSelected ? '#000' : 'var(--accent-gold)',
@@ -111,18 +120,19 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
         <AnimatePresence>
           {xpFlash && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, y: 16, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
               className="fixed bottom-8 left-0 right-0 flex justify-center z-30 pointer-events-none"
             >
               <div
-                className="px-4 py-2 rounded-full text-sm font-semibold"
+                className="px-5 py-2.5 rounded-full text-sm font-semibold"
                 style={{
                   background: 'rgba(var(--accent-gold-rgb), 0.15)',
                   color: 'var(--accent-gold)',
                   border: '1px solid rgba(var(--accent-gold-rgb), 0.3)',
+                  backdropFilter: 'blur(8px)',
                 }}
                 data-testid="text-xp-flash"
               >

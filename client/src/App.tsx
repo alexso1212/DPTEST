@@ -5,6 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { motion, AnimatePresence } from "framer-motion";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
 import QuizPage from "@/pages/quiz";
@@ -15,6 +16,13 @@ import { calculateResult, type QuizResult } from "@/utils/calculateResult";
 
 const ANSWERS_KEY = "quiz_answers";
 const RESULT_KEY = "quiz_result";
+
+const pageTransition = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+  transition: { type: "spring" as const, stiffness: 300, damping: 30 },
+};
 
 function loadAnswers(): number[] | null {
   try {
@@ -31,7 +39,7 @@ function loadResult(): QuizResult | null {
 }
 
 function Router() {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const [quizAnswers, setQuizAnswers] = useState<number[] | null>(loadAnswers);
   const [quizResult, setQuizResult] = useState<QuizResult | null>(loadResult);
 
@@ -63,22 +71,30 @@ function Router() {
   }, [navigate]);
 
   return (
-    <Switch>
-      <Route path="/" component={LandingPage} />
-      <Route path="/quiz">
-        <QuizPage onComplete={handleQuizComplete} />
-      </Route>
-      <Route path="/loading">
-        {quizResult ? <LoadingPage onDone={handleLoadingDone} /> : <Redirect to="/" />}
-      </Route>
-      <Route path="/auth">
-        {quizResult ? <AuthPage onComplete={handleAuthComplete} /> : <Redirect to="/" />}
-      </Route>
-      <Route path="/result">
-        {quizResult ? <ResultPage result={quizResult} /> : <Redirect to="/" />}
-      </Route>
-      <Route component={NotFound} />
-    </Switch>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location}
+        {...pageTransition}
+        className="min-h-screen"
+      >
+        <Switch>
+          <Route path="/" component={LandingPage} />
+          <Route path="/quiz">
+            <QuizPage onComplete={handleQuizComplete} />
+          </Route>
+          <Route path="/loading">
+            {quizResult ? <LoadingPage onDone={handleLoadingDone} /> : <Redirect to="/" />}
+          </Route>
+          <Route path="/auth">
+            {quizResult ? <AuthPage onComplete={handleAuthComplete} /> : <Redirect to="/" />}
+          </Route>
+          <Route path="/result">
+            {quizResult ? <ResultPage result={quizResult} /> : <Redirect to="/" />}
+          </Route>
+          <Route component={NotFound} />
+        </Switch>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 

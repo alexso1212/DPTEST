@@ -40,7 +40,7 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
-            className="absolute w-full h-[1px] opacity-[0.03]"
+            className="absolute w-full h-[1px] opacity-[0.08]"
             style={{
               top: `${12 + i * 12}%`,
               background: 'var(--accent-blue)',
@@ -60,7 +60,13 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
             background: cardPhase >= 1 ? 'var(--bg-card)' : 'transparent',
             border: `2px solid ${cardPhase >= 1 ? 'rgba(var(--accent-blue-rgb), 0.4)' : 'rgba(var(--accent-blue-rgb), 0.05)'}`,
             boxShadow: cardPhase >= 4 ? '0 0 40px rgba(0, 212, 255, 0.2), 0 0 80px rgba(240, 185, 11, 0.1)' : 'none',
-            transition: 'all 0.8s ease-out',
+          }}
+          animate={{
+            scale: cardPhase >= 4 ? [1, 1.02, 1] : 1,
+          }}
+          transition={{
+            scale: { duration: 0.6, ease: "easeInOut" },
+            default: { duration: 0.8, ease: "easeOut" },
           }}
         >
           <motion.div
@@ -70,7 +76,7 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
               opacity: cardPhase >= 2 ? 1 : 0,
               scale: cardPhase >= 2 ? 1 : 0.5,
             }}
-            transition={{ duration: 0.5 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
           >
             <div
               className="w-14 h-14 rounded-full flex items-center justify-center"
@@ -89,7 +95,7 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
             animate={{
               opacity: cardPhase >= 3 ? 1 : 0,
             }}
-            transition={{ duration: 0.5 }}
+            transition={{ type: "spring", stiffness: 200, damping: 25 }}
           >
             <div className="text-3xl mb-2">❓</div>
             <div className="w-24 h-3 rounded-full mx-auto" style={{ background: 'rgba(var(--accent-gold-rgb), 0.15)' }} />
@@ -102,7 +108,7 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
             animate={{
               opacity: cardPhase >= 3 ? 1 : 0,
             }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ type: "spring", stiffness: 200, damping: 25, delay: 0.15 }}
           >
             <svg viewBox="0 0 200 120" className="w-full opacity-30">
               <polygon
@@ -138,6 +144,7 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 25 }}
           className="text-center text-base font-semibold mb-8"
           style={{ color: 'var(--text-primary)' }}
           data-testid="text-loading-title"
@@ -154,12 +161,14 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
                 key={step}
                 initial={{ opacity: 0.3 }}
                 animate={{ opacity: isDone ? 1 : 0.3 }}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300"
+                transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg"
               >
                 {isDone ? (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
                     className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
                     style={{ background: 'var(--success)' }}
                   >
@@ -169,10 +178,10 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
                   <div className="w-5 h-5 rounded-full flex-shrink-0" style={{ border: '1.5px solid var(--border-color)' }} />
                 )}
                 <span
-                  className="text-sm transition-colors"
+                  className="text-sm"
                   style={{ color: isDone ? 'var(--success)' : 'var(--text-secondary)' }}
                 >
-                  {isDone ? '✓ ' : ''}{step}
+                  {step}
                 </span>
               </motion.div>
             );

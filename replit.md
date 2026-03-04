@@ -95,7 +95,16 @@ shared/
   - 文字次: Light #6B7280 / Dark #8B95A5
 - **字体**: Noto Sans SC 正文, Oswald 数字 (class: font-num)
 - **品牌**: Deltapex Trading Group logo
-- **动画**: CSS keyframes 优先（呼吸灯、浮动、扫描线），Framer Motion 做页面过渡
+- **动画**: Framer Motion spring 物理（stiffness/damping）为主，CSS keyframes（呼吸灯、浮动、扫描线）为辅
+  - 页面过渡: AnimatePresence + motion.div (fade+slide spring)
+  - 按钮: whileTap={{ scale: 0.97 }} + whileHover={{ scale: 1.02 }}
+  - 进度条: spring 动画 (h-1.5 = 6px)
+  - XP闪现: 1000ms 生命周期, spring 弹入/淡出
+  - 段位开箱: "正在定位你的段位..." 提示文字
+  - 全局 CSS 过渡: color/background/border 0.2s ease（主题切换丝滑）
+- **底栏**: rgba(var(--bg-primary-rgb), 0.9) 主题感知透明度
+- **毛玻璃锁定**: blur(8px) + rgba(var(--bg-primary-rgb), 0.4) 遮罩
+- **分享卡**: 不显示实际分数（?? 代替），防止泄露
 - **移动端**: 375px 基准宽度, 44px 最小触控, safe-area-inset 适配
 
 ## 数据模型
