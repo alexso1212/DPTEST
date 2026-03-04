@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --bg-0: #0B0F14;
+  --bg-0: #0D0F14;
   --bg-1: #0F1620;
   --card: rgba(255,255,255,0.04);
   --border: rgba(255,255,255,0.08);
@@ -26,7 +26,7 @@
   --danger: #EF4444;
   --danger-rgb: 239, 68, 68;
 
-  --bg-0-rgb: 11, 15, 20;
+  --bg-0-rgb: 13, 15, 20;
   --bg-1-rgb: 15, 22, 32;
 
   --radius-card: 16px;

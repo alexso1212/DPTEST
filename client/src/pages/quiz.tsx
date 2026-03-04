@@ -1,12 +1,15 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { questions } from "@/data/questions";
 import { dimensionLabels } from "@/data/questions";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
+import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
 
 interface QuizPageProps {
   onComplete: (answers: number[]) => void;
 }
+
+const ghostTypes = ['ER', 'RS', 'RM', 'ES', 'RE', 'SM', 'SE', 'ME', 'MA', 'EA', 'EM', 'AS', 'RA', 'EAv', 'REv', 'EX'];
 
 export default function QuizPage({ onComplete }: QuizPageProps) {
   const [currentQ, setCurrentQ] = useState(0);
@@ -14,6 +17,7 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
   const [selecting, setSelecting] = useState<number | null>(null);
   const [xpFlash, setXpFlash] = useState<string | null>(null);
   const xpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ghostType = useMemo(() => ghostTypes[Math.floor(Math.random() * ghostTypes.length)], []);
 
   const handleSelect = useCallback((optionIndex: number) => {
     if (selecting !== null) return;
@@ -49,7 +53,12 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
   const total = questions.length;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-0)' }}>
+    <div className="min-h-screen flex flex-col relative" style={{ background: 'var(--bg-0)' }}>
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+        <div style={{ opacity: 0.06 }}>
+          <AlbionCharacterSVG type={ghostType} size={350} />
+        </div>
+      </div>
       <div className="sticky top-0 z-20 px-5 pt-4 pb-3" style={{ background: 'var(--bg-0)', borderBottom: '1px solid var(--border)' }}>
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-center gap-1.5 py-1" data-testid="progress-dots">

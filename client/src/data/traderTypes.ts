@@ -1,5 +1,13 @@
 import type { Dimension } from './questions';
 
+export interface CardColors {
+  primary: string;
+  secondary: string;
+  accent: string;
+  dark: string;
+  glow: string;
+}
+
 export interface TraderType {
   code: string;
   icon: string;
@@ -15,6 +23,9 @@ export interface TraderType {
   colors: [string, string];
   quote: string;
   element: { icon: string; name: string };
+  english: string;
+  storyHint: string;
+  cardColors: CardColors;
 }
 
 export interface RankTier {
@@ -48,14 +59,18 @@ export const rarityMap: Record<string, string> = {
   SE: "6.8%",
   ME: "11.2%",
   MA: "10.5%",
+  AS: "4.5%",
+  RA: "5.8%",
+  EAv: "3.2%",
+  REv: "2.5%",
 };
 
 export const typeMapping: Record<string, string> = {
-  'ADAPTEDGE': 'EA',
-  'ADAPTEXEC': 'ME',
+  'ADAPTEDGE': 'EAv',
+  'ADAPTEXEC': 'EA',
   'ADAPTMENTAL': 'MA',
-  'ADAPTRISK': 'RM',
-  'ADAPTSYSTEM': 'ES',
+  'ADAPTRISK': 'RA',
+  'ADAPTSYSTEM': 'AS',
   'EDGEEXEC': 'EX',
   'EDGEMENTAL': 'EM',
   'EDGERISK': 'ER',
@@ -84,6 +99,9 @@ export const traderTypes: Record<string, TraderType> = {
     colors: ['#6B3FA0', '#C8C8D0'],
     quote: '我在你们看到混沌的地方，看到了结构。',
     element: { icon: '⚡', name: '雷' },
+    english: 'THE STRATEGIST',
+    storyHint: '历史上最伟大的一笔交易，不是因为他比所有人聪明——而是因为他在所有人都只看到"不可能"的时候，看到了结构性的裂缝。',
+    cardColors: { primary: '#6B3FA0', secondary: '#C8C8D0', accent: '#9B6FD0', dark: '#1a1035', glow: 'rgba(107,63,160,0.4)' },
   },
   ES: {
     code: 'ES',
@@ -100,6 +118,9 @@ export const traderTypes: Record<string, TraderType> = {
     colors: ['#D4A843', '#2C2C34'],
     quote: '逻辑就是我的蓝图。',
     element: { icon: '🌍', name: '地' },
+    english: 'THE ARCHITECT',
+    storyHint: '一个数学家走进了华尔街，用密码破译的方法找到了所有人都忽略的市场暗号。',
+    cardColors: { primary: '#D4A843', secondary: '#2C2C34', accent: '#E8C76A', dark: '#141008', glow: 'rgba(212,168,67,0.4)' },
   },
   EA: {
     code: 'EA',
@@ -116,6 +137,9 @@ export const traderTypes: Record<string, TraderType> = {
     colors: ['#FF6B35', '#8B0000'],
     quote: '错了就改，改了就干。',
     element: { icon: '🔥', name: '火' },
+    english: 'THE PIONEER',
+    storyHint: '一个人用400美元起步做到2亿，然后他做了一件更疯狂的事——跟人打赌说"交易可以教会任何人"，然后他真的做到了。',
+    cardColors: { primary: '#FF6B35', secondary: '#8B0000', accent: '#FF9A6C', dark: '#1a0800', glow: 'rgba(255,107,53,0.4)' },
   },
   EX: {
     code: 'EX',
@@ -132,6 +156,9 @@ export const traderTypes: Record<string, TraderType> = {
     colors: ['#DAA520', '#2D1B4E'],
     quote: '大势已定，我只需要上车。',
     element: { icon: '✨', name: '光' },
+    english: 'THE TITAN',
+    storyHint: '当所有人都说趋势已经结束的时候，他选择了加仓。三个月后，他的名字出现在了每一份财经头条上。',
+    cardColors: { primary: '#DAA520', secondary: '#2D1B4E', accent: '#F0C850', dark: '#140e04', glow: 'rgba(218,165,32,0.4)' },
   },
   EM: {
     code: 'EM',
@@ -148,6 +175,9 @@ export const traderTypes: Record<string, TraderType> = {
     colors: ['#B8860B', '#484848'],
     quote: '我在你不注意的地方，已经布好了局。',
     element: { icon: '🌿', name: '风' },
+    english: 'THE SHADOW',
+    storyHint: '世界都记住了那笔传奇交易，但很少有人知道——真正按下按钮的那个人，在那之后又连续30年没有亏损。',
+    cardColors: { primary: '#B8860B', secondary: '#484848', accent: '#D4A832', dark: '#120e04', glow: 'rgba(184,134,11,0.4)' },
   },
   RS: {
     code: 'RS',
@@ -164,6 +194,9 @@ export const traderTypes: Record<string, TraderType> = {
     colors: ['#3D5A80', '#A0785A'],
     quote: '市场可以崩塌，但我的系统不会。',
     element: { icon: '🧊', name: '冰' },
+    english: 'THE COMMANDER',
+    storyHint: '有人把一生的经验写成了一本"原则"，然后用这些原则建造了一座永远不会倒塌的堡垒。',
+    cardColors: { primary: '#3D5A80', secondary: '#A0785A', accent: '#5B8AB5', dark: '#0f1a28', glow: 'rgba(61,90,128,0.4)' },
   },
   RM: {
     code: 'RM',
@@ -180,6 +213,9 @@ export const traderTypes: Record<string, TraderType> = {
     colors: ['#2D4A3E', '#C0392B'],
     quote: '我不急。我等最好的那一枪。',
     element: { icon: '🌿', name: '风' },
+    english: 'THE HUNTER',
+    storyHint: '华尔街历史上最传奇的投机者说过："赚大钱不是靠判断——而是靠坐得住。"',
+    cardColors: { primary: '#2D4A3E', secondary: '#C0392B', accent: '#4A7A6A', dark: '#0a1a14', glow: 'rgba(45,74,62,0.4)' },
   },
   RE: {
     code: 'RE',
@@ -196,6 +232,9 @@ export const traderTypes: Record<string, TraderType> = {
     colors: ['#E8622E', '#1C1C24'],
     quote: '犹豫一秒，就是对纪律的背叛。',
     element: { icon: '🔥', name: '火' },
+    english: 'THE EXECUTOR',
+    storyHint: '一个拳击手出身的交易员说："交易和拳击的第一条规则一样——先别被打倒。"',
+    cardColors: { primary: '#E8622E', secondary: '#1C1C24', accent: '#FF8A5C', dark: '#1a0c06', glow: 'rgba(232,98,46,0.4)' },
   },
   SM: {
     code: 'SM',
@@ -212,6 +251,9 @@ export const traderTypes: Record<string, TraderType> = {
     colors: ['#2C3E6B', '#A8B8D0'],
     quote: '我的敌人不是市场，是我自己的完美主义。',
     element: { icon: '💧', name: '水' },
+    english: 'THE MIND MASTER',
+    storyHint: '一个人花了一辈子研究一个问题："为什么你知道该怎么做，却做不到？"',
+    cardColors: { primary: '#2C3E6B', secondary: '#A8B8D0', accent: '#4A6AAF', dark: '#0a0f1f', glow: 'rgba(44,62,107,0.4)' },
   },
   SE: {
     code: 'SE',
@@ -228,6 +270,9 @@ export const traderTypes: Record<string, TraderType> = {
     colors: ['#00E676', '#0A0A0F'],
     quote: '情绪是bug。我只执行代码。',
     element: { icon: '⚡', name: '雷' },
+    english: 'THE ALGORITHM',
+    storyHint: '一个数学教授走进赌场，用概率论赢到被所有赌场列入黑名单。然后他走进华尔街。',
+    cardColors: { primary: '#00E676', secondary: '#0A0A0F', accent: '#4AFF9E', dark: '#040a06', glow: 'rgba(0,230,118,0.4)' },
   },
   ME: {
     code: 'ME',
@@ -244,6 +289,9 @@ export const traderTypes: Record<string, TraderType> = {
     colors: ['#00B4D8', '#F0F4F8'],
     quote: '在你还在想的时候，我已经做完了。',
     element: { icon: '⚡', name: '雷' },
+    english: 'THE FLASH',
+    storyHint: '有人用一年时间把1万美金变成了114万。不是靠一笔大交易——而是靠每天几十笔精准的短线进出。',
+    cardColors: { primary: '#00B4D8', secondary: '#F0F4F8', accent: '#48D1E8', dark: '#041218', glow: 'rgba(0,180,216,0.4)' },
   },
   MA: {
     code: 'MA',
@@ -260,5 +308,84 @@ export const traderTypes: Record<string, TraderType> = {
     colors: ['#0077B6', '#DEB875'],
     quote: '我不预测浪，我乘浪。',
     element: { icon: '💧', name: '水' },
+    english: 'THE TIDE RIDER',
+    storyHint: '一个吉他手把交易变成了冥想。5000美金变成1500万，不是因为他预测了什么——而是因为他学会了不跟趋势作对。',
+    cardColors: { primary: '#0077B6', secondary: '#DEB875', accent: '#3399CC', dark: '#041420', glow: 'rgba(0,119,182,0.4)' },
+  },
+  AS: {
+    code: 'AS',
+    icon: '🧬',
+    name: '体系适应者',
+    subtitle: 'ADAPT × SYSTEM',
+    dims: ['ADAPT', 'SYSTEM'],
+    oneLiner: '我的系统不是固定的，它会呼吸。',
+    description: '你拥有系统化思维和灵活适应力的罕见组合。你不仅能建立交易体系，还能在市场变化时让体系进化。',
+    strengths: ['能在保持框架的同时灵活调整参数', '对市场结构变化极其敏感'],
+    blindSpots: ['可能在"优化"和"过度拟合"之间迷失', '适应太快可能导致系统频繁变动'],
+    piercingDescription: '你总在改进系统，每次回测看起来都更好了，但实盘结果却没有明显提升。你有没有想过，问题不是系统不够好，而是你改得太频繁了？',
+    advice: '给你的系统一个"冷冻期"——至少运行100笔不修改，用真实数据验证而不是反复回测。',
+    colors: ['#9B59B6', '#1ABC9C'],
+    quote: '我的系统不是固定的，它会呼吸。',
+    element: { icon: '💧', name: '变' },
+    english: 'THE EVOLVER',
+    storyHint: '当交易从纸条变成电子屏幕，95%的场内交易员被淘汰了。她是那5%——因为她的方法会进化。',
+    cardColors: { primary: '#9B59B6', secondary: '#1ABC9C', accent: '#BB77DD', dark: '#120a18', glow: 'rgba(155,89,182,0.4)' },
+  },
+  RA: {
+    code: 'RA',
+    icon: '🧊',
+    name: '冰血破局者',
+    subtitle: 'RISK × ADAPT',
+    dims: ['RISK', 'ADAPT'],
+    oneLiner: '越乱，我越清醒。',
+    description: '你拥有顶级的风险管理能力和市场适应力。在别人恐慌的时候，你能冷静地找到危机中的机会。',
+    strengths: ['危机中保持冷静并快速调整策略', '风控意识和灵活性兼具'],
+    blindSpots: ['逆向思维可能导致过早抄底', '在平静市场中可能缺乏耐心'],
+    piercingDescription: '你在大跌时买入过，在大涨时离场过，这些经历让你相信自己的判断。但你有没有数过，这些"逆向操作"里，有多少次其实只是运气？',
+    advice: '给你的逆向操作加一个量化确认——不是感觉"够便宜了"就买，而是等到资金流数据确认底部。',
+    colors: ['#A8DADC', '#1D3557'],
+    quote: '越乱，我越清醒。',
+    element: { icon: '🧊', name: '霜' },
+    english: 'THE CONTRARIAN',
+    storyHint: '所有人都说他疯了。投资者撤资、律师威胁、同行嘲笑。他的回应是——加仓。两年后，他赢了。',
+    cardColors: { primary: '#A8DADC', secondary: '#1D3557', accent: '#C8EEF0', dark: '#0a1520', glow: 'rgba(168,218,220,0.4)' },
+  },
+  EAv: {
+    code: 'EAv',
+    icon: '✨',
+    name: '直觉行者',
+    subtitle: 'EDGE × ADAPT',
+    dims: ['EDGE', 'ADAPT'],
+    oneLiner: '我不分析，我感知。然后市场告诉我我是对的。',
+    description: '你拥有敏锐的市场直觉和超强的适应能力。你能在信息不完整的情况下做出高质量决策，并快速调整方向。',
+    strengths: ['直觉敏锐，能捕捉到数据还没反映的变化', '适应力强，在任何市场环境都能找到节奏'],
+    blindSpots: ['直觉难以复制和教授', '缺乏系统化的决策框架'],
+    piercingDescription: '你做对的交易很多，但如果有人问你"你到底是怎么判断的"，你说不清楚。这不是因为你笨，而是因为你的优势本身就不是逻辑型的。',
+    advice: '试着记录你每次"直觉信号"出现时的客观市场状态，慢慢你会发现你的直觉其实有规律。',
+    colors: ['#4A0E78', '#E8D5F5'],
+    quote: '我不分析，我感知。然后市场告诉我我是对的。',
+    element: { icon: '✨', name: '灵' },
+    english: 'THE ORACLE',
+    storyHint: '有人说他用星象预测市场。但他的交易记录不说谎——53年间据称只有一个月亏损。',
+    cardColors: { primary: '#4A0E78', secondary: '#E8D5F5', accent: '#7B3AAF', dark: '#0e0420', glow: 'rgba(74,14,120,0.4)' },
+  },
+  REv: {
+    code: 'REv',
+    icon: '🐺',
+    name: '孤狼战士',
+    subtitle: '独立型',
+    dims: ['RISK', 'EXEC'],
+    oneLiner: '我不需要别人告诉我该怎么做。',
+    description: '你是一个高度独立的交易者，不依赖任何人的建议或信号。你有自己的方法论，独来独往，成败自负。',
+    strengths: ['完全独立思考，不受群体情绪影响', '对自己的方法有极强的信念'],
+    blindSpots: ['可能错过有价值的外部信息', '固执可能导致在错误方向上坚持太久'],
+    piercingDescription: '你从不听别人的建议，这让你避开了很多噪音。但你有没有想过，有些"噪音"里其实藏着你从未想到的角度？',
+    advice: '保持你的独立性，但每月找一个你尊重的交易者交流一次——不是为了听建议，而是为了检验你的盲区。',
+    colors: ['#6C757D', '#DC143C'],
+    quote: '我不需要别人告诉我该怎么做。',
+    element: { icon: '🌿', name: '虚' },
+    english: 'THE LONE WOLF',
+    storyHint: '一个舞蹈演员在环球巡演的途中，只靠每天一封电报做交易——赚了200万美元。他从不听任何人的建议。',
+    cardColors: { primary: '#6C757D', secondary: '#DC143C', accent: '#8A9199', dark: '#0e0e10', glow: 'rgba(108,117,125,0.4)' },
   },
 };

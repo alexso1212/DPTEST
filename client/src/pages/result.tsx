@@ -2,11 +2,12 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { SiWechat } from "react-icons/si";
-import { Lock, Camera, Home } from "lucide-react";
+import { Lock, Camera, Home, X } from "lucide-react";
 import RadarChartComponent from "@/components/RadarChart";
 import ShareCard from "@/components/ShareCard";
 import CountUp from "@/components/CountUp";
-import CharacterIcon from "@/components/CharacterIcon";
+import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
+import CharacterCard from "@/components/CharacterCard";
 import RankBadge from "@/components/RankBadge";
 import type { QuizResult } from "@/utils/calculateResult";
 import { dimensionLabels, type Dimension } from "@/data/questions";
@@ -24,6 +25,7 @@ function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: (
   const [phase, setPhase] = useState(0);
   const { traderType, rank } = result;
   const [c1] = traderType.colors;
+  const cc = traderType.cardColors;
 
   useEffect(() => {
     const timers = [
@@ -59,8 +61,8 @@ function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: (
           <motion.div
             className="w-20 h-20 rounded-full"
             style={{
-              background: `radial-gradient(circle, ${c1}50, transparent 70%)`,
-              boxShadow: `0 0 60px ${c1}30`,
+              background: `radial-gradient(circle, ${cc?.glow || c1 + '50'}, transparent 70%)`,
+              boxShadow: `0 0 60px ${cc?.glow || c1 + '30'}`,
             }}
             animate={{ scale: [1, 1.3, 1, 1.2, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -105,9 +107,9 @@ function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: (
             style={{
               width: 280,
               aspectRatio: '3/4',
-              background: `linear-gradient(145deg, ${c1}20, var(--bg-1), ${c1}10)`,
-              border: `1.5px solid ${traderType.colors[1]}50`,
-              boxShadow: `0 0 40px ${c1}25, 0 0 80px ${c1}10`,
+              background: `linear-gradient(170deg, ${cc?.dark || c1 + '20'} 0%, #0d0f14 40%, ${cc?.dark || c1 + '10'} 100%)`,
+              border: `1.5px solid ${cc?.glow || traderType.colors[1] + '50'}`,
+              boxShadow: `0 0 40px ${cc?.glow || c1 + '25'}, 0 0 80px ${(cc?.glow || c1 + '10').replace('0.4','0.1')}`,
             }}
             initial={{ opacity: 0, scale: 0.7, rotateY: 180, filter: 'blur(20px)' }}
             animate={{
@@ -119,29 +121,29 @@ function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: (
             transition={{ duration: 1, ease: [0.34, 1.56, 0.64, 1] }}
           >
             <div className="absolute inset-0" style={{
-              background: `radial-gradient(circle at 30% 20%, ${c1}15, transparent 60%)`,
+              background: `radial-gradient(circle at 30% 20%, ${cc?.primary || c1}15, transparent 60%)`,
             }} />
 
-            <div className="relative h-full flex flex-col items-center justify-between p-5">
+            <div className="relative h-full flex flex-col items-center justify-between p-4">
               <div className="flex items-center justify-between w-full">
-                <span className="text-xs font-tag" style={{ color: traderType.colors[1], opacity: 0.7 }}>
+                <span className="text-xs font-tag" style={{ color: cc?.secondary || traderType.colors[1], opacity: 0.7 }}>
                   {traderType.element.icon} {traderType.element.name}
                 </span>
                 <RankBadge tier={rank} size="sm" />
               </div>
 
               <div className="flex-1 flex flex-col items-center justify-center -mt-2">
-                <CharacterIcon typeCode={traderType.code} size={140} />
+                <AlbionCharacterSVG type={traderType.code} size={160} />
               </div>
 
               <div className="text-center w-full">
-                <h2 className="font-serif text-2xl font-bold mb-0.5" style={{ color: 'var(--text-strong)' }}>
+                <h2 className="font-serif text-2xl font-bold mb-0.5" style={{ color: '#E8E6E1', letterSpacing: '3px' }}>
                   {traderType.name}
                 </h2>
-                <p className="font-tag text-[11px] tracking-widest mb-3" style={{ color: traderType.colors[1] }}>
+                <p className="font-tag text-[11px] tracking-widest mb-3" style={{ color: cc?.primary || traderType.colors[1] }}>
                   {traderType.subtitle}
                 </p>
-                <div className="flex items-center gap-2 justify-center mb-3">
+                <div className="flex items-center gap-2 justify-center mb-2">
                   <div className="flex-1 h-[1px]" style={{ background: `linear-gradient(to right, transparent, var(--gold))` }} />
                   <span className="text-xs" style={{ color: 'var(--gold)' }}>✦</span>
                   <div className="flex-1 h-[1px]" style={{ background: `linear-gradient(to left, transparent, var(--gold))` }} />
@@ -189,13 +191,58 @@ function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: (
   );
 }
 
+function CharacterCardPanel({ result, onClose }: { result: QuizResult; onClose: () => void }) {
+  const { traderType, rank, normalizedScores, avgScore } = result;
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      style={{ background: 'rgba(13,15,20,0.95)' }}
+      onClick={onClose}
+    >
+      <motion.button
+        onClick={onClose}
+        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center"
+        style={{ background: 'rgba(255,255,255,0.08)', color: '#8B95A5' }}
+        whileTap={{ scale: 0.9 }}
+        data-testid="button-close-card-panel"
+      >
+        <X className="w-5 h-5" />
+      </motion.button>
+
+      <motion.div
+        initial={{ scale: 0.7, rotateY: 180, opacity: 0 }}
+        animate={{ scale: 1, rotateY: 0, opacity: 1 }}
+        exit={{ scale: 0.8, rotateY: -90, opacity: 0 }}
+        transition={{ duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
+        className="max-h-[90vh] overflow-y-auto"
+        style={{ perspective: '1000px' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <CharacterCard
+          typeCode={traderType.code}
+          scores={normalizedScores}
+          rank={{ name: rank.name, emoji: rank.icon, score: avgScore }}
+          showAnimation={false}
+        />
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function ResultPage({ result }: ResultPageProps) {
   const { traderType, rank, normalizedScores, avgScore } = result;
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const [showUnbox, setShowUnbox] = useState(true);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showCardPanel, setShowCardPanel] = useState(false);
   const [c1] = traderType.colors;
+  const cc = traderType.cardColors;
 
   const sortedDims = useMemo(() => {
     const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
@@ -233,26 +280,51 @@ export default function ResultPage({ result }: ResultPageProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, ...ease }}
-              className="rounded-2xl p-5 text-center relative overflow-hidden"
+              className="rounded-2xl p-5 relative overflow-hidden cursor-pointer"
               style={{
-                background: `linear-gradient(145deg, ${c1}12, var(--bg-1), ${c1}08)`,
-                border: `1px solid ${traderType.colors[1]}30`,
-                boxShadow: `0 0 30px ${c1}10`,
+                background: `linear-gradient(170deg, ${cc?.dark || c1 + '12'}, #0d0f14, ${cc?.dark || c1 + '08'})`,
+                border: `1px solid ${cc?.glow || traderType.colors[1] + '30'}`,
+                boxShadow: `0 0 30px ${cc?.glow || c1 + '10'}`,
               }}
+              onClick={() => setShowCardPanel(true)}
+              data-testid="button-open-card-panel"
             >
-              <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 0%, ${c1}15, transparent 60%)` }} />
-              <div className="relative">
-                <div className="flex justify-center mb-3">
-                  <RankBadge tier={rank} size="lg" />
+              <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 0%, ${cc?.primary || c1}15, transparent 60%)` }} />
+              <div className="relative flex items-center gap-4">
+                <div
+                  className="flex-shrink-0 rounded-full overflow-hidden flex items-center justify-center"
+                  style={{
+                    width: 90,
+                    height: 90,
+                    border: `2px solid ${cc?.glow || c1 + '40'}`,
+                    boxShadow: `0 0 20px ${cc?.glow || c1 + '20'}`,
+                    background: `radial-gradient(circle, ${cc?.dark || '#0d0f14'}, #0d0f14)`,
+                  }}
+                  data-testid="avatar-circle"
+                >
+                  <div style={{ clipPath: 'circle(50%)', width: 90, height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    <AlbionCharacterSVG type={traderType.code} size={100} />
+                  </div>
                 </div>
-                <div className="text-xl font-heading font-bold font-num" style={{ color: rank.color }} data-testid="text-rank">
-                  {rank.name}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-lg font-serif font-bold" style={{ color: '#E8E6E1', letterSpacing: '2px' }} data-testid="text-type-name">
+                      {traderType.name}
+                    </h3>
+                  </div>
+                  <p className="text-[11px] font-tag tracking-wider mb-2" style={{ color: cc?.primary || traderType.colors[1] }}>
+                    {traderType.english || traderType.subtitle}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <RankBadge tier={rank} size="sm" />
+                    <span className="text-xs font-num" style={{ color: rank.color }} data-testid="text-rank">
+                      {avgScore}/100
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-baseline justify-center gap-1 mt-1">
-                  <span className="text-3xl font-num font-bold" style={{ color: rank.color }}>{avgScore}</span>
-                  <span className="text-sm" style={{ color: 'var(--text-muted)' }}>/100</span>
+                <div className="flex-shrink-0 text-xs" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
+                  点击查看 →
                 </div>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{rank.description}</p>
               </div>
             </motion.div>
 
@@ -260,44 +332,6 @@ export default function ResultPage({ result }: ResultPageProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, ...ease }}
-              className="rounded-2xl p-6 text-center relative overflow-hidden"
-              style={{
-                background: `linear-gradient(145deg, ${c1}15, var(--bg-1))`,
-                border: `1.5px solid ${traderType.colors[1]}40`,
-                boxShadow: `0 0 30px ${c1}15`,
-              }}
-            >
-              <div className="flex items-center gap-1 justify-start mb-2">
-                <span className="text-xs font-tag" style={{ color: traderType.colors[1], opacity: 0.7 }}>
-                  {traderType.element.icon} {traderType.element.name}
-                </span>
-              </div>
-              <div className="flex justify-center mb-3">
-                <CharacterIcon typeCode={traderType.code} size={120} />
-              </div>
-              <h3 className="text-xl font-serif font-bold mb-1" style={{ color: c1 }} data-testid="text-type-name">
-                {traderType.name}
-              </h3>
-              <p className="text-xs font-tag tracking-widest mb-2" style={{ color: traderType.colors[1] }}>
-                {traderType.subtitle}
-              </p>
-              <div className="flex items-center gap-2 justify-center mb-3">
-                <div className="flex-1 h-[1px] max-w-[60px]" style={{ background: `linear-gradient(to right, transparent, var(--gold))` }} />
-                <span className="text-xs" style={{ color: 'var(--gold)' }}>✦</span>
-                <div className="flex-1 h-[1px] max-w-[60px]" style={{ background: `linear-gradient(to left, transparent, var(--gold))` }} />
-              </div>
-              <p className="text-sm font-serif italic leading-relaxed" style={{ color: 'var(--gold)' }}>
-                "{traderType.quote}"
-              </p>
-              <p className="text-sm leading-relaxed mt-3" style={{ color: 'var(--text-strong)' }} data-testid="text-one-liner">
-                {traderType.oneLiner}
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, ...ease }}
               className="rounded-2xl p-6"
               style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
             >
@@ -313,7 +347,7 @@ export default function ResultPage({ result }: ResultPageProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, ...ease }}
+              transition={{ delay: 0.3, ...ease }}
               className="rounded-2xl p-6"
               style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
             >
@@ -322,7 +356,7 @@ export default function ResultPage({ result }: ResultPageProps) {
               </h3>
               <div
                 className="pl-4 py-1"
-                style={{ borderLeft: `3px solid ${c1}` }}
+                style={{ borderLeft: `3px solid ${cc?.primary || c1}` }}
               >
                 <p
                   className="text-base leading-[1.8]"
@@ -337,7 +371,7 @@ export default function ResultPage({ result }: ResultPageProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, ...ease }}
+              transition={{ delay: 0.4, ...ease }}
               className="rounded-2xl p-6 relative overflow-hidden"
               style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
             >
@@ -350,7 +384,7 @@ export default function ResultPage({ result }: ResultPageProps) {
                     <div key={dim} className="flex items-center gap-2">
                       <span className="text-xs w-16" style={{ color: 'var(--text-muted)' }}>{dimensionLabels[dim]}</span>
                       <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-                        <div className="h-full rounded-full" style={{ width: `${normalizedScores[dim]}%`, background: i === 0 ? c1 : 'var(--info)' }} />
+                        <div className="h-full rounded-full" style={{ width: `${normalizedScores[dim]}%`, background: i === 0 ? (cc?.primary || c1) : 'var(--info)' }} />
                       </div>
                       <span className="text-xs font-num w-6 text-right" style={{ color: 'var(--text-strong)' }}>{normalizedScores[dim]}</span>
                     </div>
@@ -395,7 +429,7 @@ export default function ResultPage({ result }: ResultPageProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, ...ease }}
+              transition={{ delay: 0.5, ...ease }}
               className="rounded-2xl p-6"
               style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
             >
@@ -520,6 +554,12 @@ export default function ResultPage({ result }: ResultPageProps) {
                   </motion.button>
                 </motion.div>
               </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {showCardPanel && (
+              <CharacterCardPanel result={result} onClose={() => setShowCardPanel(false)} />
             )}
           </AnimatePresence>
         </div>
