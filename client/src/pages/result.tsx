@@ -8,6 +8,7 @@ import RadarChartComponent from "@/components/RadarChart";
 import ShareCard from "@/components/ShareCard";
 import CountUp from "@/components/CountUp";
 import CharacterSVG from "@/components/character/CharacterSVG";
+import TierBadge from "@/components/character/TierBadge";
 import TierRoadmap from "@/components/character/TierRoadmap";
 import CharacterCard from "@/components/CharacterCard";
 import RankBadge from "@/components/RankBadge";
@@ -574,11 +575,23 @@ export default function ResultPage({ result }: ResultPageProps) {
                 </div>
               </div>
             </motion.div>
+            <div className="flex justify-end -mt-3 mr-2 relative z-10">
+              <TierBadge type={traderType.code} currentTier={user?.tier ?? 0} />
+            </div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, ...ease }}
+              transition={{ delay: 0.15, ...ease }}
+              data-testid="section-tier-roadmap"
+            >
+              <TierRoadmap type={traderType.code} currentTier={user?.tier ?? 0} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, ...ease }}
               className="rounded-2xl p-6"
               style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
             >
@@ -613,14 +626,6 @@ export default function ResultPage({ result }: ResultPageProps) {
                   "{traderType.piercingDescription}"
                 </p>
               </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35, ...ease }}
-            >
-              <TierRoadmap type={traderType.code} currentTier={user?.tier ?? 0} />
             </motion.div>
 
             <motion.div

@@ -7,6 +7,7 @@ import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLin
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
 import CharacterSVG from "@/components/character/CharacterSVG";
+import TierBadge from "@/components/character/TierBadge";
 import TierRoadmap from "@/components/character/TierRoadmap";
 import RankBadge from "@/components/RankBadge";
 import { usePageView, useTracking } from "@/hooks/use-tracking";
@@ -81,6 +82,14 @@ export default function HomePage() {
     }
   }, [user, authLoading, navigate]);
 
+  const traderType = quizResult ? traderTypes[quizResult.traderTypeCode] : null;
+  const rank = quizResult ? rankTiers.find(r => r.name === quizResult.rankName) : null;
+
+  const unlockTime = quizResult?.createdAt
+    ? new Date(new Date(quizResult.createdAt).getTime() + UNLOCK_HOURS * 3600000)
+    : null;
+  const { remaining: countdown, unlocked: reportUnlocked } = useCountdown(unlockTime);
+
   const handleLogout = async () => {
     await apiRequest("POST", "/api/logout");
     await queryClient.invalidateQueries({ queryKey: ["/api/me"] });
@@ -94,14 +103,6 @@ export default function HomePage() {
       </div>
     );
   }
-
-  const traderType = quizResult ? traderTypes[quizResult.traderTypeCode] : null;
-  const rank = quizResult ? rankTiers.find(r => r.name === quizResult.rankName) : null;
-
-  const unlockTime = quizResult?.createdAt
-    ? new Date(new Date(quizResult.createdAt).getTime() + UNLOCK_HOURS * 3600000)
-    : null;
-  const { remaining: countdown, unlocked: reportUnlocked } = useCountdown(unlockTime);
 
   const cc = traderType?.cardColors ?? (traderType ? { primary: traderType.colors[0], secondary: traderType.colors[1], dark: '#0d0f14', glow: `${traderType.colors[0]}40` } : null);
 
@@ -195,6 +196,9 @@ export default function HomePage() {
                 background: `radial-gradient(circle, ${cc.primary}28 0%, transparent 70%)`,
               }} />
               <CharacterSVG type={quizResult.traderTypeCode} size={240} tier={user?.tier ?? 0} />
+              <div style={{ position: "absolute", top: 8, right: "50%", transform: "translateX(80px)" }}>
+                <TierBadge type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} />
+              </div>
             </motion.div>
 
             <motion.div
@@ -281,6 +285,16 @@ export default function HomePage() {
               </span>
             </motion.div>
 
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...ease, delay: 0.28 }}
+              className="w-full mb-4"
+              data-testid="section-tier-roadmap"
+            >
+              <TierRoadmap type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} />
+            </motion.div>
+
             {traderType.storyHint && (
               <motion.p
                 initial={{ opacity: 0 }}
@@ -292,15 +306,6 @@ export default function HomePage() {
                 {traderType.storyHint}
               </motion.p>
             )}
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...ease, delay: 0.31 }}
-              className="mb-6"
-            >
-              <TierRoadmap type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} />
-            </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -444,6 +449,7 @@ function formatRelativeDate(dateStr: string): string {
 }
 
 function GrowthTimeline({ history, cc }: { history: StoredQuizResult[]; cc: { primary: string; secondary?: string; glow: string } }) {
+  const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const items = expanded ? history : history.slice(0, 3);
 
@@ -456,13 +462,25 @@ function GrowthTimeline({ history, cc }: { history: StoredQuizResult[]; cc: { pr
     >
       <div className="h-[1px] mb-5" style={{ background: `linear-gradient(90deg, transparent, ${cc.primary}20, transparent)` }} />
 
-      <div className="flex items-center gap-2 px-1 mb-4">
+      <motion.button
+        onClick={() => setOpen(!open)}
+        whileTap={{ scale: 0.98 }}
+        className="flex items-center gap-2 px-3 py-2 rounded-xl w-full"
+        style={{
+          background: open ? `${cc.primary}08` : 'rgba(255,255,255,0.02)',
+          border: `1px solid ${open ? `${cc.primary}20` : 'rgba(255,255,255,0.06)'}`,
+        }}
+        data-testid="button-toggle-growth"
+      >
         <History className="w-4 h-4" style={{ color: cc.primary }} />
-        <h3 className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>成长历程</h3>
+        <span className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>成长历程</span>
         <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: `${cc.primary}12`, color: cc.primary, fontSize: '10px' }}>
           {history.length}次
         </span>
-      </div>
+        <ChevronRight className={`w-3.5 h-3.5 ml-auto transition-transform duration-200 ${open ? 'rotate-90' : ''}`} style={{ color: 'var(--text-muted)' }} />
+      </motion.button>
+
+      {open && (<div className="mt-4">
 
       {history.length >= 3 && (
         <div className="mb-4 rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -608,6 +626,7 @@ function GrowthTimeline({ history, cc }: { history: StoredQuizResult[]; cc: { pr
           <ChevronRight className={`w-3 h-3 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`} />
         </motion.button>
       )}
+      </div>)}
     </motion.div>
   );
 }

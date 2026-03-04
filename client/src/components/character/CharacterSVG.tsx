@@ -405,7 +405,7 @@ const MountSteed = ({ tier, c1, c2 }: MountProps) => {
 const MOUNT_MAP: Record<string, typeof MountDragon> = {
   ER: MountDragon, RS: MountSteed, RM: MountWolf, ES: MountSteed,
   RE: MountSteed, SM: MountSerpent, SE: MountWolf, ME: MountHawk,
-  MA: MountSerpent, EA: MountDragon, EM: MountWolf, AS: MountSerpent,
+  MA: MountSerpent, EA: MountDragon, EX: MountDragon, EM: MountWolf, AS: MountSerpent,
   RA: MountWolf, EAv: MountDragon, REv: MountWolf,
 };
 
@@ -579,6 +579,26 @@ const WeaponMA = ({ tier, handX, handY, c1 }: WeaponProps) => {
   );
 };
 
+const WeaponEX = ({ tier, handX, handY, c1 }: WeaponProps) => {
+  const g = "#F0C850";
+  const sl = [24, 36, 50, 68][tier];
+  return (
+    <g>
+      <line x1={handX} y1={handY} x2={handX} y2={handY - sl * 0.45} stroke="#555" strokeWidth={[2, 3, 4, 5][tier]} />
+      <path d={`M${handX - [4, 6, 8, 11][tier]},${handY - sl * 0.45} L${handX},${handY - sl} L${handX + [4, 6, 8, 11][tier]},${handY - sl * 0.45} Z`} fill={c1} opacity={[0.25, 0.4, 0.55, 0.75][tier]} stroke={g} strokeWidth={[1.5, 2, 3, 4][tier]} />
+      {tier >= 1 && <line x1={handX - [0, 5, 8, 12][tier]} y1={handY - sl * 0.45} x2={handX + [0, 5, 8, 12][tier]} y2={handY - sl * 0.45} stroke={g} strokeWidth={[0, 2, 3, 4][tier]} />}
+      {tier >= 2 && <circle cx={handX} cy={handY - sl * 0.72} r={[0, 0, 4, 7][tier]} fill={g} opacity={0.35}>
+        <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" />
+      </circle>}
+      {tier === 3 && Array.from({ length: 5 }, (_, i) => (
+        <circle key={i} cx={handX + (i - 2) * 6} cy={handY - sl - 4} r={1.5} fill={g} opacity={0.5}>
+          <animate attributeName="cy" values={`${handY - sl - 4};${handY - sl - 14};${handY - sl - 4}`} dur={`${1.5 + i * 0.3}s`} repeatCount="indefinite" />
+        </circle>
+      ))}
+    </g>
+  );
+};
+
 const WeaponEA = ({ tier, handX, handY, c1 }: WeaponProps) => {
   const a = "#FF9A6C";
   const sl = [18, 28, 40, 55][tier];
@@ -673,7 +693,7 @@ const WeaponREv = ({ tier, handX, handY, c1 }: WeaponProps) => {
 const WEAPONS: Record<string, (props: WeaponProps) => JSX.Element> = {
   ER: WeaponER, RS: WeaponRS, RM: WeaponRM, ES: WeaponES,
   RE: WeaponRE, SM: WeaponSM, SE: WeaponSE, ME: WeaponME,
-  MA: WeaponMA, EA: WeaponEA, EM: WeaponEM, AS: WeaponAS,
+  MA: WeaponMA, EA: WeaponEA, EX: WeaponEX, EM: WeaponEM, AS: WeaponAS,
   RA: WeaponRA, EAv: WeaponEAv, REv: WeaponREv,
 };
 
