@@ -503,8 +503,8 @@ export default function ResultPage({ result }: ResultPageProps) {
     setShowVerifyCodeModal(true);
   }, [traderType, rank, avgScore, normalizedScores, user, trackEvent, verifyCode]);
 
-  const handleVerifyProceed = useCallback(() => {
-    const mobileHandled = handleWeChatMobile();
+  const handleVerifyProceed = useCallback(async () => {
+    const mobileHandled = await handleWeChatMobile();
     if (!mobileHandled) {
       setShowWeChatModal(true);
     }

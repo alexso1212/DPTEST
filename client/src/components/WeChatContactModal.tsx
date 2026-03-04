@@ -1,11 +1,16 @@
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Smartphone } from "lucide-react";
 import { SiWechat } from "react-icons/si";
 import { QRCodeSVG } from "qrcode.react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const WECHAT_CONTACT = "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4";
+const FALLBACK_URL = "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4";
+
+interface SalesContact {
+  name: string;
+  url: string;
+}
 
 interface WeChatContactModalProps {
   open: boolean;
@@ -13,25 +18,63 @@ interface WeChatContactModalProps {
   onBeforeOpen?: () => void;
 }
 
+export function useSalesContact() {
+  const [contact, setContact] = useState<SalesContact | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const fetchContact = useCallback(async () => {
+    if (contact) return contact;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/wechat-contact", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setContact(data);
+        setLoading(false);
+        return data as SalesContact;
+      }
+    } catch {}
+    setLoading(false);
+    return null;
+  }, [contact]);
+
+  return { contact, loading, fetchContact };
+}
+
 export function useWeChatContact(onBeforeOpen?: () => void) {
   const isMobile = useIsMobile();
+  const { contact, fetchContact } = useSalesContact();
 
-  const handleContact = useCallback(() => {
+  const handleContact = useCallback(async () => {
     onBeforeOpen?.();
+    const c = await fetchContact();
     if (isMobile) {
-      window.open(WECHAT_CONTACT, "_blank");
+      window.open(c?.url || FALLBACK_URL, "_blank");
       return true;
     }
     return false;
-  }, [isMobile, onBeforeOpen]);
+  }, [isMobile, onBeforeOpen, fetchContact]);
 
-  return { isMobile, handleContact, WECHAT_CONTACT };
+  return { isMobile, handleContact, contact, fetchContact, WECHAT_CONTACT: contact?.url || FALLBACK_URL };
 }
 
 export default function WeChatContactModal({ open, onClose }: WeChatContactModalProps) {
+  const [contact, setContact] = useState<SalesContact | null>(null);
+
+  useEffect(() => {
+    if (open && !contact) {
+      fetch("/api/wechat-contact", { credentials: "include" })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => { if (data) setContact(data); })
+        .catch(() => {});
+    }
+  }, [open]);
+
+  const url = contact?.url || FALLBACK_URL;
+
   const handleQRClick = useCallback(() => {
-    window.location.href = WECHAT_CONTACT;
-  }, []);
+    window.location.href = url;
+  }, [url]);
 
   return (
     <AnimatePresence>
@@ -73,6 +116,11 @@ export default function WeChatContactModal({ open, onClose }: WeChatContactModal
               <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
                 点击二维码可直接用电脑微信打开
               </p>
+              {contact?.name && (
+                <p className="text-xs mt-1.5 font-medium" style={{ color: 'var(--gold)' }}>
+                  您的专属顾问：{contact.name}
+                </p>
+              )}
             </div>
 
             <div className="flex justify-center mb-2">
@@ -85,7 +133,7 @@ export default function WeChatContactModal({ open, onClose }: WeChatContactModal
                 data-testid="button-qr-click-wechat"
               >
                 <QRCodeSVG
-                  value={WECHAT_CONTACT}
+                  value={url}
                   size={180}
                   level="M"
                   bgColor="#ffffff"

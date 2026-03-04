@@ -119,8 +119,8 @@ function ReportContent({
     setShowVerifyCodeModal(true);
   };
 
-  const handleVerifyProceed = () => {
-    const mobileHandled = handleWeChatMobile();
+  const handleVerifyProceed = async () => {
+    const mobileHandled = await handleWeChatMobile();
     if (!mobileHandled) {
       setShowWeChatModal(true);
     }

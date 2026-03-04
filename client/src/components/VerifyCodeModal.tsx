@@ -1,11 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Copy, Check, ExternalLink, X, Smartphone } from "lucide-react";
 import { SiWechat } from "react-icons/si";
 import { QRCodeSVG } from "qrcode.react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const WECHAT_CONTACT = "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4";
+const FALLBACK_URL = "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4";
 
 interface VerifyCodeModalProps {
   open: boolean;
@@ -17,6 +17,22 @@ interface VerifyCodeModalProps {
 export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }: VerifyCodeModalProps) {
   const [copied, setCopied] = useState(false);
   const isMobile = useIsMobile();
+  const [contactUrl, setContactUrl] = useState(FALLBACK_URL);
+  const [contactName, setContactName] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      fetch("/api/wechat-contact", { credentials: "include" })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data) {
+            setContactUrl(data.url);
+            setContactName(data.name);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [open]);
 
   const copyCode = () => {
     try {
@@ -37,8 +53,8 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
 
   const handleQRClick = useCallback(() => {
     copyCode();
-    window.location.href = WECHAT_CONTACT;
-  }, [verifyCode]);
+    window.location.href = contactUrl;
+  }, [contactUrl, verifyCode]);
 
   return (
     <AnimatePresence>
@@ -87,6 +103,11 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                 {isMobile ? '请复制验证码，添加顾问后发送给对方' : '请复制验证码，点击二维码用微信打开'}
               </p>
+              {contactName && (
+                <p className="text-xs mt-1.5 font-medium" style={{ color: 'var(--gold)' }}>
+                  您的专属顾问：{contactName}
+                </p>
+              )}
             </div>
 
             {!isMobile && (
@@ -100,7 +121,7 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
                   data-testid="button-qr-click"
                 >
                   <QRCodeSVG
-                    value={WECHAT_CONTACT}
+                    value={contactUrl}
                     size={140}
                     level="M"
                     bgColor="#ffffff"
@@ -162,7 +183,7 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
 
             {isMobile ? (
               <motion.a
-                href={WECHAT_CONTACT}
+                href={contactUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => {

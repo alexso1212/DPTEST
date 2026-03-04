@@ -8,6 +8,13 @@ import connectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
 import bcrypt from "bcryptjs";
 
+const SALES_CONTACTS = [
+  { name: "默认顾问", url: "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4" },
+  { name: "Deven", url: "https://work.weixin.qq.com/ca/cawcde66939ac2ab81" },
+  { name: "Anna", url: "https://work.weixin.qq.com/ca/cawcde2d7a8f8a7ac3" },
+];
+let salesCounter = 0;
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -360,6 +367,17 @@ export async function registerRoutes(
       console.error("Result webhook error:", err);
       res.json({ success: true, webhookError: true });
     }
+  });
+
+  app.get("/api/wechat-contact", (req, res) => {
+    const sess = req.session as any;
+    if (sess.assignedContact) {
+      return res.json(sess.assignedContact);
+    }
+    const contact = SALES_CONTACTS[salesCounter % SALES_CONTACTS.length];
+    salesCounter++;
+    sess.assignedContact = contact;
+    res.json(contact);
   });
 
   return httpServer;
