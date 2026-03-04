@@ -130,16 +130,16 @@ export default function HomePage() {
         </>
       )}
 
-      <div className="relative max-w-lg md:max-w-2xl mx-auto px-5 pt-3 pb-10">
+      <div className="relative max-w-lg md:max-w-2xl mx-auto px-4 pt-2 pb-10">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={ease}
-          className="flex items-center justify-between mb-2"
+          className="flex items-center justify-between mb-1"
         >
-          <div className="flex items-center gap-2">
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>你好，</p>
-            <p className="text-sm font-bold font-num" style={{ color: 'var(--text-strong)' }} data-testid="text-user-phone">
+          <div className="flex items-center gap-1.5">
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>你好，</p>
+            <p className="text-xs font-bold font-num" style={{ color: 'var(--text-strong)' }} data-testid="text-user-phone">
               {user.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')}
             </p>
           </div>
@@ -147,11 +147,11 @@ export default function HomePage() {
             onClick={handleLogout}
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.92 }}
-            className="w-9 h-9 rounded-full flex items-center justify-center"
+            className="w-7 h-7 rounded-full flex items-center justify-center"
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
             data-testid="button-logout"
           >
-            <LogOut className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+            <LogOut className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
           </motion.button>
         </motion.div>
 
@@ -165,29 +165,18 @@ export default function HomePage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ ...ease, delay: 0.06 }}
-              className="flex justify-between items-center mb-2"
+              className="flex justify-between items-center mb-1 relative"
             >
               <div style={{
-                display: "inline-flex", alignItems: "center", gap: "5px",
-                background: `${cc.primary}15`, padding: "3px 10px", borderRadius: "16px",
+                display: "inline-flex", alignItems: "center", gap: "4px",
+                background: `${cc.primary}15`, padding: "2px 8px", borderRadius: "12px",
                 border: `1px solid ${cc.primary}30`,
               }}>
-                <span style={{ fontSize: "12px" }}>{traderType.element.icon}</span>
-                <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "10px", color: cc.secondary || cc.primary, letterSpacing: "1px" }}>
+                <span style={{ fontSize: "10px" }}>{traderType.element.icon}</span>
+                <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "9px", color: cc.secondary || cc.primary, letterSpacing: "1px" }}>
                   {traderType.element.name.toUpperCase()}
                 </span>
               </div>
-              <span className="text-xs px-2.5 py-0.5 rounded-full" style={{ background: `${cc.primary}12`, color: cc.primary, border: `1px solid ${cc.primary}22` }}>
-                已完成
-              </span>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...ease, delay: 0.08 }}
-              className="flex justify-center mb-1"
-            >
               <TierBadge type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} />
             </motion.div>
 
@@ -196,52 +185,55 @@ export default function HomePage() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ ...ease, delay: 0.1 }}
               className="flex justify-center relative"
-              style={{ marginBottom: '-12px' }}
+              style={{ marginBottom: '-16px', marginTop: '-4px' }}
             >
               <div style={{
-                position: "absolute", width: "140px", height: "140px", borderRadius: "50%", top: "50%", left: "50%",
+                position: "absolute", width: "120px", height: "120px", borderRadius: "50%", top: "50%", left: "50%",
                 transform: "translate(-50%,-50%)",
                 background: `radial-gradient(circle, ${cc.primary}28 0%, transparent 70%)`,
               }} />
-              <CharacterSVG type={quizResult.traderTypeCode} size={180} tier={user?.tier ?? 0} />
+              <CharacterSVG type={quizResult.traderTypeCode} size={155} tier={user?.tier ?? 0} />
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...ease, delay: 0.16 }}
             >
-              <div className="flex items-center gap-2.5 justify-center mb-1">
-                <div className="flex-1 h-[1px] max-w-[50px]" style={{ background: "linear-gradient(90deg, transparent, #C9A456, transparent)" }} />
-                <span style={{ color: "#C9A456", fontSize: "10px" }}>✦</span>
-                <div className="flex-1 h-[1px] max-w-[50px]" style={{ background: "linear-gradient(90deg, transparent, #C9A456, transparent)" }} />
-              </div>
-
               <div className="text-center">
-                <h2 className="font-serif font-bold" style={{ fontSize: "22px", color: "#E8E6E1", letterSpacing: "4px" }} data-testid="text-trader-type">
+                <h2 className="font-serif font-bold" style={{ fontSize: "20px", color: "#E8E6E1", letterSpacing: "3px" }} data-testid="text-trader-type">
                   {traderType.name}
                 </h2>
-                <p className="font-tag tracking-widest" style={{ fontSize: "10px", color: cc.primary }}>
+                <p className="font-tag tracking-widest" style={{ fontSize: "9px", color: cc.primary }}>
                   {traderType.subtitle}
                 </p>
               </div>
-
-              {traderType.quote && (
-                <div className="text-center px-4 mt-2">
-                  <p className="font-serif italic leading-snug" style={{ fontSize: "12px", color: "#C9A456" }}>
-                    "{traderType.quote}"
-                  </p>
-                </div>
-              )}
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...ease, delay: 0.2 }}
+              className="flex items-center justify-center gap-3 mt-1"
+            >
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: "4px",
+                background: "rgba(201,164,86,0.06)", padding: "3px 10px", borderRadius: "16px",
+                border: "1px solid rgba(201,164,86,0.15)",
+                fontSize: "11px", color: "#C9A456",
+              }}>
+                <RankBadge tier={rank} size="sm" />
+                {rank.name} · {quizResult.avgScore}/100
+              </span>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...ease, delay: 0.22 }}
-              className="flex justify-center mt-2"
+              className="flex justify-center mt-1"
             >
-              <svg viewBox="0 0 200 200" style={{ width: "140px", height: "140px" }}>
+              <svg viewBox="0 0 200 200" style={{ width: "130px", height: "130px" }}>
                 {[0.3, 0.6, 0.9].map((s, i) => {
                   const pts = [0,1,2,3,4,5].map(j => {
                     const a = (Math.PI*2*j)/6 - Math.PI/2;
@@ -276,37 +268,8 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ ...ease, delay: 0.26 }}
-              className="text-center mt-2 mb-4"
-            >
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: "6px",
-                background: "rgba(201,164,86,0.06)", padding: "6px 16px", borderRadius: "20px",
-                border: "1px solid rgba(201,164,86,0.15)",
-                fontSize: "12px", color: "#C9A456",
-              }}>
-                <RankBadge tier={rank} size="sm" />
-                {rank.name} · {quizResult.avgScore}/100
-              </span>
-            </motion.div>
-
-            {traderType.storyHint && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.4 }}
-                transition={{ ...ease, delay: 0.3 }}
-                className="text-center italic leading-snug mb-3 px-4"
-                style={{ fontSize: "10px", color: "#8B95A5" }}
-              >
-                {traderType.storyHint}
-              </motion.p>
-            )}
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
               transition={{ ...ease, delay: 0.32 }}
-              className="flex gap-2 mb-3"
+              className="flex gap-2 mb-2 mt-1"
             >
               <motion.button
                 onClick={() => {
@@ -324,22 +287,22 @@ export default function HomePage() {
                 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-200"
+                className="flex-1 py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1 transition-all duration-200"
                 style={{ background: `${cc.primary}18`, color: cc.primary, border: `1px solid ${cc.primary}25` }}
                 data-testid="button-view-result"
               >
                 查看详情
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-3 h-3" />
               </motion.button>
               <motion.button
                 onClick={() => navigate("/quiz")}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-200"
+                className="flex-1 py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1 transition-all duration-200"
                 style={{ border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-muted)' }}
                 data-testid="button-retake"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
+                <RotateCcw className="w-3 h-3" />
                 重新测评
               </motion.button>
             </motion.div>

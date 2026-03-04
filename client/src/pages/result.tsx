@@ -578,7 +578,7 @@ export default function ResultPage({ result }: ResultPageProps) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, ...ease }}
-              className="flex justify-center"
+              className="flex justify-center relative"
             >
               <TierBadge type={traderType.code} currentTier={user?.tier ?? 0} />
             </motion.div>

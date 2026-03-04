@@ -17,7 +17,7 @@ export default function TierBadge({ type, currentTier = 0 }: TierBadgeProps) {
   if (!char || !td) return null;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+    <>
       <motion.button
         onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOpen(!open); }}
         whileTap={{ scale: 0.95 }}
@@ -26,14 +26,12 @@ export default function TierBadge({ type, currentTier = 0 }: TierBadgeProps) {
           display: "inline-flex",
           alignItems: "center",
           gap: "4px",
-          padding: "4px 12px 4px 10px",
+          padding: "3px 10px 3px 8px",
           borderRadius: "20px",
           background: `${char.colors.primary}22`,
           border: `1px solid ${char.colors.primary}44`,
           cursor: "pointer",
           backdropFilter: "blur(8px)",
-          position: "relative",
-          zIndex: 10,
           ["--badge-glow-color" as string]: char.colors.primary,
         }}
         data-testid="tier-badge-button"
@@ -71,16 +69,20 @@ export default function TierBadge({ type, currentTier = 0 }: TierBadgeProps) {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, height: 0, marginTop: 0 }}
-            animate={{ opacity: 1, height: "auto", marginTop: 8 }}
-            exit={{ opacity: 0, height: 0, marginTop: 0 }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             style={{
               overflow: "hidden",
               width: "100%",
               borderRadius: "16px",
-              position: "relative",
-              zIndex: 5,
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: "100%",
+              marginTop: 4,
+              zIndex: 20,
             }}
             data-testid="tier-panel"
           >
@@ -88,6 +90,6 @@ export default function TierBadge({ type, currentTier = 0 }: TierBadgeProps) {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }
