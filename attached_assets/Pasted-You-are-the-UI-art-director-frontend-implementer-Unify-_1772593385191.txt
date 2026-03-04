@@ -1,0 +1,62 @@
+You are the UI art director + frontend implementer. Unify the whole app into a single "Deltapex Dark FinTech / Institutional Trading" design system using Tailwind + shadcn/ui.
+
+Tech constraints:
+- React + TypeScript + Vite
+- TailwindCSS + shadcn/ui
+- Framer Motion for subtle animations
+- Recharts for charts (radar etc.)
+- Fonts: Noto Sans SC (body) + Oswald (headings / numbers)
+
+Primary goal:
+- Premium institutional dark theme (Bloomberg / quant desk vibe).
+- Minimal, high-contrast, dense-but-readable UI.
+- No marketing/education page vibe, no colorful gradients, no playful shadows.
+
+Deliverables:
+1) Add global design tokens via CSS variables in src/styles/globals.css (or src/index.css).
+2) Update tailwind.config to use tokens + typography scale + consistent radii.
+3) Configure shadcn/ui theme mapping to tokens (background, card, border, primary, muted, etc.).
+4) Build/patch base components wrappers to enforce consistency:
+   - <AppShell>, <PageHeader>, <Card>, <Button>, <Input>, <Badge>, <Divider>, <DataCard>
+5) Apply consistent layout rhythm: max-w container, section spacing, card spacing across ALL routes (Wouter).
+6) Implement motion rules globally (Framer Motion): subtle fade+lift on page and card hover (200-240ms).
+7) Standardize Recharts theme: axis ticks, grid, tooltip, radar fills all mapped to tokens; no random colors.
+
+Design Tokens (strict):
+- bg-0: #0B0F14 (app background)
+- bg-1: #0F1620 (sections)
+- card: rgba(255,255,255,0.04)
+- border: rgba(255,255,255,0.08)
+- text-strong: #E5E7EB
+- text: #CBD5E1
+- text-muted: #94A3B8
+- accent/primary: #E63946
+- accent-hover: #D62839
+- primary-soft: rgba(230,57,70,0.14)
+- info: #38BDF8 (status only)
+- success: #22C55E (status only)
+- warning: #F59E0B (status only)
+- danger: #EF4444 (status only)
+
+Hard rules:
+- Border radius: cards 16px, buttons/inputs 12px (consistent).
+- Hairline borders only (1px, token border).
+- Shadows must be extremely subtle (or none).
+- Hover lift max translateY(-2px), scale max 1.02.
+- Animation duration 180–240ms ease-out.
+
+Typography:
+- Body: Noto Sans SC
+- Headings/Numbers: Oswald
+- H1 48-56px, font 700, tracking -0.02em, line-height 1.05
+- H2 28-32px, font 650
+- Body 16-18px, line-height 1.6
+- Small 13-14px
+
+Background texture:
+- Optional subtle grid overlay (opacity 0.03) for hero/top area only.
+- Optional single radial glow behind header (choose ONE color: primary-soft OR info-soft; not both).
+
+After implementation:
+- Ensure every page looks coherent and matches the same design language.
+- Provide a short checklist of files changed and what was done.
