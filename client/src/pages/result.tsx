@@ -26,27 +26,48 @@ const ease = { duration: 0.22, ease: "easeOut" as const };
 
 function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: () => void }) {
   const [phase, setPhase] = useState(0);
+  const [ready, setReady] = useState(false);
   const { traderType, rank } = result;
   const [c1] = traderType.colors;
   const cc = traderType.cardColors;
+  const glowColor = cc?.glow || c1 + '40';
+  const primaryColor = cc?.primary || c1;
 
   useEffect(() => {
     const timers = [
       setTimeout(() => setPhase(1), 600),
-      setTimeout(() => setPhase(2), 1400),
-      setTimeout(() => setPhase(3), 2200),
-      setTimeout(() => setPhase(4), 3000),
-      setTimeout(() => onDone(), 4200),
+      setTimeout(() => setPhase(2), 1600),
+      setTimeout(() => setPhase(3), 2800),
+      setTimeout(() => setPhase(4), 3600),
+      setTimeout(() => setReady(true), 4400),
     ];
     return () => timers.forEach(clearTimeout);
-  }, [onDone]);
+  }, []);
 
-  const particles = useMemo(() =>
-    Array.from({ length: 20 }).map((_, i) => ({
-      angle: (i / 20) * 360,
-      distance: 80 + Math.random() * 60,
-      size: 2 + Math.random() * 3,
-      delay: Math.random() * 0.4,
+  const burstParticles = useMemo(() =>
+    Array.from({ length: 36 }).map((_, i) => ({
+      angle: (i / 36) * 360 + (Math.random() - 0.5) * 10,
+      distance: 100 + Math.random() * 120,
+      size: 1.5 + Math.random() * 3.5,
+      delay: Math.random() * 0.5,
+      duration: 0.8 + Math.random() * 0.6,
+    })), []);
+
+  const shimmerRays = useMemo(() =>
+    Array.from({ length: 8 }).map((_, i) => ({
+      angle: (i / 8) * 360,
+      length: 200 + Math.random() * 100,
+      width: 1 + Math.random() * 1.5,
+      delay: 0.1 + Math.random() * 0.3,
+    })), []);
+
+  const floatingMotes = useMemo(() =>
+    Array.from({ length: 12 }).map(() => ({
+      x: (Math.random() - 0.5) * 300,
+      y: (Math.random() - 0.5) * 400,
+      size: 1 + Math.random() * 2,
+      duration: 3 + Math.random() * 4,
+      delay: Math.random() * 3,
     })), []);
 
   return (
@@ -54,26 +75,56 @@ function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: (
       className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden"
       style={{ background: 'var(--bg-0)' }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.6 }}
     >
+      <div className="absolute inset-0 pointer-events-none">
+        <motion.div
+          className="absolute inset-0"
+          style={{ background: `radial-gradient(ellipse 60% 50% at 50% 45%, ${primaryColor}08, transparent 70%)` }}
+          animate={phase >= 2 ? { opacity: [0, 1] } : { opacity: 0 }}
+          transition={{ duration: 1.5 }}
+        />
+      </div>
+
       {phase < 2 && (
         <motion.div
           className="flex flex-col items-center"
-          animate={{ opacity: phase >= 2 ? 0 : 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          transition={{ duration: 0.4 }}
         >
-          <motion.div
-            className="w-20 h-20 rounded-full"
-            style={{
-              background: `radial-gradient(circle, ${cc?.glow || c1 + '50'}, transparent 70%)`,
-              boxShadow: `0 0 60px ${cc?.glow || c1 + '30'}`,
-            }}
-            animate={{ scale: [1, 1.3, 1, 1.2, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          />
+          <div className="relative">
+            <motion.div
+              className="w-24 h-24 rounded-full"
+              style={{
+                background: `radial-gradient(circle, ${glowColor}, transparent 70%)`,
+                boxShadow: `0 0 80px ${glowColor}`,
+              }}
+              animate={{ scale: [1, 1.4, 1, 1.3, 1] }}
+              transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+            />
+            {phase >= 1 && (
+              <>
+                <motion.div
+                  className="absolute inset-0 rounded-full"
+                  style={{ border: `1px solid ${primaryColor}40` }}
+                  initial={{ scale: 1, opacity: 0.6 }}
+                  animate={{ scale: 2.5, opacity: 0 }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
+                />
+                <motion.div
+                  className="absolute inset-0 rounded-full"
+                  style={{ border: `1px solid ${primaryColor}30` }}
+                  initial={{ scale: 1, opacity: 0.4 }}
+                  animate={{ scale: 3, opacity: 0 }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.5 }}
+                />
+              </>
+            )}
+          </div>
           <motion.p
-            animate={{ opacity: [0.3, 0.7, 0.3] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="mt-6 text-sm font-serif"
+            animate={{ opacity: [0.3, 0.8, 0.3] }}
+            transition={{ duration: 1.8, repeat: Infinity }}
+            className="mt-8 text-sm font-serif"
             style={{ color: 'var(--gold)' }}
           >
             正在召唤你的交易人格...
@@ -83,84 +134,194 @@ function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: (
 
       {phase >= 2 && (
         <div className="relative flex flex-col items-center">
-          {phase === 2 && particles.map((p, i) => (
+          {phase === 2 && shimmerRays.map((ray, i) => (
             <motion.div
-              key={i}
+              key={`ray-${i}`}
+              className="absolute"
+              style={{
+                width: ray.width,
+                height: ray.length,
+                background: `linear-gradient(180deg, ${primaryColor}50, ${primaryColor}10, transparent)`,
+                left: '50%',
+                top: '50%',
+                transformOrigin: 'top center',
+                transform: `rotate(${ray.angle}deg)`,
+                borderRadius: '2px',
+              }}
+              initial={{ scaleY: 0, opacity: 0 }}
+              animate={{ scaleY: [0, 1, 0], opacity: [0, 0.7, 0] }}
+              transition={{ duration: 1, delay: ray.delay, ease: "easeOut" }}
+            />
+          ))}
+
+          {phase === 2 && burstParticles.map((p, i) => (
+            <motion.div
+              key={`burst-${i}`}
               className="absolute rounded-full"
               style={{
                 width: p.size,
                 height: p.size,
-                background: '#C9A456',
+                background: i % 3 === 0 ? primaryColor : '#C9A456',
                 left: '50%',
                 top: '50%',
               }}
-              initial={{ x: 0, y: 0, opacity: 0.8, scale: 1 }}
+              initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
               animate={{
                 x: Math.cos((p.angle * Math.PI) / 180) * p.distance,
                 y: Math.sin((p.angle * Math.PI) / 180) * p.distance,
                 opacity: 0,
                 scale: 0,
               }}
-              transition={{ duration: 0.8, delay: p.delay, ease: "easeOut" }}
+              transition={{ duration: p.duration, delay: p.delay, ease: "easeOut" }}
+            />
+          ))}
+
+          {phase >= 3 && floatingMotes.map((m, i) => (
+            <motion.div
+              key={`mote-${i}`}
+              className="absolute rounded-full pointer-events-none"
+              style={{
+                width: m.size,
+                height: m.size,
+                background: '#C9A456',
+                left: '50%',
+                top: '50%',
+              }}
+              initial={{ x: m.x, y: m.y, opacity: 0 }}
+              animate={{
+                x: [m.x, m.x + (Math.random() - 0.5) * 30],
+                y: [m.y, m.y - 20 - Math.random() * 20],
+                opacity: [0, 0.6, 0],
+              }}
+              transition={{ duration: m.duration, delay: m.delay, repeat: Infinity, ease: "easeInOut" }}
             />
           ))}
 
           <motion.div
-            className="relative rounded-2xl overflow-hidden"
-            style={{
-              width: 280,
-              aspectRatio: '3/4',
-              background: `linear-gradient(170deg, ${cc?.dark || c1 + '20'} 0%, #0d0f14 40%, ${cc?.dark || c1 + '10'} 100%)`,
-              border: `1.5px solid ${cc?.glow || traderType.colors[1] + '50'}`,
-              boxShadow: `0 0 40px ${cc?.glow || c1 + '25'}, 0 0 80px ${(cc?.glow || c1 + '10').replace('0.4','0.1')}`,
-            }}
-            initial={{ opacity: 0, scale: 0.7, rotateY: 180, filter: 'blur(20px)' }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-              rotateY: 0,
-              filter: 'blur(0px)',
-            }}
-            transition={{ duration: 1, ease: [0.34, 1.56, 0.64, 1] }}
+            className="relative"
+            animate={phase >= 3 ? {
+              y: [0, -6, 0, -4, 0],
+              rotateZ: [0, -0.5, 0, 0.5, 0],
+            } : {}}
+            transition={phase >= 3 ? {
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut",
+            } : {}}
           >
-            <div className="absolute inset-0" style={{
-              background: `radial-gradient(circle at 30% 20%, ${cc?.primary || c1}15, transparent 60%)`,
-            }} />
+            <motion.div
+              className="absolute -inset-4 rounded-3xl pointer-events-none"
+              style={{
+                background: `radial-gradient(ellipse, ${primaryColor}15, transparent 70%)`,
+                filter: 'blur(20px)',
+              }}
+              animate={phase >= 3 ? { opacity: [0.4, 0.8, 0.4] } : { opacity: 0.4 }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            />
 
-            <div className="relative h-full flex flex-col items-center justify-between p-4">
-              <div className="flex items-center justify-between w-full">
-                <span className="text-xs font-tag" style={{ color: cc?.secondary || traderType.colors[1], opacity: 0.7 }}>
-                  {traderType.element.icon} {traderType.element.name}
-                </span>
-                <RankBadge tier={rank} size="sm" />
-              </div>
+            <motion.div
+              className="relative rounded-2xl overflow-hidden"
+              style={{
+                width: 280,
+                aspectRatio: '3/4',
+                background: `linear-gradient(170deg, ${cc?.dark || c1 + '20'} 0%, #0d0f14 40%, ${cc?.dark || c1 + '10'} 100%)`,
+                border: `1.5px solid ${glowColor}`,
+              }}
+              initial={{ opacity: 0, scale: 0.5, rotateY: 180, filter: 'blur(24px)' }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                rotateY: 0,
+                filter: 'blur(0px)',
+                boxShadow: phase >= 3
+                  ? `0 0 40px ${glowColor}, 0 0 80px ${primaryColor}15, 0 20px 60px rgba(0,0,0,0.5)`
+                  : `0 0 20px ${glowColor}`,
+              }}
+              transition={{ duration: 1.2, ease: [0.34, 1.56, 0.64, 1] }}
+            >
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: `linear-gradient(105deg, transparent 40%, ${primaryColor}18 50%, transparent 60%)`,
+                }}
+                initial={{ x: '-100%' }}
+                animate={{ x: '200%' }}
+                transition={{ duration: 1.5, delay: 0.8, ease: "easeInOut" }}
+              />
 
-              <div className="flex-1 flex flex-col items-center justify-center -mt-2">
-                <AlbionCharacterSVG type={traderType.code} size={160} />
-              </div>
+              <div className="absolute inset-0" style={{
+                background: `radial-gradient(circle at 30% 20%, ${primaryColor}15, transparent 60%)`,
+              }} />
 
-              <div className="text-center w-full">
-                <h2 className="font-serif text-2xl font-bold mb-0.5" style={{ color: '#E8E6E1', letterSpacing: '3px' }}>
-                  {traderType.name}
-                </h2>
-                <p className="font-tag text-[11px] tracking-widest mb-3" style={{ color: cc?.primary || traderType.colors[1] }}>
-                  {traderType.subtitle}
-                </p>
-                <div className="flex items-center gap-2 justify-center mb-2">
-                  <div className="flex-1 h-[1px]" style={{ background: `linear-gradient(to right, transparent, var(--gold))` }} />
-                  <span className="text-xs" style={{ color: 'var(--gold)' }}>✦</span>
-                  <div className="flex-1 h-[1px]" style={{ background: `linear-gradient(to left, transparent, var(--gold))` }} />
+              <div className="relative h-full flex flex-col items-center justify-between p-4">
+                <div className="flex items-center justify-between w-full">
+                  <motion.span
+                    className="text-xs font-tag"
+                    style={{ color: cc?.secondary || traderType.colors[1], opacity: 0.7 }}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 0.7, x: 0 }}
+                    transition={{ delay: 0.6, duration: 0.5 }}
+                  >
+                    {traderType.element.icon} {traderType.element.name}
+                  </motion.span>
+                  <motion.div
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.6, duration: 0.5 }}
+                  >
+                    <RankBadge tier={rank} size="sm" />
+                  </motion.div>
+                </div>
+
+                <motion.div
+                  className="flex-1 flex flex-col items-center justify-center -mt-2"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4, duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
+                >
+                  <AlbionCharacterSVG type={traderType.code} size={160} />
+                </motion.div>
+
+                <div className="text-center w-full">
+                  <motion.h2
+                    className="font-serif text-2xl font-bold mb-0.5"
+                    style={{ color: '#E8E6E1', letterSpacing: '3px' }}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7, duration: 0.5 }}
+                  >
+                    {traderType.name}
+                  </motion.h2>
+                  <motion.p
+                    className="font-tag text-[11px] tracking-widest mb-3"
+                    style={{ color: primaryColor }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.9, duration: 0.5 }}
+                  >
+                    {traderType.subtitle}
+                  </motion.p>
+                  <motion.div
+                    className="flex items-center gap-2 justify-center mb-2"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ delay: 1, duration: 0.6 }}
+                  >
+                    <div className="flex-1 h-[1px]" style={{ background: `linear-gradient(to right, transparent, var(--gold))` }} />
+                    <span className="text-xs" style={{ color: 'var(--gold)' }}>✦</span>
+                    <div className="flex-1 h-[1px]" style={{ background: `linear-gradient(to left, transparent, var(--gold))` }} />
+                  </motion.div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
 
           {phase >= 3 && (
             <motion.p
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mt-5 text-sm font-serif italic text-center max-w-[260px] leading-relaxed"
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-6 text-sm font-serif italic text-center max-w-[260px] leading-relaxed"
               style={{ color: 'var(--gold)' }}
             >
               "{traderType.quote}"
@@ -169,10 +330,10 @@ function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: (
 
           {phase >= 4 && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              className="mt-4 text-center"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mt-5 text-center"
             >
               <div className="flex items-baseline justify-center gap-1">
                 <CountUp
@@ -187,6 +348,26 @@ function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: (
                 {rank.name}
               </p>
             </motion.div>
+          )}
+
+          {ready && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              onClick={onDone}
+              className="mt-8 px-10 py-3 rounded-xl text-sm font-bold transition-all duration-200"
+              style={{
+                background: primaryColor,
+                color: '#fff',
+                boxShadow: `0 0 20px ${primaryColor}40`,
+              }}
+              whileHover={{ scale: 1.05, boxShadow: `0 0 30px ${primaryColor}60` }}
+              whileTap={{ scale: 0.95 }}
+              data-testid="button-continue-reveal"
+            >
+              查看我的交易档案 →
+            </motion.button>
           )}
         </div>
       )}
