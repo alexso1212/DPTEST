@@ -6,7 +6,7 @@ import { SiWechat } from "react-icons/si";
 import { traderTypes, rankTiers } from "@/data/traderTypes";
 import { dimensionLabels, type Dimension } from "@/data/questions";
 import RadarChartComponent from "@/components/RadarChart";
-import CharacterIcon from "@/components/CharacterIcon";
+import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
 import RankBadge from "@/components/RankBadge";
 
 const ease = { duration: 0.22, ease: "easeOut" as const };
@@ -86,6 +86,7 @@ function ReportContent({
   avgScore: number;
 }) {
   const [c1, c2] = traderType?.colors ?? ['#C9A456', '#94A3B8'];
+  const cc = traderType?.cardColors;
 
   const sortedDims = useMemo(() => {
     const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
@@ -141,32 +142,46 @@ function ReportContent({
           transition={{ delay: 0.12, ...ease }}
           className="rounded-2xl p-6 text-center relative overflow-hidden"
           style={{
-            background: `linear-gradient(145deg, ${c1}15, var(--bg-1))`,
-            border: `1.5px solid ${c2}40`,
-            boxShadow: `0 0 30px ${c1}15`,
+            background: cc ? `linear-gradient(170deg, ${cc.dark} 0%, #0d0f14 40%, ${cc.dark} 100%)` : `linear-gradient(145deg, ${c1}15, var(--bg-1))`,
+            border: cc ? `1px solid ${cc.glow}` : `1.5px solid ${c2}40`,
+            boxShadow: cc ? `0 0 25px ${cc.glow}` : `0 0 30px ${c1}15`,
           }}
         >
+          <div className="absolute inset-0" style={{ background: cc ? `radial-gradient(circle at 50% 30%, ${cc.primary}20, transparent 70%)` : `radial-gradient(circle at 50% 30%, ${c1}15, transparent 60%)` }} />
+          <div className="relative">
           {traderType?.element && (
           <div className="flex items-center gap-1 justify-start mb-2">
-            <span className="text-xs font-tag" style={{ color: c2, opacity: 0.7 }}>
-              {traderType.element.icon} {traderType.element.name}
-            </span>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: "5px",
+              background: cc ? `${cc.primary}22` : `${c2}15`, padding: "3px 10px", borderRadius: "16px",
+              border: cc ? `1px solid ${cc.primary}44` : `1px solid ${c2}30`,
+            }}>
+              <span style={{ fontSize: "12px" }}>{traderType.element.icon}</span>
+              <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "10px", color: cc?.secondary || c2, letterSpacing: "1px" }}>
+                {traderType.element.name.toUpperCase()}
+              </span>
+            </div>
           </div>
           )}
-          <div className="flex justify-center mb-3">
-            <CharacterIcon typeCode={traderType.code} size={120} />
+          <div className="flex justify-center mb-2" style={{ position: "relative" }}>
+            <div style={{
+              position: "absolute", width: "120px", height: "120px", borderRadius: "50%", top: "50%", left: "50%",
+              transform: "translate(-50%,-50%)",
+              background: cc ? `radial-gradient(circle, ${cc.primary}33 0%, transparent 70%)` : `radial-gradient(circle, ${c1}25 0%, transparent 70%)`,
+            }} />
+            <AlbionCharacterSVG type={traderType.code} size={180} />
           </div>
-          <h3 className="text-xl font-serif font-bold mb-1" style={{ color: c1 }} data-testid="text-type-name">
-            {traderType.name}
-          </h3>
-          <p className="text-xs font-tag tracking-widest mb-2" style={{ color: c2 }}>
-            {traderType.subtitle}
-          </p>
-          <div className="flex items-center gap-2 justify-center mb-3">
+          <div className="flex items-center gap-2 justify-center mb-2">
             <div className="flex-1 h-[1px] max-w-[60px]" style={{ background: `linear-gradient(to right, transparent, var(--gold))` }} />
             <span className="text-xs" style={{ color: 'var(--gold)' }}>✦</span>
             <div className="flex-1 h-[1px] max-w-[60px]" style={{ background: `linear-gradient(to left, transparent, var(--gold))` }} />
           </div>
+          <h3 className="text-xl font-serif font-bold mb-1" style={{ color: '#E8E6E1', letterSpacing: '3px' }} data-testid="text-type-name">
+            {traderType.name}
+          </h3>
+          <p className="text-xs font-tag tracking-widest mb-2" style={{ color: cc?.primary || c2 }}>
+            {traderType.subtitle}
+          </p>
           {traderType?.quote && (
           <p className="text-sm font-serif italic leading-relaxed" style={{ color: 'var(--gold)' }}>
             "{traderType.quote}"
@@ -175,6 +190,7 @@ function ReportContent({
           <p className="text-sm leading-relaxed mt-3" style={{ color: 'var(--text-strong)' }} data-testid="text-one-liner">
             {traderType.oneLiner}
           </p>
+          </div>
         </motion.div>
 
         <motion.div
@@ -312,6 +328,8 @@ function ReportContent({
           </p>
           <motion.a
             href={WECHAT_CONTACT}
+            target="_blank"
+            rel="noopener noreferrer"
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-sm text-white transition-all duration-200"

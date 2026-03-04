@@ -261,7 +261,7 @@ export default function ResultPage({ result }: ResultPageProps) {
         salesStrategy: strategy,
       });
     }
-    window.location.href = "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4";
+    window.open("https://work.weixin.qq.com/ca/cawcde75d99eb3fce4", "_blank");
   }, [traderType, rank, avgScore, normalizedScores, user]);
 
   return (

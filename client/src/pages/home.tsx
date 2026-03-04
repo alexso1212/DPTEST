@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
-import { motion } from "framer-motion";
-import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLink, Building2, Radio, Wrench, Trophy } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLink, Building2, Radio, Wrench, Trophy, X } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
-import CharacterIcon from "@/components/CharacterIcon";
+import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
+import CharacterCard from "@/components/CharacterCard";
 import RankBadge from "@/components/RankBadge";
 
 const ease = { duration: 0.22, ease: "easeOut" as const };
@@ -55,6 +56,7 @@ function useCountdown(targetTime: Date | null) {
 export default function HomePage() {
   const [, navigate] = useLocation();
   const { user, isLoading: authLoading } = useAuth();
+  const [showCardPanel, setShowCardPanel] = useState(false);
 
   const { data: quizResult, isLoading: quizLoading } = useQuery<StoredQuizResult | null>({
     queryKey: ["/api/quiz-result"],
@@ -125,12 +127,12 @@ export default function HomePage() {
           transition={{ ...ease, delay: 0.08 }}
           className="rounded-2xl p-6 mb-4 relative overflow-hidden"
           style={{
-            background: traderType ? `linear-gradient(145deg, ${traderType.colors[0]}10, var(--bg-1), ${traderType.colors[0]}06)` : 'var(--bg-1)',
-            border: traderType ? `1px solid ${traderType.colors[1]}25` : '1px solid var(--border)',
-            boxShadow: traderType ? `0 0 20px ${traderType.colors[0]}08` : 'none',
+            background: traderType?.cardColors ? `linear-gradient(170deg, ${traderType.cardColors.dark} 0%, #0d0f14 40%, ${traderType.cardColors.dark} 100%)` : traderType ? `linear-gradient(145deg, ${traderType.colors[0]}10, var(--bg-1), ${traderType.colors[0]}06)` : 'var(--bg-1)',
+            border: traderType?.cardColors ? `1px solid ${traderType.cardColors.glow}` : traderType ? `1px solid ${traderType.colors[1]}25` : '1px solid var(--border)',
+            boxShadow: traderType?.cardColors ? `0 0 20px ${traderType.cardColors.glow}` : traderType ? `0 0 20px ${traderType.colors[0]}08` : 'none',
           }}
         >
-          {traderType && <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(circle at 80% 10%, ${traderType.colors[0]}10, transparent 60%)` }} />}
+          {traderType && <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(circle at 80% 10%, ${traderType.cardColors?.primary || traderType.colors[0]}15, transparent 60%)` }} />}
           <div className="relative">
           {quizLoading ? (
             <div className="flex items-center justify-center py-8">
@@ -140,27 +142,46 @@ export default function HomePage() {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>📊 交易能力测评</h3>
-                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: `${traderType.colors[0]}20`, color: traderType.colors[0] }}>
+                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: `${traderType.cardColors?.primary || traderType.colors[0]}20`, color: traderType.cardColors?.primary || traderType.colors[0] }}>
                   已完成
                 </span>
               </div>
 
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex-shrink-0">
-                  <CharacterIcon typeCode={quizResult.traderTypeCode} size={64} />
+              <div
+                className="flex items-center gap-4 mb-4 cursor-pointer"
+                onClick={() => setShowCardPanel(true)}
+                data-testid="button-open-home-card"
+              >
+                <div
+                  className="flex-shrink-0 rounded-full overflow-hidden flex items-center justify-center"
+                  style={{
+                    width: 90,
+                    height: 90,
+                    border: `2px solid ${traderType.cardColors?.glow || traderType.colors[0] + '40'}`,
+                    boxShadow: `0 0 20px ${traderType.cardColors?.glow || traderType.colors[0] + '20'}`,
+                    background: `radial-gradient(circle, ${traderType.cardColors?.dark || '#0d0f14'}, #0d0f14)`,
+                  }}
+                  data-testid="avatar-circle-home"
+                >
+                  <div style={{ clipPath: 'circle(50%)', width: 90, height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    <AlbionCharacterSVG type={quizResult.traderTypeCode} size={100} />
+                  </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-xs font-tag" style={{ color: traderType.colors[1], opacity: 0.7 }}>
+                    <span className="text-xs font-tag" style={{ color: traderType.cardColors?.secondary || traderType.colors[1], opacity: 0.7 }}>
                       {traderType.element.icon} {traderType.element.name}
                     </span>
                   </div>
-                  <p className="text-lg font-serif font-bold" style={{ color: traderType.colors[0] }} data-testid="text-trader-type">
+                  <p className="text-lg font-serif font-bold" style={{ color: '#E8E6E1', letterSpacing: '2px' }} data-testid="text-trader-type">
                     {traderType.name}
                   </p>
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                    {traderType.oneLiner}
+                  <p className="text-[11px] font-tag tracking-wider" style={{ color: traderType.cardColors?.primary || traderType.colors[1] }}>
+                    {traderType.english || traderType.subtitle}
                   </p>
+                  <div className="text-[10px] mt-1" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
+                    点击查看完整角色卡 →
+                  </div>
                 </div>
               </div>
 
@@ -327,6 +348,46 @@ export default function HomePage() {
           })}
         </motion.div>
       </div>
+
+      <AnimatePresence>
+        {showCardPanel && quizResult && traderType && rank && (
+          <motion.div
+            key="home-card-panel"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}
+            onClick={() => setShowCardPanel(false)}
+          >
+            <motion.button
+              onClick={() => setShowCardPanel(false)}
+              className="absolute top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center z-50"
+              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}
+              whileTap={{ scale: 0.9 }}
+              data-testid="button-close-home-card-panel"
+            >
+              <X className="w-5 h-5 text-white" />
+            </motion.button>
+            <motion.div
+              initial={{ scale: 0.8, rotateY: -90 }}
+              animate={{ scale: 1, rotateY: 0 }}
+              exit={{ scale: 0.8, rotateY: 90 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ perspective: '1200px' }}
+            >
+              <CharacterCard
+                typeCode={quizResult.traderTypeCode}
+                scores={quizResult.scores}
+                rank={{ name: rank.name, emoji: rank.icon, score: quizResult.avgScore }}
+                showAnimation={false}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
