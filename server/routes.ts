@@ -172,6 +172,21 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/quiz-results/history", async (req, res) => {
+    try {
+      const userId = (req.session as any)?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "未登录" });
+      }
+
+      const results = await storage.getAllQuizResults(userId);
+      res.json(results);
+    } catch (err) {
+      console.error("Get quiz history error:", err);
+      res.status(500).json({ message: "获取测评历史失败" });
+    }
+  });
+
   app.get("/api/report/:token", async (req, res) => {
     try {
       const { token } = req.params;

@@ -15,6 +15,7 @@ export interface IStorage {
     rankName: string;
   }): Promise<typeof quizResults.$inferSelect>;
   getLatestQuizResult(userId: number): Promise<typeof quizResults.$inferSelect | undefined>;
+  getAllQuizResults(userId: number): Promise<(typeof quizResults.$inferSelect)[]>;
   getQuizResultByToken(token: string): Promise<typeof quizResults.$inferSelect | undefined>;
 }
 
@@ -65,6 +66,14 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(quizResults.createdAt))
       .limit(1);
     return result || undefined;
+  }
+
+  async getAllQuizResults(userId: number) {
+    return db
+      .select()
+      .from(quizResults)
+      .where(eq(quizResults.userId, userId))
+      .orderBy(desc(quizResults.createdAt));
   }
 
   async getQuizResultByToken(token: string) {

@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { motion } from "framer-motion";
-import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLink, Building2, Radio, Wrench, Trophy } from "lucide-react";
+import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLink, Building2, Radio, Wrench, Trophy, TrendingUp, TrendingDown, Minus, History } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
 import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
@@ -62,6 +62,12 @@ export default function HomePage() {
   const { data: quizResult, isLoading: quizLoading } = useQuery<StoredQuizResult | null>({
     queryKey: ["/api/quiz-result"],
     enabled: !!user,
+    staleTime: 30000,
+  });
+
+  const { data: historyData } = useQuery<StoredQuizResult[]>({
+    queryKey: ["/api/quiz-results/history"],
+    enabled: !!user && !!quizResult,
     staleTime: 30000,
   });
 
@@ -353,6 +359,10 @@ export default function HomePage() {
               </motion.div>
             )}
 
+            {historyData && historyData.length >= 2 && (
+              <GrowthTimeline history={historyData} cc={cc} />
+            )}
+
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -401,6 +411,191 @@ export default function HomePage() {
         )}
       </div>
     </div>
+  );
+}
+
+function formatRelativeDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = Date.now();
+  const diff = now - date.getTime();
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (mins < 1) return '刚刚';
+  if (mins < 60) return `${mins}分钟前`;
+  if (hours < 24) return `${hours}小时前`;
+  if (days < 7) return `${days}天前`;
+  if (days < 30) return `${Math.floor(days / 7)}周前`;
+  return `${date.getMonth() + 1}月${date.getDate()}日`;
+}
+
+function GrowthTimeline({ history, cc }: { history: StoredQuizResult[]; cc: { primary: string; secondary?: string; glow: string } }) {
+  const [expanded, setExpanded] = useState(false);
+  const items = expanded ? history : history.slice(0, 3);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ ...ease, delay: 0.38 }}
+      className="mb-6"
+    >
+      <div className="h-[1px] mb-5" style={{ background: `linear-gradient(90deg, transparent, ${cc.primary}20, transparent)` }} />
+
+      <div className="flex items-center gap-2 px-1 mb-4">
+        <History className="w-4 h-4" style={{ color: cc.primary }} />
+        <h3 className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>成长历程</h3>
+        <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: `${cc.primary}12`, color: cc.primary, fontSize: '10px' }}>
+          {history.length}次
+        </span>
+      </div>
+
+      {history.length >= 3 && (
+        <div className="mb-4 rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex items-center gap-1.5 mb-2">
+            <TrendingUp className="w-3 h-3" style={{ color: cc.primary }} />
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>综合分趋势</span>
+          </div>
+          <svg viewBox={`0 0 ${Math.max(120, (history.length - 1) * 40 + 40)} 40`} className="w-full" style={{ height: '40px' }}>
+            {(() => {
+              const reversed = [...history].reverse();
+              const scores = reversed.map(h => h.avgScore);
+              const min = Math.min(...scores) - 5;
+              const max = Math.max(...scores) + 5;
+              const range = max - min || 1;
+              const w = Math.max(120, (reversed.length - 1) * 40 + 40);
+              const points = scores.map((s, i) => ({
+                x: 20 + (i / Math.max(1, reversed.length - 1)) * (w - 40),
+                y: 35 - ((s - min) / range) * 30,
+              }));
+              const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+              return (
+                <>
+                  <defs>
+                    <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={cc.primary} stopOpacity="0.3" />
+                      <stop offset="100%" stopColor={cc.primary} stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d={`${pathD} L${points[points.length - 1].x},38 L${points[0].x},38 Z`}
+                    fill="url(#trendGrad)"
+                  />
+                  <path d={pathD} fill="none" stroke={cc.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  {points.map((p, i) => (
+                    <g key={i}>
+                      <circle cx={p.x} cy={p.y} r="3" fill={i === points.length - 1 ? cc.primary : '#0D0F14'} stroke={cc.primary} strokeWidth="1.5" />
+                      <text x={p.x} y={p.y - 6} textAnchor="middle" fill={i === points.length - 1 ? cc.primary : '#8B95A5'} fontSize="7" fontWeight={i === points.length - 1 ? 'bold' : 'normal'}>
+                        {scores[i]}
+                      </text>
+                    </g>
+                  ))}
+                </>
+              );
+            })()}
+          </svg>
+        </div>
+      )}
+
+      <div className="relative pl-5">
+        <div className="absolute left-[7px] top-2 bottom-2 w-[1.5px]" style={{ background: `linear-gradient(180deg, ${cc.primary}40, ${cc.primary}08)` }} />
+
+        {items.map((item, idx) => {
+          const type = traderTypes[item.traderTypeCode];
+          const itemRank = rankTiers.find(r => r.name === item.rankName);
+          const prevItem = idx < history.length - 1 ? history[idx + 1] : null;
+          const scoreDiff = prevItem ? item.avgScore - prevItem.avgScore : 0;
+          const typeChanged = prevItem && prevItem.traderTypeCode !== item.traderTypeCode;
+          const isLatest = idx === 0;
+          const itemCc = type?.cardColors ?? { primary: type?.colors?.[0] || cc.primary };
+
+          return (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ ...ease, delay: 0.02 * idx }}
+              className="relative mb-3 last:mb-0"
+            >
+              <div
+                className="absolute -left-5 top-3 w-[15px] h-[15px] rounded-full flex items-center justify-center"
+                style={{
+                  background: isLatest ? itemCc.primary : '#0D0F14',
+                  border: `2px solid ${isLatest ? itemCc.primary : `${itemCc.primary}50`}`,
+                  boxShadow: isLatest ? `0 0 8px ${itemCc.primary}40` : 'none',
+                }}
+              >
+                {isLatest && <div className="w-[5px] h-[5px] rounded-full bg-white" />}
+              </div>
+
+              <div
+                className="rounded-xl p-3 transition-all duration-200"
+                style={{
+                  background: isLatest ? `${itemCc.primary}08` : 'rgba(255,255,255,0.02)',
+                  border: `1px solid ${isLatest ? `${itemCc.primary}20` : 'rgba(255,255,255,0.05)'}`,
+                }}
+                data-testid={`card-history-${item.id}`}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    {formatRelativeDate(item.createdAt)}
+                  </span>
+                  {typeChanged && (
+                    <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(var(--gold-rgb),0.1)', color: 'var(--gold)', fontSize: '9px' }}>
+                      类型转变
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  {type && (
+                    <div className="flex-shrink-0" style={{ opacity: isLatest ? 1 : 0.6 }}>
+                      <AlbionCharacterSVG type={item.traderTypeCode} size={40} />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-serif font-bold text-sm truncate" style={{ color: isLatest ? 'var(--text-strong)' : 'var(--text-muted)' }}>
+                        {type?.name || item.traderTypeCode}
+                      </span>
+                      {itemRank && <RankBadge tier={itemRank} size="sm" />}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="font-num text-xs" style={{ color: isLatest ? itemCc.primary : 'var(--text-muted)' }}>
+                        {item.avgScore}分
+                      </span>
+                      {prevItem && (
+                        <span className="flex items-center gap-0.5 text-xs" style={{
+                          color: scoreDiff > 0 ? 'var(--success)' : scoreDiff < 0 ? 'var(--danger)' : 'var(--text-muted)',
+                          fontSize: '10px',
+                        }}>
+                          {scoreDiff > 0 ? <TrendingUp className="w-3 h-3" /> : scoreDiff < 0 ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
+                          {scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff < 0 ? `${scoreDiff}` : '持平'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {history.length > 3 && (
+        <motion.button
+          onClick={() => setExpanded(!expanded)}
+          whileTap={{ scale: 0.98 }}
+          className="w-full mt-3 py-2 text-xs flex items-center justify-center gap-1 rounded-lg transition-all duration-200"
+          style={{ color: 'var(--text-muted)', background: 'rgba(255,255,255,0.02)' }}
+          data-testid="button-toggle-history"
+        >
+          {expanded ? '收起' : `查看全部 ${history.length} 条记录`}
+          <ChevronRight className={`w-3 h-3 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`} />
+        </motion.button>
+      )}
+    </motion.div>
   );
 }
 
