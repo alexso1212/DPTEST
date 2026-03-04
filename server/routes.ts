@@ -21,7 +21,6 @@ export async function registerRoutes(
       resave: false,
       saveUninitialized: false,
       cookie: {
-        maxAge: 30 * 24 * 60 * 60 * 1000,
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
@@ -44,6 +43,9 @@ export async function registerRoutes(
       const hashedPassword = await bcrypt.hash(parsed.data.password, 10);
       const user = await storage.createUser({ ...parsed.data, password: hashedPassword });
       (req.session as any).userId = user.id;
+      if (req.body.rememberMe !== false) {
+        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+      }
 
       res.json({ id: user.id, phone: user.phone });
     } catch (err) {
@@ -70,6 +72,9 @@ export async function registerRoutes(
       }
 
       (req.session as any).userId = user.id;
+      if (req.body.rememberMe) {
+        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+      }
       res.json({ id: user.id, phone: user.phone });
     } catch (err) {
       console.error("Login error:", err);

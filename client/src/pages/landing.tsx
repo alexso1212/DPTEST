@@ -23,6 +23,7 @@ export default function LandingPage() {
   const [phoneFocused, setPhoneFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -49,7 +50,7 @@ export default function LandingPage() {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password }),
+        body: JSON.stringify({ phone, password, rememberMe }),
         credentials: 'include',
       });
 
@@ -244,6 +245,30 @@ export default function LandingPage() {
                       </button>
                     </div>
                   </div>
+
+                  {tab === 'login' && (
+                    <label
+                      className="flex items-center gap-2 cursor-pointer select-none mt-1"
+                      data-testid="label-remember-me"
+                    >
+                      <div
+                        onClick={() => setRememberMe(!rememberMe)}
+                        className="w-4 h-4 rounded flex items-center justify-center transition-all duration-200 flex-shrink-0"
+                        style={{
+                          background: rememberMe ? 'var(--primary)' : 'transparent',
+                          border: rememberMe ? '1px solid var(--primary)' : '1px solid var(--border)',
+                        }}
+                        data-testid="checkbox-remember-me"
+                      >
+                        {rememberMe && (
+                          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                            <path d="M1 4L3.5 6.5L9 1" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>记住我（30天免登录）</span>
+                    </label>
+                  )}
 
                   <motion.button
                     onClick={handleSubmit}
