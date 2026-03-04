@@ -1,228 +1,60 @@
 # 交易员能力评测 H5
 
-## 项目概述
-Deltapex Trading 主平台，移动端优先 H5 应用。包含用户系统、交易能力测评、未来扩展游戏/社群等模块。测评为类 MBTI 模式，12 道情境选择题，纯前端计算生成交易员人格类型、段位和雷达图。
+## Overview
+The Deltapex Trading H5 application is a mobile-first platform designed to assess users' trading capabilities. It includes a user system, a trading ability assessment inspired by MBTI, and modules for future expansion like games and a community. The assessment uses 12 scenario-based questions to generate a trader personality type, rank, and radar chart, all computed client-side. The project aims to provide personalized insights and recommendations to traders, driving engagement with Deltapex's educational and trading resources.
 
-## 技术栈
-- **前端**: React + TypeScript + Tailwind CSS + Shadcn UI + Framer Motion + Recharts
-- **后端**: Express.js + PostgreSQL + Drizzle ORM
-- **通知**: 企业微信Webhook机器人
-- **字体**: Noto Sans SC (正文), Noto Serif SC (角色名/标题), Oswald (数字/标题), Barlow Condensed (数据数字), Space Mono (英文标签)
+## User Preferences
+I prefer the AI agent to prioritize information architecture and core functionality over granular implementation details. The agent should maintain the established design system and technical stack. When making changes, it should focus on enhancing performance, user experience, and scalability while adhering to the defined visual and interaction patterns. I prefer an iterative development approach, with clear communication before significant architectural changes or external dependency integrations.
 
-## 核心功能
-1. **用户注册/登录**: 手机号+密码注册，登录后进入主页
-2. **主页 Dashboard**: 显示测评状态、4小时倒计时解锁完整报告、直播间发光卡片、官网模块入口（PropFirm汇总/知识星球/直播间/交易工具/学员案例，均跳转 deltapex.zeabur.app）
-3. **交易能力测评（可选）**: 12道情境题，6维度评估，结果持久化到数据库
-4. **测评结果**: 段位开箱动画 + 卡牌翻转 + 雷达图 + 戳心描述 + 毛玻璃锁定详细内容
-5. **首页角色详情卡**: 内嵌全景 CharacterCard 风格展示（AlbionSVG全身角色 + 雷达图 + 段位 + 语录），无弹出层
-5. **完整报告页面**: `/report/:token` 公开链接，展示完整六维分数+优势+盲区+建议+个性化进阶方案+实盘直播间+订单流工具+交易社区+强化CTA，角色卡片带浮动动画和呼吸光效
-6. **4小时解锁**: 测评完成4小时后用户可从主页直接查看完整报告
-7. **重新测评**: 已完成测评的用户可以重新测评
-7.5. **成长历程**: 主页显示用户所有历史测评记录的时间线（2条以上显示），含角色变化、分数趋势折线图、段位变化、类型转变标签
-8. **分享图片**: html2canvas生成可分享的结果卡片
-9. **企业微信联系**: 点击领取报告按钮推送完整画像+销售策略+报告链接到企微群
-10. **桌面端适配**: 所有页面响应式布局（md:max-w-2xl）；LoginModal桌面端居中弹窗（移动端底部弹出）；WeChatContactModal桌面端QR二维码弹窗（移动端直接跳转）；FeatureLinks桌面端2列网格；Report维度卡片桌面端2列
-11. **行为追踪系统**: 前端埋点 + 后端事件追踪（user_events表），记录所有关键用户行为（page_view/quiz_start/quiz_complete/wechat_click/live_room_click/order_flow_click/community_click等），为后续AI分析做准备
+## System Architecture
+The application is built with a modern web stack: React, TypeScript, Tailwind CSS, Shadcn UI, Framer Motion, and Recharts for the frontend, and Express.js with PostgreSQL and Drizzle ORM for the backend. Notifications are handled via WeChat Webhook.
 
-## 设计系统（v2 — Institutional Dark）
-永久暗色主题，Bloomberg/量化台风格。无明/暗模式切换。
+**UI/UX and Design System:**
+The design adheres to a permanent "Institutional Dark" theme (v2) inspired by Bloomberg/quant platforms.
+- **Color Tokens**: A predefined palette (`--bg-0`, `--bg-1`, `--card`, `--primary`, `--gold`, etc.) ensures consistency.
+- **Radius Tokens**: Standardized card (`16px`) and UI element (`12px`) rounded corners.
+- **Tailwind Extensions**: Custom aliases for colors and rounded corners, plus custom easing and duration for animations.
+- **Animations**: Framer Motion (`page`, `hoverLift`, `tap`), CSS breathing glow, and page transitions for a dynamic feel.
+- **Typography**: Specific fonts for different elements: Oswald for headings/numbers, Noto Serif SC for character names, Barlow Condensed for data, Space Mono for English labels, and Noto Sans SC for body text.
 
-### 色彩 Tokens
-| Token | 值 | 用途 |
-|-------|------|------|
-| `--bg-0` | `#0D0F14` | 应用底层背景 |
-| `--bg-1` | `#0F1620` | 卡片/区域背景 |
-| `--card` | `rgba(255,255,255,0.04)` | 浮动卡片 |
-| `--border` | `rgba(255,255,255,0.08)` | 边框 |
-| `--text-strong` | `#E5E7EB` | 标题/强调文字 |
-| `--text` | `#CBD5E1` | 正文 |
-| `--text-muted` | `#94A3B8` | 辅助文字 |
-| `--primary` | `#E63946` | 主强调色（CTA按钮、选中态） |
-| `--primary-rgb` | `230,57,70` | 用于 rgba() |
-| `--primary-soft` | `rgba(230,57,70,0.14)` | 柔和primary背景 |
-| `--primary-hover` | `#D32F3C` | hover深色 |
-| `--gold` | `#C9A456` | 金色强调（角色卡/标签） |
-| `--gold-rgb` | `201,164,86` | 用于 rgba() |
-| `--gold-soft` | `rgba(201,164,86,0.14)` | 柔和金色背景 |
-| `--info` | `#38BDF8` | 信息蓝 |
-| `--success` | `#22C55E` | 成功绿 |
-| `--warning` | `#F59E0B` | 警告黄 |
-| `--danger` | `#EF4444` | 错误红 |
+**Core Features & Technical Implementations:**
+- **User Management**: Mobile number-based registration and login.
+- **Dashboard**: Displays assessment status, a 4-hour countdown for full report unlock, and links to external Deltapex resources.
+- **Trading Ability Assessment**: A 12-question quiz with 6-dimension evaluation, results persisted to the database.
+- **Assessment Results**: Animated rank reveal, card flip, radar chart, personalized descriptions, and a frosted glass overlay locking detailed content.
+- **Character Display**: Embeds a full-body AlbionSVG character with radar, rank, and quote on the homepage and result pages.
+- **Full Report Page**: A public `/report/:token` link showing detailed scores, strengths, weaknesses, suggestions, and personalized advancement plans, with animated character cards.
+- **Time-gated Access**: Users can view the full report directly from the homepage after 4 hours post-assessment.
+- **Re-assessment**: Users can retake the quiz.
+- **Growth Journey**: Displays a timeline of historical assessment records, including character changes, score trends, and rank/type shifts.
+- **Shareable Image**: Uses `html2canvas` to generate shareable result cards.
+- **WeChat Integration**: "Claim Report" button triggers a webhook to push detailed user profiles and sales strategies to a WeChat group.
+- **Responsive Design**: All pages are responsive, with specific layouts for mobile and desktop for modals, feature links, and report dimension cards.
+- **Behavior Tracking**: Frontend event tracking and backend storage (`user_events` table) for all critical user actions for future AI analysis.
 
-### 圆角 Tokens
-| Token | 值 | 用途 |
-|-------|------|------|
-| `--radius-card` | `16px` | 卡片圆角 |
-| `--radius-ui` | `12px` | 按钮/输入框圆角 |
+**Trader Visual System:**
+Each of the 16 trader types has a unique visual identity including specific color palettes, Albion-style SVG character illustrations, abstract animated icons, and rank badges. Components like `CharacterCard.tsx` and `RankBadge.tsx` render these visuals.
 
-### Tailwind 扩展
-- 颜色别名: `bg0`, `bg1`, `textStrong`, `textMuted`, `primarySoft`, `primaryHover`, `info`, `success`, `warning`, `danger`
-- 圆角: `rounded-card` (16px), `rounded-ui` (12px)
-- 缓动: `ease-out` = `cubic-bezier(0.16, 1, 0.3, 1)`
-- 时长: `duration-240` = 240ms
-- 阴影: `shadow-soft` = `0 8px 30px rgba(0,0,0,0.25)`
+**User Flow:**
+- **New User**: Landing page -> Quiz (no login required) -> Loading -> Result page (animations) -> Login modal -> Home.
+- **Returning User**: Landing page -> Login -> Home -> View history / Retake quiz / Access full report.
+- **Customer Service Report Flow**: User clicks "Claim Report" -> Webhook sends report link to WeChat group -> Customer service shares link -> User views public `/report/:token`.
 
-### 动画
-- Framer Motion `motionPreset`（`client/src/lib/motion.ts`）:
-  - `page`: `{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.22, ease: [0.16,1,0.3,1] } }`
-  - `hoverLift`: `{ whileHover: { y: -2 }, transition: { duration: 0.2, ease: [0.16,1,0.3,1] } }`
-- Tap: `scale: 0.98`
-- 呼吸灯: primary glow (`.animate-breathe`)
-- 页面过渡: AnimatePresence + fade/slide
-- CSS: `.dp-grid` 网格背景（替代旧 `.grid-overlay`）
+**Six Assessment Dimensions:** RISK, MENTAL, SYSTEM, ADAPT, EXEC, EDGE.
 
-### 排版
-- `font-heading` = Oswald (品牌/数字)
-- `font-serif` = Noto Serif SC (角色名/宣言/卡片标题)
-- `font-num` = Barlow Condensed (分数/数据)
-- `font-tag` = Space Mono (英文标签/维度代号)
-- `font-sans` = Noto Sans SC (正文)
-- 全局 `h1-h6` 自动使用 Oswald + `--text-strong`
+**16 Trader Types:** Defined by unique combinations of these dimensions, with rarity, descriptions, and corresponding sales strategies.
 
-### 角色视觉系统
-每种交易员类型有独立视觉身份:
-- `colors: [primary, secondary]` — 类型专属配色
-- `cardColors: { primary, secondary, accent, dark, glow }` — Albion卡牌配色
-- `english` — 英文名称
-- `storyHint` — 背景故事提示
-- `quote` — 角色宣言
-- `element: { icon, name }` — 元素标签（火/水/风/雷/冰/地/光）
-- `AlbionCharacterSVG.tsx` — 16种全身Albion风格SVG角色插画（viewBox 200×280, 唯一gradient ID）
-- `CharacterIcon.tsx` — 12种抽象SVG动画图标（保留向后兼容）
-- `CharacterCard.tsx` — 角色卡牌组件（元素标签+SVG插画+金色分割线+名称+副标题+宣言+迷你雷达+段位+故事提示，cardColors渐变背景+发光边框，rotateY翻转动画）
-- `RankBadge.tsx` — 6级段位徽章（铜/铜辉/银六角/金六角/大师conic/传奇旋转）
+**Project Structure:** A clear separation of concerns with `client/` for frontend components, pages, hooks, data, and utilities; `server/` for API routes, database interaction, and webhooks; and `shared/` for common data schemas.
 
-## 用户流程
-### 新用户（无需登录即可测评）
-首页(/) 品牌展示 → 点击"开始测评" → 测评(/quiz, 无需登录) → 加载动画(/loading) → 结果页(/result, 段位开箱+卡牌翻转) → 弹出登录弹窗(LoginModal) → 注册/登录后自动保存结果 → 主页(/home)
-
-### 老用户
-首页(/) → 点击"已有账号？直接登录" → 弹出登录弹窗(LoginModal, defaultTab=login) → 主页(/home) → 查看历史结果 / 重新测评 / 4h后查看完整报告
-
-### 测评流程
-答题(/quiz, 12题, 无需登录) → 加载动画(/loading) → 结果页(/result, 段位开箱+卡牌翻转+雷达+戳心描述+毛玻璃锁定) → 未登录用户3秒后弹出登录弹窗 + 底部固定"登录/注册以保存结果"按钮
-
-### 客服报告流程
-用户点击"领取报告" → webhook推送完整画像+报告链接到企微群 → 客服复制链接发给用户 → 用户在微信中打开 /report/:token 查看完整报告
-
-## 六维度说明
-| 代号 | 名称 | 说明 |
-|------|------|------|
-| RISK | 风险管理 | 止损纪律、仓位控制、以损定盈思维 |
-| MENTAL | 交易心理 | 情绪控制、压力下决策质量、耐心 |
-| SYSTEM | 系统思维 | 框架、复盘、循证意识 |
-| ADAPT | 市场适应 | 行情切换灵活度、学习新事物态度 |
-| EXEC | 执行力 | 信号执行、纪律性 |
-| EDGE | 认知格局 | 宏观视野、市场本质理解、博弈思维 |
-
-## 16种交易员类型
-| 代码 | 名称 | 维度组合 | 稀有度 |
-|------|------|----------|--------|
-| ER | 格局掌控者 | EDGE+RISK | 4.8% |
-| ES | 体系建筑师 | EDGE+SYSTEM | 5.1% |
-| EA | 烈焰先锋 | EXEC+ADAPT | 6.4% |
-| EX | 趋势霸主 | EDGE+EXEC | 7.2% |
-| EM | 影子博弈者 | EDGE+MENTAL | 3.9% |
-| RS | 铁壁指挥官 | RISK+SYSTEM | 8.3% |
-| RM | 冷静猎手 | RISK+MENTAL | 7.1% |
-| RE | 钢铁执行者 | RISK+EXEC | 9.5% |
-| SM | 心智大师 | SYSTEM+MENTAL | 5.2% |
-| SE | 算法战士 | SYSTEM+EXEC | 6.8% |
-| ME | 极速闪电 | MENTAL+EXEC | 11.2% |
-| MA | 潮汐顺行者 | MENTAL+ADAPT | 10.5% |
-| AS | 体系适应者 | ADAPT+SYSTEM | 4.5% |
-| RA | 冰血破局者 | RISK+ADAPT | 3.8% |
-| EAv | 直觉行者 | EDGE+ADAPT | 4.2% |
-| REv | 孤狼战士 | RISK+EXEC | 3.5% |
-
-## 项目结构
-```
-client/src/
-├── pages/
-│   ├── landing.tsx       # 欢迎页（品牌展示 + "开始测评" + "已有账号？直接登录"）
-│   ├── home.tsx          # 主页（测评状态 + 4h倒计时 + 直播间发光卡片 + 完整报告入口 + 未来功能入口）
-│   ├── quiz.tsx          # 答题页（12题，红色accent选中态+XP闪现）
-│   ├── loading.tsx       # ID卡生成动画
-│   ├── result.tsx        # 结果页（段位开箱+卡牌翻转+雷达+戳心描述+毛玻璃锁定+底部固定栏）
-│   ├── report.tsx        # 完整报告页（公开，无需登录，角色浮动动画+个性化进阶+直播间+订单流+社区+强化CTA）
-│   └── not-found.tsx     # 404页面
-├── components/
-│   ├── ThemeProvider.tsx  # 暗色主题容器（永久暗色，无切换）
-│   ├── AlbionCharacterSVG.tsx # 16种全身Albion风格SVG角色插画
-│   ├── LoginModal.tsx    # 可复用登录/注册底部弹窗（landing + result页面共用）
-│   ├── CharacterCard.tsx # Albion角色卡牌组件（翻转动画+雷达+段位）
-│   ├── CharacterIcon.tsx # 12种类型抽象SVG动画图标（向后兼容）
-│   ├── RankBadge.tsx     # 6级段位CSS徽章
-│   ├── CountUp.tsx       # 数字滚动动画组件
-│   ├── ProgressBar.tsx   # 答题进度条（accent红，spring动画）
-│   ├── RadarChart.tsx    # 雷达图（recharts，accent红填充）
-│   ├── WeChatContactModal.tsx # 企微联系弹窗（移动端直跳/桌面端QR码）
-│   ├── LiveRoomFloat.tsx  # 全局浮动直播间入口（左侧可拖拽，弹簧物理，移动端top:45%/桌面端top:40%，仅在home/result/report显示）
-│   ├── VerifyCodeModal.tsx  # 身份验证码弹窗（添加企微顾问前展示，含手机尾号+交易员类型验证码，一键复制）
-│   └── ShareCard.tsx     # 分享卡片（角色卡风格，不显示实际分数）
-├── hooks/
-│   ├── use-mobile.tsx    # 响应式检测 (768px breakpoint)
-│   └── use-tracking.ts   # 行为埋点 Hook（sessionId + fire-and-forget trackEvent）
-├── data/
-│   ├── questions.ts      # 12道题目数据
-│   ├── traderTypes.ts    # 16种人格类型 + 段位 + 稀有度 + 戳心描述 + cardColors
-│   └── salesStrategy.ts  # 16种类型对应的销售策略矩阵
-├── utils/
-│   ├── calculateResult.ts # 评测计分逻辑
-│   ├── webhook.ts         # 前端 webhook 工具函数
-│   └── verifyCode.ts      # 身份验证码生成（手机尾4位+交易员类型）
-├── lib/
-│   ├── auth.ts           # 认证hook（含 hasQuizResult + traderTypeCode + avgScore + rankName + quizCompletedAt）
-│   └── queryClient.ts    # API客户端
-server/
-├── routes.ts             # API路由（注册/登录/认证 + 测评结果CRUD + 公开报告API + 双webhook + 事件追踪API + 用户画像更新）
-├── storage.ts            # 数据库存储层（含 saveQuizResult / trackEvent / updateUserProfile / getUserEvents）
-├── db.ts                 # 数据库连接
-└── webhook.ts            # 企业微信Webhook（含报告链接）
-shared/
-└── schema.ts             # 数据模型（users + quiz_results + user_events + shareToken + insertEventSchema）
-```
-
-## 数据模型
-- **users**: id (serial), phone (varchar unique), password (text hashed), nickname (varchar nullable), wechatId (varchar nullable), source (varchar nullable), tags (jsonb nullable), lastActiveAt (timestamp nullable), createdAt
-- **quiz_results**: id (serial), userId (integer), answers (jsonb), scores (jsonb), traderTypeCode (varchar), avgScore (integer), rankName (varchar), shareToken (varchar unique), createdAt
-- **user_events**: id (serial), userId (integer nullable), sessionId (varchar), eventType (varchar), eventData (jsonb nullable), createdAt
-
-## API接口
-- `POST /api/register` - 注册（自动 track user_register）
-- `POST /api/login` - 登录（自动 track user_login + 更新 lastActiveAt）
-- `GET /api/me` - 获取当前用户（含 hasQuizResult, traderTypeCode, avgScore, rankName, quizCompletedAt）
-- `POST /api/logout` - 登出
-- `POST /api/quiz-result` - 保存测评结果（需登录，返回 shareToken，自动 track quiz_complete）
-- `GET /api/quiz-result` - 获取最近一次测评结果（需登录，含 shareToken）
-- `GET /api/quiz-results/history` - 获取用户全部历史测评记录（需登录，按时间倒序）
-- `GET /api/report/:token` - 公开报告接口（无需登录，自动 track report_view）
-- `POST /api/events` - 前端行为事件上报（支持未登录用户，fire-and-forget）
-- `PATCH /api/user/profile` - 更新用户画像（需登录）
-- `POST /api/webhook/register` - 注册通知（节点1）
-- `POST /api/webhook/result` - 完整画像通知（节点2，含报告链接）
-
-## 行为追踪事件类型
-| 事件类型 | 触发场景 | 来源 |
-|---------|---------|------|
-| page_view | 每个页面加载 | 前端 usePageView |
-| quiz_start | 答题页加载 | 前端 |
-| quiz_complete | 提交测评结果 | 后端自动 |
-| result_view | 结果页加载 | 前端 |
-| report_view | 报告页加载 | 前端+后端 |
-| user_register | 注册成功 | 后端自动 |
-| user_login | 登录成功 | 后端自动 |
-| wechat_click | 点击企微联系 | 前端 |
-| live_room_click | 点击直播间 | 前端 |
-| order_flow_click | 点击订单流工具 | 前端 |
-| community_click | 点击交易社区 | 前端 |
-
-## 流程保护机制
-- **首页按钮**: result.tsx 底部首页按钮，未登录时显示登录图标并弹出LoginModal（不跳转/home），已登录时显示首页图标+文字并跳转
-- **结果去重**: result.tsx 使用 `resultSaved = !!user` 初始化，已登录用户在App.tsx中已保存不会重复；后端 POST /api/quiz-result 有60秒内同结果幂等检查
-- **登录session**: LoginModal 的 handleSubmit 在 invalidateQueries + refetchQueries 完成后才调用 onSuccess，确保session建立完整
-- **忘记密码**: LoginModal 支持3-tab（登录/注册/重置），POST /api/reset-password 返回通用响应防止用户枚举
-
-## 企业微信
-- Webhook URL: `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1b7a8fca-f469-4cd0-9158-4e7eff0780ef`
-- 联系链接: `https://work.weixin.qq.com/ca/cawcde75d99eb3fce4`
+## External Dependencies
+- **Frontend Framework**: React
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS, Shadcn UI
+- **Animations**: Framer Motion
+- **Charting**: Recharts
+- **Backend Framework**: Express.js
+- **Database**: PostgreSQL
+- **ORM**: Drizzle ORM
+- **Notifications**: Enterprise WeChat Webhook
+- **Font Hosting**: Noto Sans SC, Noto Serif SC, Oswald, Barlow Condensed, Space Mono (implied by usage, likely Google Fonts or self-hosted)
+- **Image Generation**: `html2canvas` (for sharing result cards)

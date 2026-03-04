@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Check, ExternalLink, X } from "lucide-react";
+import { Copy, Check, ExternalLink, X, Monitor } from "lucide-react";
 import { SiWechat } from "react-icons/si";
+import { QRCodeSVG } from "qrcode.react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const WECHAT_CONTACT = "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4";
 
@@ -14,6 +16,7 @@ interface VerifyCodeModalProps {
 
 export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }: VerifyCodeModalProps) {
   const [copied, setCopied] = useState(false);
+  const isMobile = useIsMobile();
 
   const copyCode = () => {
     try {
@@ -49,7 +52,7 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-sm rounded-2xl p-6 relative overflow-hidden"
+            className={`w-full ${isMobile ? 'max-w-sm' : 'max-w-md'} rounded-2xl p-6 relative overflow-hidden`}
             style={{ background: '#0F1620', border: '1px solid rgba(201,164,86,0.15)' }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -77,9 +80,23 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
                 添加专属交易顾问
               </h3>
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                请复制验证码，添加顾问后发送给对方
+                {isMobile ? '请复制验证码，添加顾问后发送给对方' : '请用手机微信扫码添加顾问，并发送验证码'}
               </p>
             </div>
+
+            {!isMobile && (
+              <div className="relative flex justify-center mb-4">
+                <div className="p-3 rounded-xl" style={{ background: '#ffffff' }}>
+                  <QRCodeSVG
+                    value={WECHAT_CONTACT}
+                    size={140}
+                    level="M"
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="relative mb-4">
               <div
@@ -117,27 +134,67 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
               顾问将根据此验证码为您匹配测评报告，提供专属交易指导
             </p>
 
-            <motion.a
-              href={WECHAT_CONTACT}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => {
-                copyCode();
-                onProceed();
-                setTimeout(() => onClose(), 300);
-              }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer"
-              style={{ background: '#07C160', color: '#fff' }}
-              data-testid="button-copy-and-add"
-            >
-              <Copy className="w-3.5 h-3.5" />
-              复制验证码并添加顾问
-              <ExternalLink className="w-3 h-3 opacity-60" />
-            </motion.a>
+            {isMobile ? (
+              <motion.a
+                href={WECHAT_CONTACT}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  copyCode();
+                  onProceed();
+                  setTimeout(() => onClose(), 300);
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer"
+                style={{ background: '#07C160', color: '#fff' }}
+                data-testid="button-copy-and-add"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                复制验证码并添加顾问
+                <ExternalLink className="w-3 h-3 opacity-60" />
+              </motion.a>
+            ) : (
+              <div className="space-y-2">
+                <motion.button
+                  onClick={copyCode}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200"
+                  style={{ background: '#07C160', color: '#fff' }}
+                  data-testid="button-copy-code-desktop"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copied ? '验证码已复制' : '复制验证码'}
+                </motion.button>
+                <motion.a
+                  href={WECHAT_CONTACT}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    copyCode();
+                    onProceed();
+                    setTimeout(() => onClose(), 300);
+                  }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer"
+                  style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
+                  data-testid="button-open-link-desktop"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  通过链接打开（部分电脑可能无法唤起微信）
+                </motion.a>
+                <div className="flex items-center gap-1.5 justify-center pt-1">
+                  <Monitor className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
+                  <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                    推荐使用手机微信扫描上方二维码
+                  </span>
+                </div>
+              </div>
+            )}
 
-            {copied && (
+            {isMobile && copied && (
               <motion.p
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
