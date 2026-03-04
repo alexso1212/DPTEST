@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Smartphone, Monitor, ExternalLink } from "lucide-react";
+import { X, Smartphone } from "lucide-react";
 import { SiWechat } from "react-icons/si";
 import { QRCodeSVG } from "qrcode.react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -29,6 +29,10 @@ export function useWeChatContact(onBeforeOpen?: () => void) {
 }
 
 export default function WeChatContactModal({ open, onClose }: WeChatContactModalProps) {
+  const handleQRClick = useCallback(() => {
+    window.location.href = WECHAT_CONTACT;
+  }, []);
+
   return (
     <AnimatePresence>
       {open && (
@@ -64,15 +68,22 @@ export default function WeChatContactModal({ open, onClose }: WeChatContactModal
                 <SiWechat className="w-6 h-6" style={{ color: '#07C160' }} />
               </div>
               <h3 className="text-base font-bold" style={{ color: 'var(--text-strong)' }}>
-                扫码添加专属顾问
+                添加专属顾问
               </h3>
               <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                请使用手机微信扫描下方二维码
+                点击二维码可直接用电脑微信打开
               </p>
             </div>
 
-            <div className="flex justify-center mb-5">
-              <div className="p-4 rounded-xl" style={{ background: '#ffffff' }}>
+            <div className="flex justify-center mb-2">
+              <motion.button
+                onClick={handleQRClick}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="p-4 rounded-xl cursor-pointer relative group"
+                style={{ background: '#ffffff' }}
+                data-testid="button-qr-click-wechat"
+              >
                 <QRCodeSVG
                   value={WECHAT_CONTACT}
                   size={180}
@@ -80,34 +91,27 @@ export default function WeChatContactModal({ open, onClose }: WeChatContactModal
                   bgColor="#ffffff"
                   fgColor="#000000"
                 />
-              </div>
+                <div
+                  className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center"
+                  style={{ background: 'rgba(7,193,96,0.12)' }}
+                >
+                  <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: '#07C160', color: '#fff' }}>
+                    点击打开微信
+                  </span>
+                </div>
+              </motion.button>
             </div>
 
-            <div className="flex items-center gap-2 justify-center mb-4">
-              <Monitor className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
-              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                电脑端推荐使用手机微信扫码
+            <p className="text-[10px] text-center mb-4" style={{ color: 'var(--text-muted)' }}>
+              点击二维码可直接用电脑微信打开
+            </p>
+
+            <div className="flex items-center gap-1.5 justify-center">
+              <Smartphone className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
+              <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                无法跳转？请用手机微信扫描上方二维码
               </span>
             </div>
-
-            <div className="flex gap-2">
-              <motion.a
-                href={WECHAT_CONTACT}
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex-1 py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all duration-200"
-                style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
-                data-testid="button-wechat-link"
-              >
-                <ExternalLink className="w-3 h-3" />
-                尝试链接打开
-              </motion.a>
-            </div>
-            <p className="text-[10px] text-center mt-2" style={{ color: 'rgba(148,163,184,0.6)' }}>
-              链接方式在部分电脑上可能无法唤起微信
-            </p>
           </motion.div>
         </motion.div>
       )}

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Check, ExternalLink, X, Monitor } from "lucide-react";
+import { Copy, Check, ExternalLink, X, Smartphone } from "lucide-react";
 import { SiWechat } from "react-icons/si";
 import { QRCodeSVG } from "qrcode.react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -34,6 +34,11 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleQRClick = useCallback(() => {
+    copyCode();
+    window.location.href = WECHAT_CONTACT;
+  }, [verifyCode]);
 
   return (
     <AnimatePresence>
@@ -80,13 +85,20 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
                 添加专属交易顾问
               </h3>
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                {isMobile ? '请复制验证码，添加顾问后发送给对方' : '请用手机微信扫码添加顾问，并发送验证码'}
+                {isMobile ? '请复制验证码，添加顾问后发送给对方' : '请复制验证码，点击二维码用微信打开'}
               </p>
             </div>
 
             {!isMobile && (
-              <div className="relative flex justify-center mb-4">
-                <div className="p-3 rounded-xl" style={{ background: '#ffffff' }}>
+              <div className="relative flex justify-center mb-2">
+                <motion.button
+                  onClick={handleQRClick}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="p-3 rounded-xl cursor-pointer relative group"
+                  style={{ background: '#ffffff' }}
+                  data-testid="button-qr-click"
+                >
                   <QRCodeSVG
                     value={WECHAT_CONTACT}
                     size={140}
@@ -94,8 +106,22 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
                     bgColor="#ffffff"
                     fgColor="#000000"
                   />
-                </div>
+                  <div
+                    className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center"
+                    style={{ background: 'rgba(7,193,96,0.12)' }}
+                  >
+                    <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: '#07C160', color: '#fff' }}>
+                      点击打开微信
+                    </span>
+                  </div>
+                </motion.button>
               </div>
+            )}
+
+            {!isMobile && (
+              <p className="text-[10px] text-center mb-4" style={{ color: 'var(--text-muted)' }}>
+                点击二维码可直接用电脑微信打开
+              </p>
             )}
 
             <div className="relative mb-4">
@@ -167,28 +193,10 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
                   {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                   {copied ? '验证码已复制' : '复制验证码'}
                 </motion.button>
-                <motion.a
-                  href={WECHAT_CONTACT}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => {
-                    copyCode();
-                    onProceed();
-                    setTimeout(() => onClose(), 300);
-                  }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer"
-                  style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
-                  data-testid="button-open-link-desktop"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  通过链接打开（部分电脑可能无法唤起微信）
-                </motion.a>
                 <div className="flex items-center gap-1.5 justify-center pt-1">
-                  <Monitor className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
+                  <Smartphone className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
                   <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                    推荐使用手机微信扫描上方二维码
+                    无法跳转？请用手机微信扫描上方二维码
                   </span>
                 </div>
               </div>
