@@ -18,14 +18,16 @@ const ease = { duration: 0.22, ease: "easeOut" as const };
 
 const DELTAPEX_URL = "https://deltapex.zeabur.app";
 const BILIBILI_LIVE = "https://live.bilibili.com/1874453448";
+const ATAS_URL = "https://atas.net/cn/?rs=partners_oft281860";
+const CASES_URL = "https://deltapex.zeabur.app/cases.html";
 
 const dimAdvice: Record<Dimension, { text: string; resource: string; icon: string; url: string }> = {
   EDGE: { text: "在直播间观察老师如何发现高概率交易机会，学习识别关键市场结构", resource: "实盘直播间", icon: "📡", url: BILIBILI_LIVE },
   RISK: { text: "在直播间观察老师如何实时管理风控和仓位，学习动态止损策略", resource: "实盘直播间", icon: "🛡️", url: BILIBILI_LIVE },
-  MENTAL: { text: "加入交易社区，和同类型交易员互相督促心态管理，分享实战经验", resource: "交易社区", icon: "🧠", url: DELTAPEX_URL },
+  MENTAL: { text: "加入交易社区，和同类型交易员互相督促心态管理，分享实战经验", resource: "交易社区", icon: "🧠", url: CASES_URL },
   ADAPT: { text: "在直播间学习老师如何在不同行情中灵活切换策略，理解市场节奏", resource: "实盘直播间", icon: "🔄", url: BILIBILI_LIVE },
-  EXEC: { text: "使用订单流工具（ATAS）精确定位入场点，用数据而非感觉执行交易", resource: "订单流工具", icon: "⚡", url: DELTAPEX_URL },
-  SYSTEM: { text: "通过学员案例学习如何构建系统化的交易计划，建立可复制的交易流程", resource: "交易社区", icon: "📋", url: DELTAPEX_URL },
+  EXEC: { text: "使用订单流工具（ATAS）精确定位入场点，用数据而非感觉执行交易", resource: "订单流工具", icon: "⚡", url: ATAS_URL },
+  SYSTEM: { text: "通过学员案例学习如何构建系统化的交易计划，建立可复制的交易流程", resource: "交易社区", icon: "📋", url: CASES_URL },
 };
 
 interface ReportData {
@@ -494,7 +496,7 @@ function ReportContent({
           className="grid grid-cols-1 md:grid-cols-2 gap-3"
         >
           <a
-            href={DELTAPEX_URL}
+            href={ATAS_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-2xl p-5 transition-all duration-200 hover:opacity-90 group"
@@ -516,7 +518,7 @@ function ReportContent({
             </span>
           </a>
           <a
-            href={DELTAPEX_URL}
+            href={CASES_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-2xl p-5 transition-all duration-200 hover:opacity-90 group"
