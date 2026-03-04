@@ -69,7 +69,7 @@ export default function LoadingPage({ onDone, scores }: LoadingPageProps) {
         ))}
       </div>
 
-      <div className="relative z-10 w-full max-w-sm mx-auto">
+      <div className="relative z-10 w-full max-w-sm md:max-w-md mx-auto">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

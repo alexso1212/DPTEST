@@ -10,6 +10,7 @@ import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
 import CharacterCard from "@/components/CharacterCard";
 import RankBadge from "@/components/RankBadge";
 import LoginModal from "@/components/LoginModal";
+import WeChatContactModal, { useWeChatContact } from "@/components/WeChatContactModal";
 import type { QuizResult } from "@/utils/calculateResult";
 import { dimensionLabels, type Dimension } from "@/data/questions";
 import { salesStrategy } from "@/data/salesStrategy";
@@ -244,9 +245,11 @@ export default function ResultPage({ result }: ResultPageProps) {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showCardPanel, setShowCardPanel] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showWeChatModal, setShowWeChatModal] = useState(false);
   const [resultSaved, setResultSaved] = useState(false);
   const [c1] = traderType.colors;
   const cc = traderType.cardColors;
+  const { handleContact: handleWeChatMobile } = useWeChatContact();
 
   useEffect(() => {
     if (!user && !showUnbox) {
@@ -303,8 +306,11 @@ export default function ResultPage({ result }: ResultPageProps) {
         salesStrategy: strategy,
       });
     }
-    window.open("https://work.weixin.qq.com/ca/cawcde75d99eb3fce4", "_blank");
-  }, [traderType, rank, avgScore, normalizedScores, user]);
+    const mobileHandled = handleWeChatMobile();
+    if (!mobileHandled) {
+      setShowWeChatModal(true);
+    }
+  }, [traderType, rank, avgScore, normalizedScores, user, handleWeChatMobile]);
 
   return (
     <>
@@ -316,7 +322,7 @@ export default function ResultPage({ result }: ResultPageProps) {
 
       {!showUnbox && (
         <div className="min-h-screen pb-24" style={{ background: 'var(--bg-0)' }}>
-          <div className="max-w-lg mx-auto px-5 pt-6 space-y-5">
+          <div className="max-w-lg md:max-w-2xl mx-auto px-5 pt-6 space-y-5">
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -523,7 +529,7 @@ export default function ResultPage({ result }: ResultPageProps) {
               paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
             }}
           >
-            <div className="max-w-lg mx-auto px-5 pt-3 flex gap-3">
+            <div className="max-w-lg md:max-w-2xl mx-auto px-5 pt-3 flex gap-3">
               <motion.button
                 onClick={() => navigate("/home")}
                 whileHover={{ scale: 1.02 }}
@@ -617,7 +623,7 @@ export default function ResultPage({ result }: ResultPageProps) {
                 onClick={() => setShowLoginModal(true)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full max-w-lg mx-auto py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 text-white transition-all duration-200"
+                className="w-full max-w-lg md:max-w-2xl mx-auto py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 text-white transition-all duration-200"
                 style={{ background: 'var(--primary)' }}
                 data-testid="button-login-prompt"
               >
@@ -626,6 +632,11 @@ export default function ResultPage({ result }: ResultPageProps) {
               </motion.button>
             </motion.div>
           )}
+
+          <WeChatContactModal
+            open={showWeChatModal}
+            onClose={() => setShowWeChatModal(false)}
+          />
 
           <LoginModal
             open={showLoginModal}

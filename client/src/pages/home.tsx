@@ -126,7 +126,7 @@ export default function HomePage() {
         </>
       )}
 
-      <div className="relative max-w-lg mx-auto px-5 pt-6 pb-10">
+      <div className="relative max-w-lg md:max-w-2xl mx-auto px-5 pt-6 pb-10">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -612,7 +612,7 @@ function FeatureLinks({ cc }: { cc?: { primary: string; glow: string } }) {
   const cardBorder = cc ? `1px solid rgba(255,255,255,0.06)` : '1px solid var(--border)';
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
       {items.map((item) => {
         const content = (
           <>

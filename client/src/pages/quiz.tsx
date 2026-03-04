@@ -60,7 +60,7 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
         </div>
       </div>
       <div className="sticky top-0 z-20 px-5 pt-4 pb-3" style={{ background: 'var(--bg-0)', borderBottom: '1px solid var(--border)' }}>
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-lg md:max-w-xl mx-auto">
           <div className="flex items-center justify-center gap-1.5 py-1" data-testid="progress-dots">
             {Array.from({ length: total }).map((_, i) => {
               const isAnswered = i < currentQ || (i === currentQ && selecting !== null);
@@ -87,7 +87,7 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col px-5 py-6 max-w-lg mx-auto w-full relative" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+      <div className="flex-1 flex flex-col px-5 py-6 max-w-lg md:max-w-xl mx-auto w-full relative" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={currentQ}

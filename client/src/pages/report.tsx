@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -8,10 +8,9 @@ import { dimensionLabels, type Dimension } from "@/data/questions";
 import RadarChartComponent from "@/components/RadarChart";
 import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
 import RankBadge from "@/components/RankBadge";
+import WeChatContactModal, { useWeChatContact } from "@/components/WeChatContactModal";
 
 const ease = { duration: 0.22, ease: "easeOut" as const };
-
-const WECHAT_CONTACT = "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4";
 
 interface ReportData {
   scores: Record<string, number>;
@@ -87,6 +86,15 @@ function ReportContent({
 }) {
   const [c1, c2] = traderType?.colors ?? ['#C9A456', '#94A3B8'];
   const cc = traderType?.cardColors;
+  const [showWeChatModal, setShowWeChatModal] = useState(false);
+  const { handleContact: handleWeChatMobile } = useWeChatContact();
+
+  const handleContactWeChat = () => {
+    const mobileHandled = handleWeChatMobile();
+    if (!mobileHandled) {
+      setShowWeChatModal(true);
+    }
+  };
 
   const sortedDims = useMemo(() => {
     const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
@@ -95,7 +103,7 @@ function ReportContent({
 
   return (
     <div className="min-h-screen pb-28" style={{ background: 'var(--bg-0)' }}>
-      <div className="max-w-lg mx-auto px-5 pt-6 space-y-5">
+      <div className="max-w-lg md:max-w-2xl mx-auto px-5 pt-6 space-y-5">
 
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -216,7 +224,7 @@ function ReportContent({
           <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-strong)' }}>
             📊 六维详细分数
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
             {sortedDims.map((dim, i) => (
               <div key={dim}>
                 <div className="flex items-center justify-between mb-1">
@@ -326,10 +334,8 @@ function ReportContent({
           <p className="text-xs mb-5" style={{ color: 'var(--text-muted)' }}>
             加入 Deltapex Trading Group，获得实盘指导和专业社群支持
           </p>
-          <motion.a
-            href={WECHAT_CONTACT}
-            target="_blank"
-            rel="noopener noreferrer"
+          <motion.button
+            onClick={handleContactWeChat}
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-sm text-white transition-all duration-200"
@@ -338,7 +344,7 @@ function ReportContent({
           >
             <SiWechat className="w-5 h-5" />
             添加专属顾问
-          </motion.a>
+          </motion.button>
           <p className="text-xs italic mt-4 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
             "我们不教你怎么赚钱——<br />
             我们让你亲眼看到专业交易是什么样的"
@@ -351,6 +357,11 @@ function ReportContent({
           </p>
         </div>
       </div>
+
+      <WeChatContactModal
+        open={showWeChatModal}
+        onClose={() => setShowWeChatModal(false)}
+      />
     </div>
   );
 }
