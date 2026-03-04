@@ -157,6 +157,7 @@ client/src/
 │   ├── ProgressBar.tsx   # 答题进度条（accent红，spring动画）
 │   ├── RadarChart.tsx    # 雷达图（recharts，accent红填充）
 │   ├── WeChatContactModal.tsx # 企微联系弹窗（移动端直跳/桌面端QR码）
+│   ├── LiveRoomFloat.tsx  # 全局浮动直播间入口（移动端右下角/桌面端右侧，仅在home/result/report显示）
 │   └── ShareCard.tsx     # 分享卡片（角色卡风格，不显示实际分数）
 ├── hooks/
 │   ├── use-mobile.tsx    # 响应式检测 (768px breakpoint)

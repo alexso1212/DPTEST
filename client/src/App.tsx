@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
+import LiveRoomFloat from "@/components/LiveRoomFloat";
 import LandingPage from "@/pages/landing";
 import HomePage from "@/pages/home";
 import QuizPage from "@/pages/quiz";
@@ -188,6 +189,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <LiveRoomFloat />
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
