@@ -8,7 +8,6 @@ import RadarChartComponent from "@/components/RadarChart";
 import ShareCard from "@/components/ShareCard";
 import CountUp from "@/components/CountUp";
 import CharacterSVG from "@/components/character/CharacterSVG";
-import TierBadge from "@/components/character/TierBadge";
 import TierRoadmap from "@/components/character/TierRoadmap";
 import CharacterCard from "@/components/CharacterCard";
 import RankBadge from "@/components/RankBadge";
@@ -575,15 +574,6 @@ export default function ResultPage({ result }: ResultPageProps) {
                 </div>
               </div>
             </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, ...ease }}
-              className="flex justify-center relative"
-            >
-              <TierBadge type={traderType.code} currentTier={user?.tier ?? 0} />
-            </motion.div>
-
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

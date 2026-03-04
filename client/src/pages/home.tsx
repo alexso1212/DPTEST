@@ -7,7 +7,6 @@ import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLin
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
 import CharacterSVG from "@/components/character/CharacterSVG";
-import TierBadge from "@/components/character/TierBadge";
 import TierRoadmap from "@/components/character/TierRoadmap";
 import RankBadge from "@/components/RankBadge";
 import { usePageView, useTracking } from "@/hooks/use-tracking";
@@ -166,7 +165,7 @@ export default function HomePage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ ...ease, delay: 0.06 }}
-              className="flex justify-between items-center mb-1 relative"
+              className="flex items-center mb-1"
             >
               <div style={{
                 display: "inline-flex", alignItems: "center", gap: "4px",
@@ -178,7 +177,6 @@ export default function HomePage() {
                   {traderType.element.name.toUpperCase()}
                 </span>
               </div>
-              <TierBadge type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} />
             </motion.div>
 
             <motion.div
