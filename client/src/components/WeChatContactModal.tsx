@@ -1,6 +1,6 @@
 import { useCallback, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Smartphone } from "lucide-react";
+import { X, Smartphone, ShieldCheck } from "lucide-react";
 import { SiWechat } from "react-icons/si";
 import { QRCodeSVG } from "qrcode.react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -23,7 +23,6 @@ export function useSalesContact() {
   const [loading, setLoading] = useState(false);
 
   const fetchContact = useCallback(async () => {
-    if (contact) return contact;
     setLoading(true);
     try {
       const res = await fetch("/api/wechat-contact", { credentials: "include" });
@@ -36,18 +35,21 @@ export function useSalesContact() {
     } catch {}
     setLoading(false);
     return null;
-  }, [contact]);
+  }, []);
 
   return { contact, loading, fetchContact };
 }
 
 export function useWeChatContact(onBeforeOpen?: () => void) {
   const isMobile = useIsMobile();
-  const { contact, fetchContact } = useSalesContact();
+  const { contact, loading, fetchContact } = useSalesContact();
+  const [checking, setChecking] = useState(false);
 
   const handleContact = useCallback(async () => {
     onBeforeOpen?.();
+    setChecking(true);
     const c = await fetchContact();
+    setChecking(false);
     if (isMobile) {
       window.open(c?.url || FALLBACK_URL, "_blank");
       return true;
@@ -55,18 +57,92 @@ export function useWeChatContact(onBeforeOpen?: () => void) {
     return false;
   }, [isMobile, onBeforeOpen, fetchContact]);
 
-  return { isMobile, handleContact, contact, fetchContact, WECHAT_CONTACT: contact?.url || FALLBACK_URL };
+  return { isMobile, handleContact, contact, fetchContact, checking, loading, WECHAT_CONTACT: contact?.url || FALLBACK_URL };
 }
+
+function VerifyingOverlay() {
+  const steps = ["正在检测顾问状态", "验证企业微信可用性", "匹配最佳顾问"];
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setStep(1), 800);
+    const t2 = setTimeout(() => setStep(2), 1800);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[60] flex items-center justify-center"
+      style={{ background: 'rgba(13,15,20,0.92)', backdropFilter: 'blur(8px)' }}
+      data-testid="wechat-verifying-overlay"
+    >
+      <div className="flex flex-col items-center gap-5">
+        <div className="relative w-16 h-16">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 rounded-full"
+            style={{ border: '2px solid rgba(7,193,96,0.15)', borderTopColor: '#07C160' }}
+          />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <ShieldCheck className="w-6 h-6" style={{ color: '#07C160' }} />
+          </div>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          {steps.map((s, i) => (
+            <motion.div
+              key={s}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: i <= step ? 1 : 0.3, x: 0 }}
+              transition={{ delay: i * 0.6, duration: 0.3 }}
+              className="flex items-center gap-2"
+            >
+              {i < step ? (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="w-4 h-4 rounded-full flex items-center justify-center"
+                  style={{ background: 'rgba(7,193,96,0.2)' }}
+                >
+                  <span style={{ color: '#07C160', fontSize: '10px' }}>&#10003;</span>
+                </motion.div>
+              ) : i === step ? (
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 0.8, repeat: Infinity }}
+                  className="w-4 h-4 rounded-full"
+                  style={{ background: 'rgba(7,193,96,0.3)', border: '1px solid #07C160' }}
+                />
+              ) : (
+                <div className="w-4 h-4 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
+              )}
+              <span className="text-xs" style={{ color: i <= step ? '#E8E6E1' : 'rgba(255,255,255,0.25)' }}>
+                {s}
+              </span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+export { VerifyingOverlay };
 
 export default function WeChatContactModal({ open, onClose }: WeChatContactModalProps) {
   const [contact, setContact] = useState<SalesContact | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open && !contact) {
+      setLoading(true);
       fetch("/api/wechat-contact", { credentials: "include" })
         .then(r => r.ok ? r.json() : null)
-        .then(data => { if (data) setContact(data); })
-        .catch(() => {});
+        .then(data => { if (data) setContact(data); setLoading(false); })
+        .catch(() => { setLoading(false); });
     }
   }, [open]);
 
@@ -123,43 +199,62 @@ export default function WeChatContactModal({ open, onClose }: WeChatContactModal
               )}
             </div>
 
-            <div className="flex justify-center mb-2">
-              <motion.button
-                onClick={handleQRClick}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                className="p-4 rounded-xl cursor-pointer relative group"
-                style={{ background: '#ffffff' }}
-                data-testid="button-qr-click-wechat"
-              >
-                <QRCodeSVG
-                  value={url}
-                  size={180}
-                  level="M"
-                  bgColor="#ffffff"
-                  fgColor="#000000"
-                />
-                <div
-                  className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center"
-                  style={{ background: 'rgba(7,193,96,0.12)' }}
-                >
-                  <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: '#07C160', color: '#fff' }}>
-                    点击打开微信
+            {loading ? (
+              <div className="flex flex-col items-center gap-3 py-8">
+                <div className="relative w-12 h-12">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 rounded-full"
+                    style={{ border: '2px solid rgba(7,193,96,0.15)', borderTopColor: '#07C160' }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <ShieldCheck className="w-5 h-5" style={{ color: '#07C160' }} />
+                  </div>
+                </div>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>正在验证顾问可用性...</span>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-center mb-2">
+                  <motion.button
+                    onClick={handleQRClick}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="p-4 rounded-xl cursor-pointer relative group"
+                    style={{ background: '#ffffff' }}
+                    data-testid="button-qr-click-wechat"
+                  >
+                    <QRCodeSVG
+                      value={url}
+                      size={180}
+                      level="M"
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                    />
+                    <div
+                      className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center"
+                      style={{ background: 'rgba(7,193,96,0.12)' }}
+                    >
+                      <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: '#07C160', color: '#fff' }}>
+                        点击打开微信
+                      </span>
+                    </div>
+                  </motion.button>
+                </div>
+
+                <p className="text-[10px] text-center mb-4" style={{ color: 'var(--text-muted)' }}>
+                  点击二维码可直接用电脑微信打开
+                </p>
+
+                <div className="flex items-center gap-1.5 justify-center">
+                  <Smartphone className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
+                  <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                    无法跳转？请用手机微信扫描上方二维码
                   </span>
                 </div>
-              </motion.button>
-            </div>
-
-            <p className="text-[10px] text-center mb-4" style={{ color: 'var(--text-muted)' }}>
-              点击二维码可直接用电脑微信打开
-            </p>
-
-            <div className="flex items-center gap-1.5 justify-center">
-              <Smartphone className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
-              <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                无法跳转？请用手机微信扫描上方二维码
-              </span>
-            </div>
+              </>
+            )}
           </motion.div>
         </motion.div>
       )}

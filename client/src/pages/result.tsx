@@ -12,7 +12,7 @@ import TierBadge from "@/components/character/TierBadge";
 import CharacterCard from "@/components/CharacterCard";
 import RankBadge from "@/components/RankBadge";
 import LoginModal from "@/components/LoginModal";
-import WeChatContactModal, { useWeChatContact } from "@/components/WeChatContactModal";
+import WeChatContactModal, { useWeChatContact, VerifyingOverlay } from "@/components/WeChatContactModal";
 import VerifyCodeModal from "@/components/VerifyCodeModal";
 import { generateVerifyCode } from "@/utils/verifyCode";
 import type { QuizResult } from "@/utils/calculateResult";
@@ -439,7 +439,7 @@ export default function ResultPage({ result }: ResultPageProps) {
   const [resultSaved, setResultSaved] = useState(!!user);
   const [c1] = traderType.colors;
   const cc = traderType.cardColors;
-  const { handleContact: handleWeChatMobile } = useWeChatContact();
+  const { handleContact: handleWeChatMobile, checking: wechatChecking } = useWeChatContact();
 
   useEffect(() => {
     if (!user && !showUnbox) {
@@ -847,6 +847,10 @@ export default function ResultPage({ result }: ResultPageProps) {
             verifyCode={verifyCode}
             onProceed={handleVerifyProceed}
           />
+
+          <AnimatePresence>
+            {wechatChecking && <VerifyingOverlay />}
+          </AnimatePresence>
 
           <WeChatContactModal
             open={showWeChatModal}
