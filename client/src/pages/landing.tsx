@@ -7,8 +7,6 @@ import { Sun, Moon, Smartphone, Lock, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { sendRegisterWebhook } from "@/utils/webhook";
 import { queryClient } from "@/lib/queryClient";
-import logoImg from "@assets/IMG_2951_1772566874804.jpeg";
-
 const spring = { type: "spring" as const, stiffness: 260, damping: 26 };
 
 export default function LandingPage() {
@@ -129,7 +127,9 @@ export default function LandingPage() {
           transition={{ ...spring, delay: 0 }}
           className="mb-4"
         >
-          <img src={logoImg} alt="Deltapex Trading Group" className="h-14 mx-auto object-contain" data-testid="img-logo" />
+          <div className="text-2xl font-extrabold tracking-widest" style={{ color: 'var(--accent-gold)' }} data-testid="img-logo">
+            DELTAPEX
+          </div>
         </motion.div>
 
         <motion.div
