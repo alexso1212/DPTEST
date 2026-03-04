@@ -11,6 +11,7 @@ export const users = pgTable("users", {
   wechatId: varchar("wechat_id", { length: 100 }),
   source: varchar("source", { length: 50 }),
   tags: jsonb("tags"),
+  tier: integer("tier").default(0).notNull(),
   lastActiveAt: timestamp("last_active_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

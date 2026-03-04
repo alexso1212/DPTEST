@@ -5,6 +5,7 @@ interface AuthUser {
   id: number;
   phone: string;
   hasQuizResult: boolean;
+  tier: number;
 }
 
 export function useAuth() {

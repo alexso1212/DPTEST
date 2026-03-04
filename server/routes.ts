@@ -147,6 +147,7 @@ export async function registerRoutes(
       res.json({
         id: user.id,
         phone: user.phone,
+        tier: user.tier ?? 0,
         hasQuizResult: !!quizResult,
         traderTypeCode: quizResult?.traderTypeCode || null,
         avgScore: quizResult?.avgScore || null,
@@ -366,6 +367,24 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Result webhook error:", err);
       res.json({ success: true, webhookError: true });
+    }
+  });
+
+  app.patch("/api/user/tier", async (req, res) => {
+    try {
+      const userId = (req.session as any)?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "未登录" });
+      }
+      const { tier } = req.body;
+      if (typeof tier !== "number" || tier < 0 || tier > 3) {
+        return res.status(400).json({ message: "无效的阶级值" });
+      }
+      await storage.updateUserTier(userId, tier);
+      res.json({ ok: true, tier });
+    } catch (err) {
+      console.error("Update tier error:", err);
+      res.status(500).json({ message: "更新失败" });
     }
   });
 

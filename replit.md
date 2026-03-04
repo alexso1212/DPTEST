@@ -32,8 +32,14 @@ The design adheres to a permanent "Institutional Dark" theme (v2) inspired by Bl
 - **Responsive Design**: All pages are responsive, with specific layouts for mobile and desktop for modals, feature links, and report dimension cards.
 - **Behavior Tracking**: Frontend event tracking and backend storage (`user_events` table) for all critical user actions for future AI analysis.
 
-**Trader Visual System:**
-Each of the 16 trader types has a unique visual identity including specific color palettes, Albion-style SVG character illustrations, abstract animated icons, and rank badges. Components like `CharacterCard.tsx` and `RankBadge.tsx` render these visuals.
+**Trader Visual System (4-Tier Evolution):**
+Each of the 16 trader types has a unique visual identity including specific color palettes, Albion-style SVG character illustrations with 4-tier evolution (学徒→交易者→精英→职业操盘手), abstract animated icons, and rank badges.
+- **CharacterSVG** (`client/src/components/character/CharacterSVG.tsx`): The single source of truth for all character rendering. Accepts `type`, `size`, `tier` props. Renders 15 unique weapons, 5 mount types (Dragon/Wolf/Hawk/Serpent/Steed), wings, armor, aura, and burst effects based on tier level.
+- **SilhouettePreview** (`client/src/components/character/SilhouettePreview.tsx`): Renders a locked/black silhouette of CharacterSVG using CSS filters. Used for unachieved tiers.
+- **TierRoadmap** (`client/src/components/character/TierRoadmap.tsx`): Horizontal 4-tier progression display. Shows unlocked tiers with real CharacterSVG, locked tiers with SilhouettePreview.
+- **CharacterCard** (`client/src/components/CharacterCard.tsx`): Card wrapper around CharacterSVG with radar chart, rank badge, and tier-based visual effects.
+- **Data files**: `client/src/data/characters.ts` (15 character definitions), `client/src/data/tiers.ts` (4 tier definitions).
+- **Database**: `users.tier` integer field (0-3), `PATCH /api/user/tier` endpoint, tier returned via `GET /api/me`.
 
 **User Flow:**
 - **New User**: Landing page -> Quiz (no login required) -> Loading -> Result page (animations) -> Login modal -> Home.

@@ -7,7 +7,7 @@ import { Radio, Wrench, Trophy, ExternalLink, Target, Zap, ChevronRight } from "
 import { traderTypes, rankTiers } from "@/data/traderTypes";
 import { dimensionLabels, type Dimension } from "@/data/questions";
 import RadarChartComponent from "@/components/RadarChart";
-import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
+import CharacterSVG from "@/components/character/CharacterSVG";
 import RankBadge from "@/components/RankBadge";
 import WeChatContactModal, { useWeChatContact } from "@/components/WeChatContactModal";
 import VerifyCodeModal from "@/components/VerifyCodeModal";
@@ -227,7 +227,7 @@ function ReportContent({
               animate={{ opacity: [0.5, 0.9, 0.5], scale: [0.95, 1.05, 0.95] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             />
-            <AlbionCharacterSVG type={traderType.code} size={180} />
+            <CharacterSVG type={traderType.code} size={180} />
           </motion.div>
           <div className="flex items-center gap-2 justify-center mb-2">
             <div className="flex-1 h-[1px] max-w-[60px]" style={{ background: `linear-gradient(to right, transparent, var(--gold))` }} />

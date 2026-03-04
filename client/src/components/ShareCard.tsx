@@ -1,7 +1,7 @@
 import { useRef, useCallback } from "react";
 import type { QuizResult } from "@/utils/calculateResult";
 import { dimensionLabels, type Dimension } from "@/data/questions";
-import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
+import CharacterSVG from "@/components/character/CharacterSVG";
 import { Camera } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -74,7 +74,7 @@ export default function ShareCard({ result }: ShareCardProps) {
             transform: "translate(-50%,-50%)",
             background: `radial-gradient(circle, ${cc.primary}33 0%, transparent 70%)`,
           }} />
-          <AlbionCharacterSVG type={traderType.code} size={180} />
+          <CharacterSVG type={traderType.code} size={180} />
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0 28px" }}>

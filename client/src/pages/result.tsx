@@ -7,7 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import RadarChartComponent from "@/components/RadarChart";
 import ShareCard from "@/components/ShareCard";
 import CountUp from "@/components/CountUp";
-import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
+import CharacterSVG from "@/components/character/CharacterSVG";
+import TierRoadmap from "@/components/character/TierRoadmap";
 import CharacterCard from "@/components/CharacterCard";
 import RankBadge from "@/components/RankBadge";
 import LoginModal from "@/components/LoginModal";
@@ -283,7 +284,7 @@ function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: (
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.4, duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
                 >
-                  <AlbionCharacterSVG type={traderType.code} size={160} />
+                  <CharacterSVG type={traderType.code} size={160} />
                 </motion.div>
 
                 <div className="text-center w-full">
@@ -549,7 +550,7 @@ export default function ResultPage({ result }: ResultPageProps) {
                   data-testid="avatar-circle"
                 >
                   <div style={{ clipPath: 'circle(50%)', width: 90, height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                    <AlbionCharacterSVG type={traderType.code} size={100} />
+                    <CharacterSVG type={traderType.code} size={100} tier={user?.tier ?? 0} />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
@@ -713,6 +714,15 @@ export default function ResultPage({ result }: ResultPageProps) {
                 "我们不教你怎么赚钱——<br />
                 我们让你亲眼看到专业交易是什么样的"
               </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.6 }}
+              className="px-5"
+            >
+              <TierRoadmap type={traderType.code} currentTier={user?.tier ?? 0} />
             </motion.div>
 
             <div className="h-4" />

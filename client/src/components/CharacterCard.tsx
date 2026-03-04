@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
+import CharacterSVG from "@/components/character/CharacterSVG";
 import { traderTypes } from "@/data/traderTypes";
+import { TIER_DATA } from "@/data/tiers";
 
 interface CharacterCardProps {
   typeCode: string;
@@ -8,12 +9,13 @@ interface CharacterCardProps {
   rank?: { name: string; emoji: string; score: number };
   showAnimation?: boolean;
   maskScores?: boolean;
+  tier?: number;
 }
 
 const dimLabels = ["认知", "风控", "心理", "适应", "执行", "系统"];
 const dimKeys = ["EDGE", "RISK", "MENTAL", "ADAPT", "EXEC", "SYSTEM"];
 
-export default function CharacterCard({ typeCode, scores, rank, showAnimation = true, maskScores = false }: CharacterCardProps) {
+export default function CharacterCard({ typeCode, scores, rank, showAnimation = true, maskScores = false, tier = 0 }: CharacterCardProps) {
   const char = traderTypes[typeCode];
   const [revealed, setRevealed] = useState(!showAnimation);
   const [showQuote, setShowQuote] = useState(!showAnimation);
@@ -79,7 +81,7 @@ export default function CharacterCard({ typeCode, scores, rank, showAnimation = 
             transform: "translate(-50%,-50%)",
             background: `radial-gradient(circle, ${cc.primary}33 0%, transparent 70%)`,
           }} />
-          <AlbionCharacterSVG type={typeCode} size={220} />
+          <CharacterSVG type={typeCode} size={220} tier={tier} />
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0 28px" }}>

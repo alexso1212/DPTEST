@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLink, Building2, Radio, Wrench, Trophy, TrendingUp, TrendingDown, Minus, History } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
-import AlbionCharacterSVG from "@/components/AlbionCharacterSVG";
+import CharacterSVG from "@/components/character/CharacterSVG";
 import RankBadge from "@/components/RankBadge";
 import { usePageView, useTracking } from "@/hooks/use-tracking";
 
@@ -193,7 +193,7 @@ export default function HomePage() {
                 transform: "translate(-50%,-50%)",
                 background: `radial-gradient(circle, ${cc.primary}28 0%, transparent 70%)`,
               }} />
-              <AlbionCharacterSVG type={quizResult.traderTypeCode} size={240} />
+              <CharacterSVG type={quizResult.traderTypeCode} size={240} tier={user?.tier ?? 0} />
             </motion.div>
 
             <motion.div
@@ -554,7 +554,7 @@ function GrowthTimeline({ history, cc }: { history: StoredQuizResult[]; cc: { pr
                 <div className="flex items-center gap-2.5">
                   {type && (
                     <div className="flex-shrink-0" style={{ opacity: isLatest ? 1 : 0.6 }}>
-                      <AlbionCharacterSVG type={item.traderTypeCode} size={40} />
+                      <CharacterSVG type={item.traderTypeCode} size={40} />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
