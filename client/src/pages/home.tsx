@@ -75,7 +75,7 @@ export default function HomePage() {
   if (authLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-0)' }}>
-        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
       </div>
     );
   }
@@ -109,7 +109,7 @@ export default function HomePage() {
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.92 }}
               className="w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-200"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+              style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
               data-testid="button-logout"
             >
               <LogOut className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
@@ -126,13 +126,13 @@ export default function HomePage() {
         >
           {quizLoading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+              <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
             </div>
           ) : quizResult && traderType && rank ? (
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>📊 交易能力测评</h3>
-                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
+                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--primary-soft)', color: 'var(--primary)' }}>
                   已完成
                 </span>
               </div>
@@ -140,7 +140,7 @@ export default function HomePage() {
               <div className="flex items-center gap-4 mb-4">
                 <div className="text-4xl">{traderType.icon}</div>
                 <div>
-                  <p className="text-lg font-bold" style={{ color: 'var(--accent)' }} data-testid="text-trader-type">
+                  <p className="text-lg font-bold" style={{ color: 'var(--primary)' }} data-testid="text-trader-type">
                     {traderType.name}
                   </p>
                   <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -182,7 +182,7 @@ export default function HomePage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-200"
-                  style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}
+                  style={{ background: 'var(--primary-soft)', color: 'var(--primary)' }}
                   data-testid="button-view-result"
                 >
                   查看详情
@@ -209,7 +209,7 @@ export default function HomePage() {
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
                       className="w-full py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 text-white animate-breathe transition-all duration-200"
-                      style={{ background: 'var(--accent)' }}
+                      style={{ background: 'var(--primary)' }}
                       data-testid="button-view-report"
                     >
                       <FileText className="w-4 h-4" />
@@ -238,7 +238,7 @@ export default function HomePage() {
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 className="w-full h-11 rounded-xl font-bold text-sm text-white transition-all duration-200"
-                style={{ background: 'var(--accent)' }}
+                style={{ background: 'var(--primary)' }}
                 data-testid="button-start-quiz"
               >
                 开始测评 →
@@ -257,7 +257,7 @@ export default function HomePage() {
 
           {[
             { icon: <Gamepad2 className="w-5 h-5" />, title: "交易模拟游戏", desc: "即将上线", color: 'var(--info)' },
-            { icon: <BookOpen className="w-5 h-5" />, title: "学习中心", desc: "即将上线", color: 'var(--accent)' },
+            { icon: <BookOpen className="w-5 h-5" />, title: "学习中心", desc: "即将上线", color: 'var(--primary)' },
             { icon: <Users className="w-5 h-5" />, title: "交易社群", desc: "即将上线", color: 'var(--success)' },
           ].map((item) => (
             <div

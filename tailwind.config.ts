@@ -9,14 +9,23 @@ export default {
         lg: "1rem",
         md: ".75rem",
         sm: ".375rem",
+        card: "var(--radius-card)",
+        ui: "var(--radius-ui)",
       },
       colors: {
+        bg0: "var(--bg-0)",
+        bg1: "var(--bg-1)",
+        "dp-card": "var(--card)",
+        textStrong: "var(--text-strong)",
+        textMuted: "var(--text-muted)",
+        primarySoft: "var(--primary-soft)",
+        primaryHover: "var(--primary-hover)",
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",
         border: "hsl(var(--border-hsl) / <alpha-value>)",
         input: "hsl(var(--input) / <alpha-value>)",
         card: {
-          DEFAULT: "hsl(var(--card) / <alpha-value>)",
+          DEFAULT: "hsl(var(--card-hsl) / <alpha-value>)",
           foreground: "hsl(var(--card-foreground) / <alpha-value>)",
           border: "hsl(var(--card-border) / <alpha-value>)",
         },
@@ -26,7 +35,7 @@ export default {
           border: "hsl(var(--popover-border) / <alpha-value>)",
         },
         primary: {
-          DEFAULT: "hsl(var(--primary) / <alpha-value>)",
+          DEFAULT: "hsl(var(--primary-hsl) / <alpha-value>)",
           foreground: "hsl(var(--primary-foreground) / <alpha-value>)",
           border: "var(--primary-border)",
         },
@@ -43,7 +52,7 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent-hsl) / <alpha-value>)",
           foreground: "hsl(var(--accent-foreground) / <alpha-value>)",
-          border: "var(--accent-border)",
+          border: "var(--primary-accent-border)",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
@@ -51,6 +60,10 @@ export default {
           border: "var(--destructive-border)",
         },
         ring: "hsl(var(--ring) / <alpha-value>)",
+        info: "var(--info)",
+        success: "var(--success)",
+        warning: "var(--warning)",
+        danger: "var(--danger)",
         chart: {
           "1": "hsl(var(--chart-1) / <alpha-value>)",
           "2": "hsl(var(--chart-2) / <alpha-value>)",
@@ -72,7 +85,7 @@ export default {
         "sidebar-accent": {
           DEFAULT: "hsl(var(--sidebar-accent) / <alpha-value>)",
           foreground: "hsl(var(--sidebar-accent-foreground) / <alpha-value>)",
-          border: "var(--sidebar-accent-border)"
+          border: "var(--sidebar-accent-border)",
         },
         status: {
           online: "rgb(34 197 94)",
@@ -83,9 +96,19 @@ export default {
       },
       fontFamily: {
         sans: ["var(--font-sans)"],
+        body: ["'Noto Sans SC'", "system-ui", "sans-serif"],
         heading: ["var(--font-heading)"],
         serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
+      },
+      boxShadow: {
+        soft: "0 8px 30px rgba(0,0,0,0.25)",
+      },
+      transitionTimingFunction: {
+        out: "cubic-bezier(0.16, 1, 0.3, 1)",
+      },
+      transitionDuration: {
+        "240": "240ms",
       },
       keyframes: {
         "accordion-down": {

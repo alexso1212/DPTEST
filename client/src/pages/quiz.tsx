@@ -92,17 +92,17 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
                     onClick={() => handleSelect(idx)}
                     className="w-full text-left p-4 rounded-2xl flex items-start gap-3 gpu-accelerate transition-colors duration-200"
                     style={{
-                      background: isSelected ? 'var(--accent-soft)' : 'var(--bg-1)',
-                      border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border)',
+                      background: isSelected ? 'var(--primary-soft)' : 'var(--bg-1)',
+                      border: isSelected ? '1px solid var(--primary)' : '1px solid var(--border)',
                     }}
                     data-testid={`button-option-${idx}`}
                   >
                     <span
                       className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-colors duration-200"
                       style={{
-                        background: isSelected ? 'var(--accent)' : 'transparent',
-                        color: isSelected ? '#fff' : 'var(--accent)',
-                        border: isSelected ? 'none' : '1.5px solid var(--accent)',
+                        background: isSelected ? 'var(--primary)' : 'transparent',
+                        color: isSelected ? '#fff' : 'var(--primary)',
+                        border: isSelected ? 'none' : '1.5px solid var(--primary)',
                       }}
                     >
                       {isSelected ? <Check className="w-3.5 h-3.5" /> : optionLabels[idx]}
@@ -129,9 +129,9 @@ export default function QuizPage({ onComplete }: QuizPageProps) {
               <div
                 className="px-5 py-2.5 rounded-full text-sm font-semibold"
                 style={{
-                  background: 'var(--accent-soft)',
-                  color: 'var(--accent)',
-                  border: '1px solid rgba(var(--accent-rgb), 0.3)',
+                  background: 'var(--primary-soft)',
+                  color: 'var(--primary)',
+                  border: '1px solid rgba(var(--primary-rgb), 0.3)',
                   backdropFilter: 'blur(8px)',
                 }}
                 data-testid="text-xp-flash"

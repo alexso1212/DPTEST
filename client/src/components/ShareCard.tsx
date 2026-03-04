@@ -93,8 +93,8 @@ export default function ShareCard({ result }: ShareCardProps) {
         className="w-full mt-3 py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200"
         style={{
           background: 'transparent',
-          border: '1px solid var(--accent)',
-          color: 'var(--accent)',
+          border: '1px solid var(--primary)',
+          color: 'var(--primary)',
         }}
         data-testid="button-download-card"
       >

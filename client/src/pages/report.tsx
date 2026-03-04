@@ -42,7 +42,7 @@ export default function ReportPage() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-0)' }}>
         <div className="text-center">
-          <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin mx-auto mb-3" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+          <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin mx-auto mb-3" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>加载报告中...</p>
         </div>
       </div>
@@ -98,7 +98,7 @@ function ReportContent({
           transition={ease}
           className="text-center pt-2 pb-1"
         >
-          <div className="text-xl font-heading font-bold tracking-widest" style={{ color: 'var(--accent)' }}>
+          <div className="text-xl font-heading font-bold tracking-widest" style={{ color: 'var(--primary)' }}>
             DELTAPEX
           </div>
           <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>交易能力测评 · 完整报告</p>
@@ -130,7 +130,7 @@ function ReportContent({
           style={{ background: 'var(--bg-1)', border: `2px solid ${rank.color}40`, boxShadow: `0 0 30px ${rank.color}15` }}
         >
           <div className="text-5xl mb-3">{traderType.icon}</div>
-          <h3 className="text-xl font-bold mb-1" style={{ color: 'var(--accent)' }} data-testid="text-type-name">
+          <h3 className="text-xl font-bold mb-1" style={{ color: 'var(--primary)' }} data-testid="text-type-name">
             {traderType.name}
           </h3>
           <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>{traderType.subtitle}</p>
@@ -169,7 +169,7 @@ function ReportContent({
                   <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{dimensionLabels[dim]}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-num font-bold" style={{ color: 'var(--text-strong)' }}>{scores[dim]}</span>
-                    {i === 0 && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>🔥最强</span>}
+                    {i === 0 && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'var(--primary-soft)', color: 'var(--primary)' }}>🔥最强</span>}
                     {i === sortedDims.length - 1 && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(var(--info-rgb), 0.15)', color: 'var(--info)' }}>⬆️突破口</span>}
                   </div>
                 </div>
@@ -179,7 +179,7 @@ function ReportContent({
                     initial={{ width: 0 }}
                     animate={{ width: `${scores[dim]}%` }}
                     transition={{ delay: 0.25 + i * 0.06, duration: 0.5, ease: "easeOut" }}
-                    style={{ background: i === 0 ? 'var(--accent)' : i === sortedDims.length - 1 ? 'var(--info)' : 'var(--text-muted)' }}
+                    style={{ background: i === 0 ? 'var(--primary)' : i === sortedDims.length - 1 ? 'var(--info)' : 'var(--text-muted)' }}
                   />
                 </div>
               </div>
@@ -237,7 +237,7 @@ function ReportContent({
           <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--text-strong)' }}>
             🔍 你可能经常遇到这种情况：
           </h3>
-          <div className="pl-4 py-1" style={{ borderLeft: '3px solid var(--accent)' }}>
+          <div className="pl-4 py-1" style={{ borderLeft: '3px solid var(--primary)' }}>
             <p className="text-sm leading-[1.8]" style={{ color: 'var(--text)' }} data-testid="text-piercing">
               "{traderType.piercingDescription}"
             </p>

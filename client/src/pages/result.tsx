@@ -168,7 +168,7 @@ function TypeCardFlip({ result }: { result: QuizResult }) {
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             你的交易员人格是...
           </p>
-          <p className="text-xs mt-2 animate-pulse" style={{ color: 'var(--accent)' }}>
+          <p className="text-xs mt-2 animate-pulse" style={{ color: 'var(--primary)' }}>
             点击揭晓
           </p>
         </div>
@@ -184,7 +184,7 @@ function TypeCardFlip({ result }: { result: QuizResult }) {
           }}
         >
           <div className="flex items-center gap-1 self-start">
-            <span className="text-xs" style={{ color: 'var(--accent)' }}>
+            <span className="text-xs" style={{ color: 'var(--primary)' }}>
               {'★'.repeat(Math.min(5, Math.ceil(parseFloat(rarity) < 6 ? 5 : parseFloat(rarity) < 8 ? 4 : parseFloat(rarity) < 10 ? 3 : 2)))}
               {'☆'.repeat(Math.max(0, 5 - Math.ceil(parseFloat(rarity) < 6 ? 5 : parseFloat(rarity) < 8 ? 4 : parseFloat(rarity) < 10 ? 3 : 2)))}
             </span>
@@ -197,7 +197,7 @@ function TypeCardFlip({ result }: { result: QuizResult }) {
             <div className="text-5xl mb-3">{traderType.icon}</div>
             <h3
               className="text-xl font-bold mb-1"
-              style={{ color: 'var(--accent)' }}
+              style={{ color: 'var(--primary)' }}
               data-testid="text-type-name"
             >
               {traderType.name}
@@ -214,7 +214,7 @@ function TypeCardFlip({ result }: { result: QuizResult }) {
               return (
                 <div key={dim} className="flex items-center justify-between text-xs">
                   <span style={{ color: 'var(--text-muted)' }}>{dimensionLabels[dim]}</span>
-                  <span style={{ color: 'var(--accent)' }}>
+                  <span style={{ color: 'var(--primary)' }}>
                     {'◆'.repeat(Math.min(5, filled))}{'◇'.repeat(Math.max(0, 5 - filled))}
                   </span>
                 </div>
@@ -320,7 +320,7 @@ export default function ResultPage({ result }: ResultPageProps) {
               </h3>
               <div
                 className="pl-4 py-1"
-                style={{ borderLeft: '3px solid var(--accent)' }}
+                style={{ borderLeft: '3px solid var(--primary)' }}
               >
                 <p
                   className="text-base leading-[1.8]"
@@ -348,7 +348,7 @@ export default function ResultPage({ result }: ResultPageProps) {
                     <div key={dim} className="flex items-center gap-2">
                       <span className="text-xs w-16" style={{ color: 'var(--text-muted)' }}>{dimensionLabels[dim]}</span>
                       <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-                        <div className="h-full rounded-full" style={{ width: `${normalizedScores[dim]}%`, background: i === 0 ? 'var(--accent)' : 'var(--info)' }} />
+                        <div className="h-full rounded-full" style={{ width: `${normalizedScores[dim]}%`, background: i === 0 ? 'var(--primary)' : 'var(--info)' }} />
                       </div>
                       <span className="text-xs font-num w-6 text-right" style={{ color: 'var(--text-strong)' }}>{normalizedScores[dim]}</span>
                     </div>
@@ -384,7 +384,7 @@ export default function ResultPage({ result }: ResultPageProps) {
                 style={{ background: 'rgba(var(--bg-0-rgb), 0.4)' }}
               >
                 <div className="text-center">
-                  <Lock className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--accent)' }} />
+                  <Lock className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--primary)' }} />
                   <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>添加顾问解锁完整报告</p>
                 </div>
               </div>
@@ -467,8 +467,8 @@ export default function ResultPage({ result }: ResultPageProps) {
                 className="flex-1 py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200"
                 style={{
                   background: 'transparent',
-                  border: '1px solid var(--accent)',
-                  color: 'var(--accent)',
+                  border: '1px solid var(--primary)',
+                  color: 'var(--primary)',
                 }}
                 data-testid="button-save-image"
               >
@@ -480,7 +480,7 @@ export default function ResultPage({ result }: ResultPageProps) {
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 text-white transition-all duration-200"
-                style={{ background: 'var(--accent)' }}
+                style={{ background: 'var(--primary)' }}
                 data-testid="button-unlock-report"
               >
                 <Lock className="w-4 h-4" />

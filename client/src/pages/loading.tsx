@@ -59,7 +59,7 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
             height: '300px',
             background: cardPhase >= 1 ? 'var(--bg-1)' : 'transparent',
             border: `2px solid ${cardPhase >= 1 ? 'rgba(var(--info-rgb), 0.4)' : 'rgba(var(--info-rgb), 0.05)'}`,
-            boxShadow: cardPhase >= 4 ? '0 0 40px rgba(var(--info-rgb), 0.2), 0 0 80px rgba(var(--accent-rgb), 0.1)' : 'none',
+            boxShadow: cardPhase >= 4 ? '0 0 40px rgba(var(--info-rgb), 0.2), 0 0 80px rgba(var(--primary-rgb), 0.1)' : 'none',
           }}
           animate={{
             scale: cardPhase >= 4 ? [1, 1.02, 1] : 1,
@@ -81,8 +81,8 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
             <div
               className="w-14 h-14 rounded-full flex items-center justify-center"
               style={{
-                background: 'var(--accent-soft)',
-                border: '2px solid rgba(var(--accent-rgb), 0.3)',
+                background: 'var(--primary-soft)',
+                border: '2px solid rgba(var(--primary-rgb), 0.3)',
               }}
             >
               <span className="text-2xl">🏆</span>
@@ -98,7 +98,7 @@ export default function LoadingPage({ onDone }: LoadingPageProps) {
             transition={{ duration: 0.22, ease: "easeOut" }}
           >
             <div className="text-3xl mb-2">❓</div>
-            <div className="w-24 h-3 rounded-full mx-auto" style={{ background: 'var(--accent-soft)' }} />
+            <div className="w-24 h-3 rounded-full mx-auto" style={{ background: 'var(--primary-soft)' }} />
             <div className="w-32 h-2 rounded-full mx-auto mt-2" style={{ background: 'rgba(255,255,255,0.05)' }} />
           </motion.div>
 

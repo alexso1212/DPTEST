@@ -5,19 +5,17 @@
 :root {
   --bg-0: #0B0F14;
   --bg-1: #0F1620;
-  --bg-card: rgba(255,255,255,0.04);
-  --bg-card-hover: rgba(255,255,255,0.07);
+  --card: rgba(255,255,255,0.04);
   --border: rgba(255,255,255,0.08);
-  --border-focus: rgba(255,255,255,0.16);
 
   --text-strong: #E5E7EB;
   --text: #CBD5E1;
   --text-muted: #94A3B8;
 
-  --accent: #E63946;
-  --accent-rgb: 230, 57, 70;
-  --accent-hover: #D62839;
-  --accent-soft: rgba(230,57,70,0.14);
+  --primary: #E63946;
+  --primary-rgb: 230, 57, 70;
+  --primary-hover: #D62839;
+  --primary-soft: rgba(230,57,70,0.14);
 
   --info: #38BDF8;
   --info-rgb: 56, 189, 248;
@@ -31,16 +29,19 @@
   --bg-0-rgb: 11, 15, 20;
   --bg-1-rgb: 15, 22, 32;
 
+  --radius-card: 16px;
+  --radius-ui: 12px;
+
   --background: 220 20% 6%;
   --foreground: 216 12% 92%;
   --border-hsl: 220 15% 13%;
-  --card: 220 18% 10%;
+  --card-hsl: 220 18% 10%;
   --card-foreground: 216 12% 92%;
   --card-border: 220 15% 13%;
   --popover: 220 18% 9%;
   --popover-foreground: 216 12% 92%;
   --popover-border: 220 15% 12%;
-  --primary: 355 82% 53%;
+  --primary-hsl: 355 82% 53%;
   --primary-foreground: 0 0% 100%;
   --secondary: 220 15% 14%;
   --secondary-foreground: 216 12% 92%;
@@ -87,10 +88,10 @@
 
   --sidebar-primary-border: hsl(var(--sidebar-primary));
   --sidebar-accent-border: hsl(var(--sidebar-accent));
-  --primary-border: hsl(var(--primary));
+  --primary-border: hsl(var(--primary-hsl));
   --secondary-border: hsl(var(--secondary));
   --muted-border: hsl(var(--muted));
-  --accent-border: hsl(var(--accent-hsl));
+  --primary-accent-border: hsl(var(--primary-hsl));
   --destructive-border: hsl(var(--destructive));
 
   --button-outline: rgba(255,255,255, .10);
@@ -118,11 +119,16 @@
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Oswald", "Noto Sans SC", system-ui, sans-serif;
+    color: var(--text-strong);
+  }
 }
 
 @keyframes breathe {
-  0%, 100% { box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.3); }
-  50% { box-shadow: 0 0 40px rgba(var(--accent-rgb), 0.6), 0 0 60px rgba(var(--accent-rgb), 0.2); }
+  0%, 100% { box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.3); }
+  50% { box-shadow: 0 0 40px rgba(var(--primary-rgb), 0.6), 0 0 60px rgba(var(--primary-rgb), 0.2); }
 }
 
 @keyframes float-up {
@@ -187,7 +193,7 @@
   backface-visibility: hidden;
 }
 
-.grid-overlay {
+.dp-grid {
   background-image:
     linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);

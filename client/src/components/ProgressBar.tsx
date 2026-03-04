@@ -10,13 +10,13 @@ export default function ProgressBar({ current, total }: ProgressBarProps) {
 
   return (
     <div className="w-full" data-testid="progress-bar">
-      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(var(--accent-rgb), 0.1)' }}>
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(var(--primary-rgb), 0.1)' }}>
         <motion.div
           className="h-full rounded-full gpu-accelerate"
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.3, ease: "easeOut" }}
           style={{
-            background: 'var(--accent)',
+            background: 'var(--primary)',
           }}
         />
       </div>

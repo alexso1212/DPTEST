@@ -38,11 +38,11 @@ export default function RadarChartComponent({ scores, hideScores = false }: Rada
           <Radar
             name="score"
             dataKey="score"
-            stroke="var(--accent)"
-            fill="rgba(var(--accent-rgb), 0.2)"
+            stroke="var(--primary)"
+            fill="rgba(var(--primary-rgb), 0.2)"
             fillOpacity={0.6}
             strokeWidth={2}
-            dot={{ r: 3, fill: 'var(--accent)', strokeWidth: 0 }}
+            dot={{ r: 3, fill: 'var(--primary)', strokeWidth: 0 }}
           />
         </RechartsRadar>
       </ResponsiveContainer>

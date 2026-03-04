@@ -84,7 +84,7 @@ export default function LandingPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-0)' }}>
-        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
       </div>
     );
   }
@@ -92,10 +92,10 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col overflow-hidden relative" style={{ background: 'var(--bg-0)' }}>
       <div className="absolute inset-0 pointer-events-none overflow-hidden gpu-accelerate">
-        <div className="absolute inset-0 grid-overlay opacity-100" />
+        <div className="absolute inset-0 dp-grid opacity-100" />
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px]"
-          style={{ background: 'radial-gradient(ellipse, rgba(var(--accent-rgb), 0.06) 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(ellipse, rgba(var(--primary-rgb), 0.06) 0%, transparent 70%)' }}
         />
         <div className="absolute top-[15%] left-[10%] w-[3px] h-16 rounded-sm animate-float-up will-change-transform" style={{ background: 'rgba(var(--success-rgb), 0.2)' }} />
         <div className="absolute top-[25%] right-[15%] w-[3px] h-12 rounded-sm animate-float-down will-change-transform" style={{ background: 'rgba(var(--danger-rgb), 0.2)', animationDelay: '1s' }} />
@@ -110,7 +110,7 @@ export default function LandingPage() {
           transition={ease}
           className="mb-4"
         >
-          <div className="text-2xl font-heading font-bold tracking-widest" style={{ color: 'var(--accent)' }} data-testid="img-logo">
+          <div className="text-2xl font-heading font-bold tracking-widest" style={{ color: 'var(--primary)' }} data-testid="img-logo">
             DELTAPEX
           </div>
         </motion.div>
@@ -145,7 +145,7 @@ export default function LandingPage() {
                 onClick={() => setTab('login')}
                 className="flex-1 py-2.5 text-sm font-semibold rounded-xl transition-colors duration-200"
                 style={{
-                  background: tab === 'login' ? 'var(--accent)' : 'transparent',
+                  background: tab === 'login' ? 'var(--primary)' : 'transparent',
                   color: tab === 'login' ? '#fff' : 'var(--text-muted)',
                 }}
                 data-testid="tab-login"
@@ -156,7 +156,7 @@ export default function LandingPage() {
                 onClick={() => setTab('register')}
                 className="flex-1 py-2.5 text-sm font-semibold rounded-xl transition-colors duration-200"
                 style={{
-                  background: tab === 'register' ? 'var(--accent)' : 'transparent',
+                  background: tab === 'register' ? 'var(--primary)' : 'transparent',
                   color: tab === 'register' ? '#fff' : 'var(--text-muted)',
                 }}
                 data-testid="tab-register"
@@ -190,9 +190,9 @@ export default function LandingPage() {
                       className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all duration-200"
                       style={{
                         background: 'rgba(255,255,255,0.03)',
-                        border: `1px solid ${phoneFocused ? 'var(--accent)' : phoneTouched && !phoneValid && phone.length > 0 ? 'var(--danger)' : 'var(--border)'}`,
+                        border: `1px solid ${phoneFocused ? 'var(--primary)' : phoneTouched && !phoneValid && phone.length > 0 ? 'var(--danger)' : 'var(--border)'}`,
                         color: 'var(--text-strong)',
-                        boxShadow: phoneFocused ? '0 0 0 3px rgba(var(--accent-rgb), 0.15)' : 'none',
+                        boxShadow: phoneFocused ? '0 0 0 3px rgba(var(--primary-rgb), 0.15)' : 'none',
                       }}
                       data-testid="input-phone"
                     />
@@ -227,9 +227,9 @@ export default function LandingPage() {
                         className="w-full px-4 py-3 pr-10 rounded-xl text-sm outline-none transition-all duration-200"
                         style={{
                           background: 'rgba(255,255,255,0.03)',
-                          border: `1px solid ${passwordFocused ? 'var(--accent)' : 'var(--border)'}`,
+                          border: `1px solid ${passwordFocused ? 'var(--primary)' : 'var(--border)'}`,
                           color: 'var(--text-strong)',
-                          boxShadow: passwordFocused ? '0 0 0 3px rgba(var(--accent-rgb), 0.15)' : 'none',
+                          boxShadow: passwordFocused ? '0 0 0 3px rgba(var(--primary-rgb), 0.15)' : 'none',
                         }}
                         data-testid="input-password"
                       />
@@ -252,8 +252,8 @@ export default function LandingPage() {
                     whileTap={canSubmit ? { scale: 0.98 } : {}}
                     className="w-full h-12 rounded-xl font-bold text-base mt-2 transition-all duration-200"
                     style={{
-                      background: canSubmit ? 'var(--accent)' : 'rgba(var(--accent-rgb), 0.2)',
-                      color: canSubmit ? '#fff' : 'rgba(var(--accent-rgb), 0.5)',
+                      background: canSubmit ? 'var(--primary)' : 'rgba(var(--primary-rgb), 0.2)',
+                      color: canSubmit ? '#fff' : 'rgba(var(--primary-rgb), 0.5)',
                     }}
                     data-testid="button-submit"
                   >
