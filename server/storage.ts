@@ -1,6 +1,6 @@
 import { users, quizResults, userEvents, salesContacts, type User, type InsertUser, type SalesContact, type InsertSalesContact } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql, and, gte, lte } from "drizzle-orm";
+import { eq, desc, sql, and, or, gte, lte, ne, isNull } from "drizzle-orm";
 import crypto from "crypto";
 
 export interface IStorage {
@@ -85,6 +85,41 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserTier(userId: number, tier: number): Promise<void> {
     await db.update(users).set({ tier }).where(eq(users.id, userId));
+  }
+
+  async trackDailyLogin(userId: number): Promise<{ loginDays: number; tierChanged: boolean; newTier: number }> {
+    const user = await this.getUser(userId);
+    if (!user) return { loginDays: 0, tierChanged: false, newTier: 0 };
+
+    const today = new Date().toISOString().slice(0, 10);
+    if (user.lastLoginDate === today) {
+      return { loginDays: user.loginDays, tierChanged: false, newTier: user.tier };
+    }
+
+    const result = await db.update(users)
+      .set({
+        loginDays: sql`COALESCE(login_days, 0) + 1`,
+        lastLoginDate: today,
+        lastActiveAt: new Date(),
+      })
+      .where(and(eq(users.id, userId), or(isNull(users.lastLoginDate), ne(users.lastLoginDate, today))))
+      .returning({ loginDays: users.loginDays, tier: users.tier });
+
+    if (!result.length) {
+      return { loginDays: user.loginDays, tierChanged: false, newTier: user.tier };
+    }
+
+    const newLoginDays = result[0].loginDays;
+    let newTier = result[0].tier;
+    if (newLoginDays >= 60 && newTier < 3) newTier = 3;
+    else if (newLoginDays >= 21 && newTier < 2) newTier = 2;
+    else if (newLoginDays >= 7 && newTier < 1) newTier = 1;
+
+    if (newTier !== result[0].tier) {
+      await db.update(users).set({ tier: newTier }).where(eq(users.id, userId));
+    }
+
+    return { loginDays: newLoginDays, tierChanged: newTier !== result[0].tier, newTier };
   }
 
   async saveQuizResult(userId: number, data: {

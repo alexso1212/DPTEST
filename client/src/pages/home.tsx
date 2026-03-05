@@ -272,6 +272,27 @@ export default function HomePage() {
               className="mt-2"
             >
               <TierRoadmap type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} />
+              {user && (user.tier ?? 0) < 3 && (
+                <div className="mt-2 px-3 py-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                      {(user.tier ?? 0) < 1 ? '下一阶: 交易者 (登录7天)' : (user.tier ?? 0) < 2 ? '下一阶: 精英 (登录21天)' : '下一阶: 职业操盘手 (登录60天)'}
+                    </span>
+                    <span className="text-[10px] font-num font-bold" style={{ color: 'var(--gold)' }}>
+                      {user.loginDays ?? 0}/{(user.tier ?? 0) < 1 ? 7 : (user.tier ?? 0) < 2 ? 21 : 60}天
+                    </span>
+                  </div>
+                  <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min(100, ((user.loginDays ?? 0) / ((user.tier ?? 0) < 1 ? 7 : (user.tier ?? 0) < 2 ? 21 : 60)) * 100)}%`,
+                        background: 'var(--gold)',
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </motion.div>
 
             <motion.div

@@ -6,6 +6,8 @@ interface AuthUser {
   phone: string;
   hasQuizResult: boolean;
   tier: number;
+  loginDays: number;
+  tierChanged?: boolean;
 }
 
 export function useAuth() {

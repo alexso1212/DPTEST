@@ -32,22 +32,64 @@ const ease = { duration: 0.22, ease: "easeOut" as const };
 function CharacterCardReveal({ result, onDone, tier = 0 }: { result: QuizResult; onDone: () => void; tier?: number }) {
   const [phase, setPhase] = useState(0);
   const [ready, setReady] = useState(false);
+  const [displayTier, setDisplayTier] = useState(3);
+  const [deEvolving, setDeEvolving] = useState(false);
+  const [tierFlash, setTierFlash] = useState(false);
   const { traderType, rank } = result;
   const [c1] = traderType.colors;
   const cc = traderType.cardColors;
   const glowColor = cc?.glow || c1 + '40';
   const primaryColor = cc?.primary || c1;
 
+  const tierNames = ['学徒', '交易者', '精英', '职业操盘手'];
+  const allTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const mountedRef = useRef(true);
+
   useEffect(() => {
-    const timers = [
-      setTimeout(() => setPhase(1), 600),
-      setTimeout(() => setPhase(2), 1600),
-      setTimeout(() => setPhase(3), 2800),
-      setTimeout(() => setPhase(4), 3600),
-      setTimeout(() => setReady(true), 4400),
-    ];
-    return () => timers.forEach(clearTimeout);
-  }, []);
+    mountedRef.current = true;
+    setDisplayTier(3);
+    setDeEvolving(false);
+    setReady(false);
+    setPhase(0);
+
+    const t = (fn: () => void, ms: number) => {
+      const id = setTimeout(() => { if (mountedRef.current) fn(); }, ms);
+      allTimers.current.push(id);
+      return id;
+    };
+
+    t(() => setPhase(1), 600);
+    t(() => setPhase(2), 1600);
+    t(() => setPhase(3), 2800);
+    t(() => {
+      setPhase(4);
+      setDeEvolving(true);
+      let currentTier = 3;
+      const stepDown = () => {
+        if (!mountedRef.current) return;
+        if (currentTier <= tier) {
+          setDeEvolving(false);
+          t(() => setReady(true), 600);
+          return;
+        }
+        t(() => {
+          if (!mountedRef.current) return;
+          currentTier--;
+          setTierFlash(true);
+          t(() => setTierFlash(false), 300);
+          setDisplayTier(currentTier);
+          stepDown();
+        }, 800);
+      };
+      t(stepDown, 1200);
+    }, 3600);
+
+    return () => {
+      mountedRef.current = false;
+      allTimers.current.forEach(clearTimeout);
+      allTimers.current = [];
+    };
+  }, [tier]);
 
   const burstParticles = useMemo(() =>
     Array.from({ length: 36 }).map((_, i) => ({
@@ -284,7 +326,26 @@ function CharacterCardReveal({ result, onDone, tier = 0 }: { result: QuizResult;
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.4, duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
                 >
-                  <CharacterSVG type={traderType.code} size={160} tier={tier} />
+                  <div className="relative">
+                    <motion.div
+                      animate={tierFlash ? { opacity: [1, 0.3, 1], scale: [1, 0.92, 1] } : {}}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <CharacterSVG type={traderType.code} size={160} tier={displayTier} />
+                    </motion.div>
+                    <AnimatePresence>
+                      {tierFlash && (
+                        <motion.div
+                          className="absolute inset-0 pointer-events-none"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: [0, 0.6, 0] }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          style={{ background: `radial-gradient(circle, ${primaryColor}50, transparent 70%)`, filter: 'blur(8px)' }}
+                        />
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </motion.div>
 
                 <div className="text-center w-full">
@@ -297,6 +358,21 @@ function CharacterCardReveal({ result, onDone, tier = 0 }: { result: QuizResult;
                   >
                     {traderType.name}
                   </motion.h2>
+
+                  <AnimatePresence mode="wait">
+                    <motion.p
+                      key={displayTier}
+                      className="text-[10px] font-medium mb-1"
+                      style={{ color: displayTier === tier ? 'var(--text-muted)' : 'var(--gold)' }}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      transition={{ duration: 0.25 }}
+                    >
+                      {deEvolving ? `✦ ${tierNames[displayTier]} 形态 ✦` : `当前形态: ${tierNames[displayTier]}`}
+                    </motion.p>
+                  </AnimatePresence>
+
                   <motion.p
                     className="font-tag text-[11px] tracking-widest mb-3"
                     style={{ color: primaryColor }}
@@ -356,23 +432,38 @@ function CharacterCardReveal({ result, onDone, tier = 0 }: { result: QuizResult;
           )}
 
           {ready && (
-            <motion.button
+            <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              onClick={onDone}
-              className="mt-8 px-10 py-3 rounded-xl text-sm font-bold transition-all duration-200"
-              style={{
-                background: primaryColor,
-                color: '#fff',
-                boxShadow: `0 0 20px ${primaryColor}40`,
-              }}
-              whileHover={{ scale: 1.05, boxShadow: `0 0 30px ${primaryColor}60` }}
-              whileTap={{ scale: 0.95 }}
-              data-testid="button-continue-reveal"
+              className="flex flex-col items-center"
             >
-              查看我的交易档案 →
-            </motion.button>
+              {tier < 3 && (
+                <motion.p
+                  className="text-xs text-center mb-3 max-w-[240px] leading-relaxed"
+                  style={{ color: 'var(--text-muted)' }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  每日登录积累经验，解锁更高阶形态
+                </motion.p>
+              )}
+              <motion.button
+                onClick={onDone}
+                className="px-10 py-3 rounded-xl text-sm font-bold transition-all duration-200"
+                style={{
+                  background: primaryColor,
+                  color: '#fff',
+                  boxShadow: `0 0 20px ${primaryColor}40`,
+                }}
+                whileHover={{ scale: 1.05, boxShadow: `0 0 30px ${primaryColor}60` }}
+                whileTap={{ scale: 0.95 }}
+                data-testid="button-continue-reveal"
+              >
+                查看我的交易档案 →
+              </motion.button>
+            </motion.div>
           )}
         </div>
       )}

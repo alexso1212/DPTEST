@@ -41,7 +41,8 @@ Each of the 16 trader types has a unique visual identity including specific colo
 - **TierRoadmap** (`client/src/components/character/TierRoadmap.tsx`): Horizontal 4-tier progression display. Shows unlocked tiers with real CharacterSVG, locked tiers with SilhouettePreview.
 - **CharacterCard** (`client/src/components/CharacterCard.tsx`): Card wrapper around CharacterSVG with radar chart, rank badge, and tier-based visual effects.
 - **Data files**: `client/src/data/characters.ts` (15 character definitions), `client/src/data/tiers.ts` (4 tier definitions).
-- **Database**: `users.tier` integer field (0-3), `PATCH /api/user/tier` endpoint, tier returned via `GET /api/me`.
+- **Database**: `users.tier` integer field (0-3), `users.login_days` (cumulative daily login count), `users.last_login_date` (prevents double-counting same day). Tier auto-upgrades: 7 days→tier 1 (交易者), 21 days→tier 2 (精英), 60 days→tier 3 (职业操盘手). Daily login tracked on `/api/me` and `/api/login`. `GET /api/me` returns `loginDays` and `tierChanged`.
+- **Reveal Animation**: `CharacterCardReveal` shows character at max tier (3) first, then de-evolves back to the user's actual tier with flash effects, creating aspiration to upgrade.
 
 **User Flow:**
 - **New User**: Landing page -> Quiz (no login required) -> Loading -> Result page (animations) -> Login modal -> Home.

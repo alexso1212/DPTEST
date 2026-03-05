@@ -205,9 +205,16 @@ export async function registerRoutes(
         sessionId: req.body.sessionId || "server",
         eventType: "user_login",
       });
-      storage.updateUserProfile(user.id, { lastActiveAt: new Date() });
 
-      res.json({ id: user.id, phone: user.phone });
+      const loginResult = await storage.trackDailyLogin(user.id);
+
+      res.json({
+        id: user.id,
+        phone: user.phone,
+        tier: loginResult.newTier,
+        loginDays: loginResult.loginDays,
+        tierChanged: loginResult.tierChanged,
+      });
     } catch (err) {
       console.error("Login error:", err);
       res.status(500).json({ message: "登录失败，请稍后重试" });
@@ -248,12 +255,15 @@ export async function registerRoutes(
         return res.status(401).json({ message: "用户不存在" });
       }
 
+      const loginResult = await storage.trackDailyLogin(userId);
       const quizResult = await storage.getLatestQuizResult(userId);
 
       res.json({
         id: user.id,
         phone: user.phone,
-        tier: user.tier ?? 0,
+        tier: loginResult.newTier,
+        loginDays: loginResult.loginDays,
+        tierChanged: loginResult.tierChanged,
         hasQuizResult: !!quizResult,
         traderTypeCode: quizResult?.traderTypeCode || null,
         avgScore: quizResult?.avgScore || null,

@@ -12,6 +12,8 @@ export const users = pgTable("users", {
   source: varchar("source", { length: 50 }),
   tags: jsonb("tags"),
   tier: integer("tier").default(0).notNull(),
+  loginDays: integer("login_days").default(0).notNull(),
+  lastLoginDate: varchar("last_login_date", { length: 10 }),
   lastActiveAt: timestamp("last_active_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
