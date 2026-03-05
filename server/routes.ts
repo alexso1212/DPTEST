@@ -99,6 +99,27 @@ async function runHealthMonitor() {
   }
 }
 
+const DEFAULT_CONTACTS = [
+  { name: "默认顾问", url: "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4" },
+  { name: "Deven", url: "https://work.weixin.qq.com/ca/cawcde66939ac2ab81" },
+  { name: "Anna", url: "https://work.weixin.qq.com/ca/cawcde2d7a8f8a7ac3" },
+];
+
+async function seedDefaultContacts() {
+  try {
+    const existing = await storage.getAllSalesContacts();
+    if (existing.length === 0) {
+      console.log("[seed] No sales contacts found, inserting defaults...");
+      for (const c of DEFAULT_CONTACTS) {
+        await storage.createSalesContact(c);
+      }
+      console.log(`[seed] Inserted ${DEFAULT_CONTACTS.length} default contacts`);
+    }
+  } catch (err) {
+    console.error("[seed] Error seeding contacts:", err);
+  }
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -628,6 +649,7 @@ export async function registerRoutes(
     }
   });
 
+  seedDefaultContacts();
   setInterval(runHealthMonitor, HEALTH_MONITOR_INTERVAL);
   setTimeout(runHealthMonitor, 10000);
 
