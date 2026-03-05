@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
 import LiveRoomFloat from "@/components/LiveRoomFloat";
+import WeChatBrowserGuide from "@/components/WeChatBrowserGuide";
 import LandingPage from "@/pages/landing";
 import HomePage from "@/pages/home";
 import QuizPage from "@/pages/quiz";
@@ -187,6 +188,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <TooltipProvider>
+          <WeChatBrowserGuide />
           <Toaster />
           <Router />
           <LiveRoomFloat />
