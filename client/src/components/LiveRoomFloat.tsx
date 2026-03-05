@@ -424,7 +424,7 @@ export default function LiveRoomFloat() {
                 className="font-semibold leading-none text-center"
                 style={{ fontSize: '8px', color: 'var(--text-strong)', lineHeight: '1.3' }}
               >
-                直播间
+                交易直播间
               </span>
             )}
           </div>
