@@ -865,6 +865,31 @@ export async function registerRoutes(
     }
   });
 
+  let liveStatusCache: { isLive: boolean; title: string; checkedAt: number } = { isLive: false, title: "", checkedAt: 0 };
+  const LIVE_CACHE_TTL = 60 * 1000;
+
+  app.get("/api/live-status", async (_req, res) => {
+    try {
+      if (Date.now() - liveStatusCache.checkedAt < LIVE_CACHE_TTL) {
+        return res.json({ isLive: liveStatusCache.isLive, title: liveStatusCache.title });
+      }
+      const response = await fetch("https://api.live.bilibili.com/room/v1/Room/get_info?room_id=1874453448", {
+        headers: { "User-Agent": "Mozilla/5.0" },
+      });
+      if (response.ok) {
+        const data = await response.json() as any;
+        const isLive = data?.data?.live_status === 1;
+        const title = data?.data?.title || "";
+        liveStatusCache = { isLive, title, checkedAt: Date.now() };
+        return res.json({ isLive, title });
+      }
+      res.json({ isLive: false, title: "" });
+    } catch (err) {
+      console.error("[live-status] error:", err);
+      res.json({ isLive: liveStatusCache.isLive, title: liveStatusCache.title });
+    }
+  });
+
   seedDefaultContacts();
   setInterval(runHealthMonitor, HEALTH_MONITOR_INTERVAL);
   setTimeout(runHealthMonitor, 10000);
