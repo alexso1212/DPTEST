@@ -467,5 +467,36 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/wechat-contact/switch", async (req, res) => {
+    const sess = req.session as any;
+    try {
+      if (!sess.blockedContacts) sess.blockedContacts = [];
+      if (sess.assignedContact) {
+        if (!sess.blockedContacts.includes(sess.assignedContact.url)) {
+          sess.blockedContacts.push(sess.assignedContact.url);
+        }
+        console.log(`[wechat-switch] user blocked ${sess.assignedContact.name}, blocked list: ${sess.blockedContacts.length}`);
+        sess.assignedContact = null;
+      }
+      const available = SALES_CONTACTS.filter(c => !sess.blockedContacts.includes(c.url));
+      if (available.length === 0) {
+        sess.blockedContacts = [];
+        const picked = SALES_CONTACTS[salesCounter % SALES_CONTACTS.length];
+        salesCounter++;
+        const contact = { name: picked.name, url: picked.url };
+        sess.assignedContact = contact;
+        return res.json({ ...contact, verified: true, switched: true });
+      }
+      const picked = available[salesCounter % available.length];
+      salesCounter++;
+      const contact = { name: picked.name, url: picked.url };
+      sess.assignedContact = contact;
+      res.json({ ...contact, verified: true, switched: true });
+    } catch (err) {
+      console.error("[wechat-switch] error:", err);
+      res.status(500).json({ message: "切换失败" });
+    }
+  });
+
   return httpServer;
 }

@@ -62,7 +62,7 @@ Each of the 16 trader types has a unique visual identity including specific colo
 - **Database**: PostgreSQL
 - **ORM**: Drizzle ORM
 - **Notifications**: Enterprise WeChat Webhook
-- **Sales Contacts**: Round-robin distribution across 3 enterprise WeChat contacts (默认顾问, Deven, Anna) via `GET /api/wechat-contact` server-side counter
+- **Sales Contacts**: Round-robin distribution across 3 enterprise WeChat contacts (默认顾问, Deven, Anna) via `GET /api/wechat-contact` server-side counter; `POST /api/wechat-contact/switch` allows users to self-service switch to a different consultant with session-level blacklist to avoid re-assignment
 - **Live Room**: B站直播间 `https://live.bilibili.com/1874453448` + 腾讯会议 `https://meeting.tencent.com/p/3621520297`（浮动按钮展开面板双入口）
 - **Font Hosting**: Noto Sans SC, Noto Serif SC, Oswald, Barlow Condensed, Space Mono (implied by usage, likely Google Fonts or self-hosted)
 - **Image Generation**: `html2canvas` (for sharing result cards)

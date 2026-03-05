@@ -1,6 +1,6 @@
 import { useCallback, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Smartphone, ShieldCheck, AlertTriangle, RefreshCw } from "lucide-react";
+import { X, Smartphone, ShieldCheck, AlertTriangle, RefreshCw, ArrowRightLeft } from "lucide-react";
 import { SiWechat } from "react-icons/si";
 import { QRCodeSVG } from "qrcode.react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -22,6 +22,7 @@ interface WeChatContactModalProps {
 export function useSalesContact() {
   const [contact, setContact] = useState<SalesContact | null>(null);
   const [loading, setLoading] = useState(false);
+  const [switching, setSwitching] = useState(false);
 
   const fetchContact = useCallback(async () => {
     setLoading(true);
@@ -38,12 +39,27 @@ export function useSalesContact() {
     return null;
   }, []);
 
-  return { contact, loading, fetchContact };
+  const switchContact = useCallback(async () => {
+    setSwitching(true);
+    try {
+      const res = await fetch("/api/wechat-contact/switch", { method: "POST", credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setContact(data);
+        setSwitching(false);
+        return data as SalesContact;
+      }
+    } catch {}
+    setSwitching(false);
+    return null;
+  }, []);
+
+  return { contact, loading, switching, fetchContact, switchContact };
 }
 
 export function useWeChatContact(onBeforeOpen?: () => void) {
   const isMobile = useIsMobile();
-  const { contact, loading, fetchContact } = useSalesContact();
+  const { contact, loading, switching, fetchContact, switchContact } = useSalesContact();
   const [checking, setChecking] = useState(false);
 
   const handleContact = useCallback(async () => {
@@ -58,7 +74,18 @@ export function useWeChatContact(onBeforeOpen?: () => void) {
     return false;
   }, [isMobile, onBeforeOpen, fetchContact]);
 
-  return { isMobile, handleContact, contact, fetchContact, checking, loading, WECHAT_CONTACT: contact?.url || FALLBACK_URL };
+  const handleSwitch = useCallback(async () => {
+    setChecking(true);
+    const c = await switchContact();
+    setChecking(false);
+    if (isMobile && c) {
+      window.open(c.url, "_blank");
+      return true;
+    }
+    return false;
+  }, [isMobile, switchContact]);
+
+  return { isMobile, handleContact, handleSwitch, contact, fetchContact, switchContact, checking, loading, switching, WECHAT_CONTACT: contact?.url || FALLBACK_URL };
 }
 
 function VerifyingOverlay() {
@@ -136,6 +163,7 @@ export { VerifyingOverlay };
 export default function WeChatContactModal({ open, onClose }: WeChatContactModalProps) {
   const [contact, setContact] = useState<SalesContact | null>(null);
   const [loading, setLoading] = useState(false);
+  const [switching, setSwitching] = useState(false);
 
   const doFetch = useCallback(() => {
     setLoading(true);
@@ -144,6 +172,14 @@ export default function WeChatContactModal({ open, onClose }: WeChatContactModal
       .then(r => r.ok ? r.json() : null)
       .then(data => { if (data) setContact(data); setLoading(false); })
       .catch(() => { setLoading(false); });
+  }, []);
+
+  const doSwitch = useCallback(() => {
+    setSwitching(true);
+    fetch("/api/wechat-contact/switch", { method: "POST", credentials: "include" })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setContact(data); setSwitching(false); })
+      .catch(() => { setSwitching(false); });
   }, []);
 
   useEffect(() => {
@@ -290,6 +326,19 @@ export default function WeChatContactModal({ open, onClose }: WeChatContactModal
                   <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
                     无法跳转？请用手机微信扫描上方二维码
                   </span>
+                </div>
+
+                <div className="mt-4 pt-3 flex justify-center" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <button
+                    onClick={doSwitch}
+                    disabled={switching}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs transition-colors"
+                    style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--text-muted)', border: '1px solid rgba(255,255,255,0.08)' }}
+                    data-testid="button-switch-contact"
+                  >
+                    <ArrowRightLeft className={`w-3 h-3 ${switching ? 'animate-spin' : ''}`} />
+                    {switching ? '正在切换...' : '无法添加？换一个顾问'}
+                  </button>
                 </div>
               </>
             )}
