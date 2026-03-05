@@ -60,7 +60,7 @@ async function checkContactAlive(url: string, skipCache = false): Promise<boolea
 async function getAliveContacts(): Promise<{ contacts: { name: string; url: string }[]; allDead: boolean }> {
   const allContacts = await storage.getEnabledSalesContacts();
   if (allContacts.length === 0) {
-    return { contacts: [{ name: "默认顾问", url: "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4" }], allDead: true };
+    return { contacts: [{ name: "Deven", url: "https://work.weixin.qq.com/ca/cawcde66939ac2ab81" }], allDead: true };
   }
   const results = await Promise.all(
     allContacts.map(async (c) => ({
@@ -526,7 +526,7 @@ export async function registerRoutes(
     } catch (err) {
       console.error("[wechat-contact] error:", err);
       const allContacts = await storage.getEnabledSalesContacts();
-      const fallback = allContacts[0] || { name: "默认顾问", url: "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4" };
+      const fallback = allContacts[0] || { name: "Deven", url: "https://work.weixin.qq.com/ca/cawcde66939ac2ab81" };
       salesCounter++;
       sess.assignedContact = { name: fallback.name, url: fallback.url };
       res.json({ ...sess.assignedContact, verified: false });
@@ -548,7 +548,7 @@ export async function registerRoutes(
       const available = allContacts.filter(c => !sess.blockedContacts.includes(c.url));
       if (available.length === 0) {
         sess.blockedContacts = [];
-        const picked = allContacts[salesCounter % allContacts.length] || { name: "默认顾问", url: "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4" };
+        const picked = allContacts[salesCounter % allContacts.length] || { name: "Deven", url: "https://work.weixin.qq.com/ca/cawcde66939ac2ab81" };
         salesCounter++;
         const contact = { name: picked.name, url: picked.url };
         sess.assignedContact = contact;

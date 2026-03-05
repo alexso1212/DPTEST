@@ -5,7 +5,7 @@ import { SiWechat } from "react-icons/si";
 import { QRCodeSVG } from "qrcode.react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const FALLBACK_URL = "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4";
+const FALLBACK_URL = "https://work.weixin.qq.com/ca/cawcde66939ac2ab81";
 
 interface SalesContact {
   name: string;

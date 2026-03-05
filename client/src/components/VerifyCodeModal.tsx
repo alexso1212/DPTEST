@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Check, ExternalLink, X, Smartphone } from "lucide-react";
+import { Copy, Check, ExternalLink, X, Smartphone, ArrowRightLeft } from "lucide-react";
 import { SiWechat } from "react-icons/si";
 import { QRCodeSVG } from "qrcode.react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const FALLBACK_URL = "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4";
+const FALLBACK_URL = "https://work.weixin.qq.com/ca/cawcde66939ac2ab81";
 
 interface VerifyCodeModalProps {
   open: boolean;
@@ -19,6 +19,7 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
   const isMobile = useIsMobile();
   const [contactUrl, setContactUrl] = useState(FALLBACK_URL);
   const [contactName, setContactName] = useState("");
+  const [switching, setSwitching] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -33,6 +34,21 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
         .catch(() => {});
     }
   }, [open]);
+
+  const handleSwitch = useCallback(async () => {
+    setSwitching(true);
+    try {
+      const res = await fetch("/api/wechat-contact/switch", { method: "POST", credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data) {
+          setContactUrl(data.url);
+          setContactName(data.name);
+        }
+      }
+    } catch {}
+    setSwitching(false);
+  }, []);
 
   const copyCode = () => {
     try {
@@ -233,6 +249,19 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
                 验证码已复制到剪贴板
               </motion.p>
             )}
+
+            <div className="mt-4 pt-3 flex justify-center" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <button
+                onClick={handleSwitch}
+                disabled={switching}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs transition-colors"
+                style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--text-muted)', border: '1px solid rgba(255,255,255,0.08)' }}
+                data-testid="button-switch-contact-verify"
+              >
+                <ArrowRightLeft className={`w-3 h-3 ${switching ? 'animate-spin' : ''}`} />
+                {switching ? '正在切换...' : '无法添加？换一个顾问'}
+              </button>
+            </div>
           </motion.div>
         </motion.div>
       )}
