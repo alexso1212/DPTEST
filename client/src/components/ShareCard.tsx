@@ -1,9 +1,10 @@
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState } from "react";
 import type { QuizResult } from "@/utils/calculateResult";
 import { dimensionLabels, type Dimension } from "@/data/questions";
 import CharacterSVG from "@/components/character/CharacterSVG";
-import { Camera } from "lucide-react";
-import { motion } from "framer-motion";
+import { Camera, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 interface ShareCardProps {
   result: QuizResult;
@@ -16,9 +17,13 @@ export default function ShareCard({ result }: ShareCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const { traderType, rank } = result;
   const cc = traderType.cardColors;
+  const { toast } = useToast();
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
 
   const handleSave = useCallback(async () => {
     if (!cardRef.current) return;
+    setGenerating(true);
     try {
       const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(cardRef.current, {
@@ -26,14 +31,26 @@ export default function ShareCard({ result }: ShareCardProps) {
         scale: 2,
         useCORS: true,
       });
-      const link = document.createElement("a");
-      link.download = `交易员评测-${traderType.name}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
+      const dataUrl = canvas.toDataURL("image/png");
+
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+      if (isMobile) {
+        setGeneratedImage(dataUrl);
+      } else {
+        const link = document.createElement("a");
+        link.download = `交易员评测-${traderType.name}.png`;
+        link.href = dataUrl;
+        link.click();
+        toast({ title: "图片已下载" });
+      }
     } catch (err) {
       console.error("Failed to generate image:", err);
+      toast({ title: "生成图片失败，请重试", variant: "destructive" });
+    } finally {
+      setGenerating(false);
     }
-  }, [result]);
+  }, [result, toast, traderType.name]);
 
   const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
   const sorted = [...dims].sort((a, b) => result.normalizedScores[b] - result.normalizedScores[a]);
@@ -133,6 +150,7 @@ export default function ShareCard({ result }: ShareCardProps) {
 
       <motion.button
         onClick={handleSave}
+        disabled={generating}
         whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
         className="w-full mt-3 py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200"
@@ -140,12 +158,67 @@ export default function ShareCard({ result }: ShareCardProps) {
           background: 'transparent',
           border: '1px solid var(--gold)',
           color: 'var(--gold)',
+          opacity: generating ? 0.6 : 1,
         }}
         data-testid="button-download-card"
       >
-        <Camera className="w-4 h-4" />
-        保存到相册
+        {generating ? (
+          <>
+            <div className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--gold)', borderTopColor: 'transparent' }} />
+            生成中...
+          </>
+        ) : (
+          <>
+            <Camera className="w-4 h-4" />
+            保存到相册
+          </>
+        )}
       </motion.button>
+
+      <AnimatePresence>
+        {generatedImage && (
+          <motion.div
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ background: 'rgba(0,0,0,0.92)' }}
+            onClick={() => setGeneratedImage(null)}
+          >
+            <motion.button
+              onClick={() => setGeneratedImage(null)}
+              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.1)', color: '#94A3B8' }}
+              whileTap={{ scale: 0.9 }}
+              data-testid="button-close-image-modal"
+            >
+              <X className="w-5 h-5" />
+            </motion.button>
+
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="flex flex-col items-center gap-4 max-w-sm w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="text-sm font-medium text-center" style={{ color: 'var(--gold)' }}>
+                长按图片保存到相册
+              </p>
+              <img
+                src={generatedImage}
+                alt="交易员卡片"
+                className="w-full rounded-2xl"
+                style={{ boxShadow: '0 0 40px rgba(0,0,0,0.5)' }}
+                data-testid="img-generated-card"
+              />
+              <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
+                长按上方图片 → 保存图片
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

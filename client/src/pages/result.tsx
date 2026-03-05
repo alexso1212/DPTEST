@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { SiWechat } from "react-icons/si";
-import { Lock, Camera, Home, X, UserPlus, LogIn } from "lucide-react";
+import { Camera, Home, X, UserPlus, LogIn } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import RadarChartComponent from "@/components/RadarChart";
 import ShareCard from "@/components/ShareCard";
@@ -586,7 +586,7 @@ export default function ResultPage({ result }: ResultPageProps) {
               </h3>
               <RadarChartComponent scores={normalizedScores} hideScores />
               <p className="text-xs text-center mt-3" style={{ color: 'var(--text-muted)' }}>
-                具体分数和详细分析在完整报告中
+                向下滑动查看六维详细分析
               </p>
             </motion.div>
 
@@ -626,57 +626,54 @@ export default function ResultPage({ result }: ResultPageProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, ...ease }}
-              className="rounded-2xl p-6 relative overflow-hidden"
+              className="rounded-2xl p-6"
               style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
             >
-              <div className="relative" style={{ filter: 'blur(8px)', pointerEvents: 'none', userSelect: 'none' }}>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>📊 六维详细分数</span>
-                </div>
-                <div className="space-y-2">
-                  {sortedDims.map((dim, i) => (
-                    <div key={dim} className="flex items-center gap-2">
-                      <span className="text-xs w-16" style={{ color: 'var(--text-muted)' }}>{dimensionLabels[dim]}</span>
-                      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-                        <div className="h-full rounded-full" style={{ width: `${normalizedScores[dim]}%`, background: i === 0 ? (cc?.primary || c1) : 'var(--info)' }} />
+              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-strong)' }}>
+                📊 六维详细分数
+              </h3>
+              <div className="space-y-3">
+                {sortedDims.map((dim, i) => (
+                  <div key={dim}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{dimensionLabels[dim]}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-num font-bold" style={{ color: 'var(--text-strong)' }}>{normalizedScores[dim]}</span>
+                        {i === 0 && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: `${cc?.primary || c1}20`, color: cc?.primary || c1 }}>最强</span>}
+                        {i === sortedDims.length - 1 && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(var(--info-rgb), 0.15)', color: 'var(--info)' }}>突破口</span>}
                       </div>
-                      <span className="text-xs font-num w-6 text-right" style={{ color: 'var(--text-strong)' }}>{normalizedScores[dim]}</span>
                     </div>
-                  ))}
-                </div>
-
-                <div className="mt-4">
-                  <span className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>💪 你的核心优势</span>
-                  <div className="mt-2 space-y-1">
-                    <div className="h-3 rounded" style={{ background: 'rgba(var(--success-rgb), 0.2)' }} />
-                    <div className="h-3 rounded w-4/5" style={{ background: 'rgba(var(--success-rgb), 0.2)' }} />
+                    <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+                      <motion.div
+                        className="h-full rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${normalizedScores[dim]}%` }}
+                        transition={{ delay: 0.45 + i * 0.06, duration: 0.5, ease: "easeOut" }}
+                        style={{ background: i === 0 ? (cc?.primary || c1) : i === sortedDims.length - 1 ? 'var(--info)' : 'var(--text-muted)' }}
+                      />
+                    </div>
                   </div>
-                </div>
-
-                <div className="mt-4">
-                  <span className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>⚠️ 你的致命盲区</span>
-                  <div className="mt-2 space-y-1">
-                    <div className="h-3 rounded" style={{ background: 'rgba(var(--warning-rgb), 0.2)' }} />
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <span className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>💡 个性化提升路径</span>
-                  <div className="mt-2 space-y-1">
-                    <div className="h-3 rounded" style={{ background: 'rgba(var(--info-rgb), 0.2)' }} />
-                    <div className="h-3 rounded w-3/4" style={{ background: 'rgba(var(--info-rgb), 0.2)' }} />
-                  </div>
-                </div>
+                ))}
               </div>
+            </motion.div>
 
-              <div
-                className="absolute inset-0 flex items-center justify-center"
-                style={{ background: 'rgba(var(--bg-0-rgb), 0.4)' }}
-              >
-                <div className="text-center">
-                  <Lock className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--gold)' }} />
-                  <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>添加顾问解锁完整报告</p>
-                </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.46, ...ease }}
+              className="rounded-2xl p-6"
+              style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
+            >
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--text-strong)' }}>
+                💪 你的核心优势
+              </h3>
+              <div className="space-y-2">
+                {traderType.strengths.map((s, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm" style={{ color: 'var(--text)' }}>
+                    <span style={{ color: 'var(--success)' }} className="mt-0.5 flex-shrink-0">✓</span>
+                    <span>{s}</span>
+                  </div>
+                ))}
               </div>
             </motion.div>
 
@@ -687,34 +684,51 @@ export default function ResultPage({ result }: ResultPageProps) {
               className="rounded-2xl p-6"
               style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
             >
-              <h3 className="text-xl font-heading font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-strong)' }}>
-                🔓 解锁你的完整交易能力诊断
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--text-strong)' }}>
+                ⚠️ 致命盲区
               </h3>
-
-              <div className="space-y-2 mb-5">
-                {[
-                  "六维详细分数 + 维度排名",
-                  "你的核心优势和致命盲区",
-                  "个性化提升路径",
-                  "免费实盘直播间观摩入口",
-                ].map((item) => (
-                  <div key={item} className="flex items-center gap-2 text-sm" style={{ color: 'var(--text)' }}>
-                    <span style={{ color: 'var(--success)' }}>✓</span>
-                    {item}
+              <div className="space-y-2">
+                {traderType.blindSpots.map((b, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm" style={{ color: 'var(--text)' }}>
+                    <span style={{ color: 'var(--warning)' }} className="mt-0.5 flex-shrink-0">!</span>
+                    <span>{b}</span>
                   </div>
                 ))}
               </div>
+            </motion.div>
 
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.54, ...ease }}
+              className="rounded-2xl p-6"
+              style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
+            >
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--text-strong)' }}>
+                💡 个性化提升路径
+              </h3>
+              <p className="text-sm leading-[1.8]" style={{ color: 'var(--text)' }}>
+                {traderType.advice}
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.58, ...ease }}
+              className="rounded-2xl p-6"
+              style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
+            >
               <motion.button
                 onClick={handleContactWeChat}
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full py-3.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 mb-4 transition-all duration-200"
+                className="w-full py-3.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 mb-3 transition-all duration-200"
                 style={{ background: '#07C160' }}
                 data-testid="button-wechat-contact"
               >
                 <SiWechat className="w-5 h-5" />
-                添加专属顾问，30秒发送完整报告
+                添加专属顾问，免费一对一指导
               </motion.button>
 
               <p className="text-xs italic text-center leading-relaxed" style={{ color: 'var(--text-muted)' }}>
@@ -771,11 +785,11 @@ export default function ResultPage({ result }: ResultPageProps) {
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 text-white transition-all duration-200"
-                style={{ background: 'var(--primary)' }}
-                data-testid="button-unlock-report"
+                style={{ background: '#07C160' }}
+                data-testid="button-contact-wechat"
               >
-                <Lock className="w-4 h-4" />
-                领取报告
+                <SiWechat className="w-4 h-4" />
+                联系顾问
               </motion.button>
             </div>
           </div>
