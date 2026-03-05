@@ -284,7 +284,7 @@ function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: (
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.4, duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
                 >
-                  <CharacterSVG type={traderType.code} size={160} />
+                  <CharacterSVG type={traderType.code} size={160} tier={user?.tier ?? 0} />
                 </motion.div>
 
                 <div className="text-center w-full">
@@ -813,7 +813,7 @@ export default function ResultPage({ result }: ResultPageProps) {
                   className="max-w-sm w-full max-h-[85vh] overflow-y-auto"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <ShareCard result={result} />
+                  <ShareCard result={result} tier={user?.tier ?? 0} />
                   <motion.button
                     onClick={() => setShowShareModal(false)}
                     whileTap={{ scale: 0.98 }}

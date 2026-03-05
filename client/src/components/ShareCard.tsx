@@ -8,12 +8,13 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ShareCardProps {
   result: QuizResult;
+  tier?: number;
 }
 
 const dimLabels = ["认知", "风控", "心理", "适应", "执行", "系统"];
 const dimKeys: Dimension[] = ['EDGE', 'RISK', 'MENTAL', 'ADAPT', 'EXEC', 'SYSTEM'];
 
-export default function ShareCard({ result }: ShareCardProps) {
+export default function ShareCard({ result, tier = 0 }: ShareCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const { traderType, rank } = result;
   const cc = traderType.cardColors;
@@ -91,7 +92,7 @@ export default function ShareCard({ result }: ShareCardProps) {
             transform: "translate(-50%,-50%)",
             background: `radial-gradient(circle, ${cc.primary}33 0%, transparent 70%)`,
           }} />
-          <CharacterSVG type={traderType.code} size={180} />
+          <CharacterSVG type={traderType.code} size={180} tier={tier} />
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0 28px" }}>

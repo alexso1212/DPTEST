@@ -36,6 +36,7 @@ interface ReportData {
   avgScore: number;
   rankName: string;
   createdAt: string;
+  tier: number;
 }
 
 export default function ReportPage() {
@@ -89,7 +90,7 @@ export default function ReportPage() {
   const rank = rankTiers.find(r => r.name === data.rankName) || rankTiers[rankTiers.length - 1];
   const scores = data.scores as Record<Dimension, number>;
 
-  return <ReportContent traderType={traderType} rank={rank} scores={scores} avgScore={data.avgScore} />;
+  return <ReportContent traderType={traderType} rank={rank} scores={scores} avgScore={data.avgScore} tier={data.tier ?? 0} />;
 }
 
 function ReportContent({
@@ -97,11 +98,13 @@ function ReportContent({
   rank,
   scores,
   avgScore,
+  tier,
 }: {
   traderType: (typeof traderTypes)[string];
   rank: (typeof rankTiers)[number];
   scores: Record<Dimension, number>;
   avgScore: number;
+  tier: number;
 }) {
   const [c1, c2] = traderType?.colors ?? ['#C9A456', '#94A3B8'];
   const cc = traderType?.cardColors;
@@ -227,7 +230,7 @@ function ReportContent({
               animate={{ opacity: [0.5, 0.9, 0.5], scale: [0.95, 1.05, 0.95] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             />
-            <CharacterSVG type={traderType.code} size={180} />
+            <CharacterSVG type={traderType.code} size={180} tier={tier} />
           </motion.div>
           <div className="flex items-center gap-2 justify-center mb-2">
             <div className="flex-1 h-[1px] max-w-[60px]" style={{ background: `linear-gradient(to right, transparent, var(--gold))` }} />

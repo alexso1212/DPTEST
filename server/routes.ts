@@ -377,12 +377,14 @@ export async function registerRoutes(
         eventData: { token, traderTypeCode: result.traderTypeCode },
       });
 
+      const user = await storage.getUser(result.userId);
       res.json({
         scores: result.scores,
         traderTypeCode: result.traderTypeCode,
         avgScore: result.avgScore,
         rankName: result.rankName,
         createdAt: result.createdAt,
+        tier: user?.tier ?? 0,
       });
     } catch (err) {
       console.error("Get report error:", err);
