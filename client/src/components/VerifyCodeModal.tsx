@@ -254,8 +254,8 @@ export default function VerifyCodeModal({ open, onClose, verifyCode, onProceed }
               <button
                 onClick={handleSwitch}
                 disabled={switching}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs transition-colors"
-                style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--text-muted)', border: '1px solid rgba(255,255,255,0.08)' }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-colors"
+                style={{ background: 'rgba(var(--gold-rgb), 0.1)', color: 'var(--gold)', border: '1px solid rgba(var(--gold-rgb), 0.3)' }}
                 data-testid="button-switch-contact-verify"
               >
                 <ArrowRightLeft className={`w-3 h-3 ${switching ? 'animate-spin' : ''}`} />
