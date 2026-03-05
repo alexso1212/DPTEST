@@ -34,7 +34,8 @@ The design adheres to a permanent "Institutional Dark" theme (v2) inspired by Bl
 
 **Trader Visual System (4-Tier Evolution):**
 Each of the 16 trader types has a unique visual identity including specific color palettes, Albion-style SVG character illustrations with 4-tier evolution (学徒→交易者→精英→职业操盘手), abstract animated icons, and rank badges.
-- **CharacterSVG** (`client/src/components/character/CharacterSVG.tsx`): The single source of truth for all character rendering. Accepts `type`, `size`, `tier` props. Renders 15 unique weapons, 5 mount types (Dragon/Wolf/Hawk/Serpent/Steed), wings, armor, aura, and burst effects based on tier level.
+- **CharacterSVG** (`client/src/components/character/CharacterSVG.tsx`): The single source of truth for all character rendering. Accepts `type`, `size`, `tier`, `animated` props. Renders 15 unique weapons, 5 mount types (Dragon/Wolf/Hawk/Serpent/Steed), wings, armor, aura, and burst effects based on tier level. When `animated=true`, adds SMIL animations for arm swings, weapon wobble, and head tilt.
+- **AnimatedCharacter** (`client/src/components/character/AnimatedCharacter.tsx`): Wraps CharacterSVG with Framer Motion floating animation (large Y-axis movement, breathing glow, dynamic shadow). Used on home page.
 - **SilhouettePreview** (`client/src/components/character/SilhouettePreview.tsx`): Renders a locked/black silhouette of CharacterSVG using CSS filters. Used for unachieved tiers.
 - **TierRoadmap** (`client/src/components/character/TierRoadmap.tsx`): Horizontal 4-tier progression display. Shows unlocked tiers with real CharacterSVG, locked tiers with SilhouettePreview.
 - **CharacterCard** (`client/src/components/CharacterCard.tsx`): Card wrapper around CharacterSVG with radar chart, rank badge, and tier-based visual effects.

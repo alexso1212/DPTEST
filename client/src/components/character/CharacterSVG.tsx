@@ -701,9 +701,10 @@ interface CharacterSVGProps {
   type: string;
   size: number;
   tier?: number;
+  animated?: boolean;
 }
 
-export default function CharacterSVG({ type, size, tier = 0 }: CharacterSVGProps) {
+export default function CharacterSVG({ type, size, tier = 0, animated = false }: CharacterSVGProps) {
   const char = CHARACTERS[type];
   if (!char) return null;
   const { primary: p, accent: a, dark: dk } = char.colors;
@@ -721,6 +722,11 @@ export default function CharacterSVG({ type, size, tier = 0 }: CharacterSVGProps
   const weaponHandX = rightPose === "up" ? rhx : relx + [12, 16, 20, 26][tier];
   const weaponHandY = rightPose === "up" ? rhy : [148, 145, 142, 138][tier];
 
+  const rightArmPivotX = rsx;
+  const rightArmPivotY = 110;
+  const leftArmPivotX = 100 - [28, 30, 34, 38][tier];
+  const leftArmPivotY = 110;
+
   return (
     <svg viewBox="-30 -60 260 360" width={size} height={size * 1.38}>
       <Aura tier={tier} color={p} />
@@ -729,15 +735,67 @@ export default function CharacterSVG({ type, size, tier = 0 }: CharacterSVGProps
       <Armor tier={tier} c1={a} c2={p} />
       <Body tier={tier} primary={p} accent={a} dark={dk} />
       <Shoulders tier={tier} accent={a} dark={dk} />
-      <Arm tier={tier} dir={-1} pose={leftPose} accent={a} dark={dk} />
-      <Arm tier={tier} dir={1} pose={rightPose} accent={a} dark={dk} />
-      <Head
-        tier={tier}
-        primary={p}
-        accent={a}
-        eyeColor={type === "ER" && tier >= 3 ? "#C9A456" : type === "RM" ? "#C0392B" : type === "RE" ? "#FF8A5C" : undefined}
-      />
-      {WeaponFn && <WeaponFn tier={tier} handX={weaponHandX} handY={weaponHandY} c1={a} c2={p} />}
+
+      {animated ? (
+        <g>
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            values={`0 ${leftArmPivotX} ${leftArmPivotY}; 6 ${leftArmPivotX} ${leftArmPivotY}; 0 ${leftArmPivotX} ${leftArmPivotY}; -4 ${leftArmPivotX} ${leftArmPivotY}; 0 ${leftArmPivotX} ${leftArmPivotY}`}
+            dur="4s"
+            repeatCount="indefinite"
+          />
+          <Arm tier={tier} dir={-1} pose={leftPose} accent={a} dark={dk} />
+        </g>
+      ) : (
+        <Arm tier={tier} dir={-1} pose={leftPose} accent={a} dark={dk} />
+      )}
+
+      {animated ? (
+        <g>
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            values={`0 ${rightArmPivotX} ${rightArmPivotY}; -8 ${rightArmPivotX} ${rightArmPivotY}; 0 ${rightArmPivotX} ${rightArmPivotY}; 5 ${rightArmPivotX} ${rightArmPivotY}; 0 ${rightArmPivotX} ${rightArmPivotY}`}
+            dur="3.5s"
+            repeatCount="indefinite"
+          />
+          <Arm tier={tier} dir={1} pose={rightPose} accent={a} dark={dk} />
+          {WeaponFn && <WeaponFn tier={tier} handX={weaponHandX} handY={weaponHandY} c1={a} c2={p} />}
+        </g>
+      ) : (
+        <>
+          <Arm tier={tier} dir={1} pose={rightPose} accent={a} dark={dk} />
+          {WeaponFn && <WeaponFn tier={tier} handX={weaponHandX} handY={weaponHandY} c1={a} c2={p} />}
+        </>
+      )}
+
+      {animated ? (
+        <g>
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            values="0 100 60; -2 100 60; 0 100 60; 2 100 60; 0 100 60"
+            dur="5s"
+            repeatCount="indefinite"
+          />
+          <Head
+            tier={tier}
+            primary={p}
+            accent={a}
+            eyeColor={type === "ER" && tier >= 3 ? "#C9A456" : type === "RM" ? "#C0392B" : type === "RE" ? "#FF8A5C" : undefined}
+          />
+        </g>
+      ) : (
+        <Head
+          tier={tier}
+          primary={p}
+          accent={a}
+          eyeColor={type === "ER" && tier >= 3 ? "#C9A456" : type === "RM" ? "#C0392B" : type === "RE" ? "#FF8A5C" : undefined}
+        />
+      )}
+
+      {!animated && WeaponFn && null}
       {type === "RS" && WeaponRS({ tier, handX: 0, handY: 0, c1: a, c2: "#A0785A" })}
       {type === "SM" && WeaponSM({ tier, handX: 0, handY: 0, c1: a, c2: p })}
       {type === "RE" && WeaponRE({ tier, handX: 0, handY: 0, c1: "#E8622E", c2: "#FF8A5C" })}

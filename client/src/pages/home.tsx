@@ -7,6 +7,7 @@ import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLin
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
 import CharacterSVG from "@/components/character/CharacterSVG";
+import AnimatedCharacter from "@/components/character/AnimatedCharacter";
 import TierRoadmap from "@/components/character/TierRoadmap";
 import RankBadge from "@/components/RankBadge";
 import { usePageView, useTracking } from "@/hooks/use-tracking";
@@ -200,15 +201,15 @@ export default function HomePage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ ...ease, delay: 0.1 }}
-              className="flex justify-center relative"
+              className="flex justify-center"
               style={{ marginBottom: '-16px', marginTop: '-4px' }}
             >
-              <div style={{
-                position: "absolute", width: "120px", height: "120px", borderRadius: "50%", top: "50%", left: "50%",
-                transform: "translate(-50%,-50%)",
-                background: `radial-gradient(circle, ${cc.primary}28 0%, transparent 70%)`,
-              }} />
-              <CharacterSVG type={quizResult.traderTypeCode} size={155} tier={user?.tier ?? 0} />
+              <AnimatedCharacter
+                type={quizResult.traderTypeCode}
+                size={155}
+                tier={user?.tier ?? 0}
+                glowColor={`${cc.primary}28`}
+              />
             </motion.div>
 
             <motion.div

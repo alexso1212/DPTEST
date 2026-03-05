@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, PanInfo } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useSpring, PanInfo } from "framer-motion";
 import { Radio, ExternalLink, X, Video, Calendar } from "lucide-react";
 import { SiBilibili } from "react-icons/si";
 import { useLocation } from "wouter";
@@ -64,200 +64,62 @@ function ScheduleSection() {
   );
 }
 
-function FloatButton({ isLive, open, wobble }: { isLive: boolean; open: boolean; wobble: any }) {
-  const accentColor = isLive ? 'rgba(239,68,68,' : 'rgba(56,189,248,';
-  const iconColor = isLive ? '#EF4444' : 'var(--info)';
-
-  return (
-    <motion.div
-      animate={open ? {} : { y: [0, -4, 0, 3, 0] }}
-      transition={open ? {} : { duration: 4, repeat: Infinity, ease: "easeInOut" }}
-    >
-      <motion.div
-        whileTap={{ scale: 0.9 }}
-        className="flex flex-col items-center justify-center rounded-xl relative cursor-grab active:cursor-grabbing select-none"
-        style={{
-          width: 44,
-          height: 52,
-          padding: '6px 4px',
-          background: isLive
-            ? (open ? 'rgba(239,68,68,0.2)' : 'linear-gradient(180deg, rgba(239,68,68,0.18), rgba(239,68,68,0.06))')
-            : (open ? 'rgba(56,189,248,0.15)' : 'linear-gradient(180deg, rgba(56,189,248,0.12), rgba(56,189,248,0.04))'),
-          border: `1px solid ${accentColor}${isLive ? '0.35)' : '0.2)'}`,
-          rotate: wobble,
-        }}
-        data-testid="button-float-trigger"
-      >
-        <motion.div
-          className="absolute -inset-1 rounded-xl pointer-events-none"
-          style={{ filter: 'blur(8px)' }}
-          animate={{
-            boxShadow: isLive
-              ? [
-                  '0 4px 16px rgba(0,0,0,0.3), 0 0 8px rgba(239,68,68,0.1)',
-                  '0 6px 24px rgba(0,0,0,0.35), 0 0 18px rgba(239,68,68,0.25)',
-                  '0 4px 16px rgba(0,0,0,0.3), 0 0 8px rgba(239,68,68,0.1)',
-                ]
-              : [
-                  '0 4px 16px rgba(0,0,0,0.3), 0 0 6px rgba(56,189,248,0.06)',
-                  '0 6px 24px rgba(0,0,0,0.35), 0 0 14px rgba(56,189,248,0.15)',
-                  '0 4px 16px rgba(0,0,0,0.3), 0 0 6px rgba(56,189,248,0.06)',
-                ],
-            opacity: open ? 0 : [0.6, 1, 0.6],
-          }}
-          transition={{ duration: isLive ? 2 : 3.5, repeat: Infinity, ease: "easeInOut" }}
-        />
-
-        {isLive ? (
-          <>
-            <motion.div
-              className="absolute inset-0 rounded-xl pointer-events-none"
-              style={{ border: `1.5px solid ${accentColor}0.4)` }}
-              animate={{ scale: [1, 1.12, 1], opacity: [0.7, 0.15, 0.7] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-            />
-            <motion.div
-              className="absolute inset-0 rounded-xl pointer-events-none"
-              style={{ background: `radial-gradient(circle at center, ${accentColor}0.1) 0%, transparent 70%)` }}
-              animate={{ opacity: [0.3, 0.7, 0.3] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </>
-        ) : (
-          <motion.div
-            className="absolute inset-0 rounded-xl pointer-events-none"
-            style={{ background: `radial-gradient(circle at 50% 40%, ${accentColor}0.1) 0%, transparent 70%)` }}
-            animate={{ opacity: open ? 0 : [0.2, 0.55, 0.2] }}
-            transition={{ duration: 3.5, repeat: open ? 0 : Infinity, ease: "easeInOut" }}
-          />
-        )}
-
-        <div className="relative flex flex-col items-center gap-0.5">
-          {isLive ? (
-            <motion.div
-              animate={{
-                scale: [1, 1.25, 1],
-                rotate: [0, 8, -8, 0],
-              }}
-              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Radio className="w-4.5 h-4.5" style={{ color: iconColor }} />
-            </motion.div>
-          ) : (
-            <motion.div
-              animate={{ scale: [1, 1.06, 1] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Radio className="w-4 h-4" style={{ color: iconColor }} />
-            </motion.div>
-          )}
-
-          {isLive ? (
-            <motion.span
-              className="font-bold tracking-wider leading-none"
-              style={{ fontSize: '8px', color: '#EF4444' }}
-              animate={{ opacity: [1, 0.5, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
-            >
-              LIVE
-            </motion.span>
-          ) : (
-            <span
-              className="font-semibold leading-none text-center"
-              style={{ fontSize: '8px', color: 'var(--text-strong)', lineHeight: '1.3' }}
-            >
-              直播间
-            </span>
-          )}
-        </div>
-
-        {isLive && (
-          <motion.div
-            className="absolute -top-1.5 -right-1.5 rounded-full"
-            style={{
-              width: 8,
-              height: 8,
-              background: '#EF4444',
-            }}
-            animate={{
-              scale: [1, 1.3, 1],
-              opacity: [1, 0.5, 1],
-              boxShadow: [
-                '0 0 4px rgba(239,68,68,0.4)',
-                '0 0 12px rgba(239,68,68,0.8)',
-                '0 0 4px rgba(239,68,68,0.4)',
-              ],
-            }}
-            transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
-          />
-        )}
-
-        {!isLive && !open && (
-          <motion.div
-            className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full"
-            style={{ background: 'var(--success)' }}
-            animate={{ opacity: [1, 0.4, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-        )}
-      </motion.div>
-    </motion.div>
-  );
-}
-
 export default function LiveRoomFloat() {
-  const [open, setOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [location] = useLocation();
   const isMobile = useIsMobile();
   const { trackEvent } = useTracking();
   const { isLive, title } = useLiveStatus();
   const containerRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
 
   const y = useMotionValue(0);
   const springY = useSpring(y, { stiffness: 300, damping: 25, mass: 0.8 });
 
-  const wobble = useTransform(springY, (v) => {
-    const delta = v - y.get();
-    return delta * 0.15;
-  });
-
   useEffect(() => {
-    if (!open) return;
+    if (!panelOpen) return;
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
+        setPanelOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
+  }, [panelOpen]);
 
   useEffect(() => {
-    setOpen(false);
+    setPanelOpen(false);
   }, [location]);
 
   const handleDragEnd = useCallback((_: any, info: PanInfo) => {
-    setTimeout(() => { isDragging.current = false; }, 50);
-
+    if (info.offset.x < -30) {
+      setCollapsed(true);
+      setPanelOpen(false);
+      return;
+    }
+    if (collapsed && info.offset.x > 20) {
+      setCollapsed(false);
+      return;
+    }
     const el = containerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const viewH = window.innerHeight;
     const margin = isMobile ? 80 : 60;
-
     if (rect.top < margin) {
       y.set(y.get() - (rect.top - margin));
     } else if (rect.bottom > viewH - margin) {
       y.set(y.get() - (rect.bottom - (viewH - margin)));
     }
-  }, [y, isMobile]);
+  }, [y, isMobile, collapsed]);
 
-  const handleTap = useCallback(() => {
-    if (!isDragging.current) {
-      setOpen(o => !o);
+  const handleButtonTap = useCallback(() => {
+    if (collapsed) {
+      setCollapsed(false);
+    } else {
+      setPanelOpen(o => !o);
     }
-  }, []);
+  }, [collapsed]);
 
   if (!shouldShow(location)) return null;
 
@@ -277,7 +139,7 @@ export default function LiveRoomFloat() {
       />
       <div className="relative">
         <button
-          onClick={() => setOpen(false)}
+          onClick={() => setPanelOpen(false)}
           className="absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center rounded-full transition-colors hover:bg-white/10"
           style={{ background: 'rgba(255,255,255,0.06)' }}
           data-testid="button-close-float"
@@ -308,7 +170,7 @@ export default function LiveRoomFloat() {
           <div>
             <div className="flex items-center gap-1.5">
               <p className="text-sm font-semibold leading-tight" style={{ color: 'var(--text-strong)' }}>
-                职业操盘手
+                职业交易
               </p>
               {isLive && (
                 <motion.div
@@ -327,7 +189,7 @@ export default function LiveRoomFloat() {
               )}
             </div>
             <p className="text-sm font-semibold leading-tight" style={{ color: 'var(--text-strong)' }}>
-              实盘直播间
+              直播间
             </p>
           </div>
         </div>
@@ -397,7 +259,6 @@ export default function LiveRoomFloat() {
             <ExternalLink className="w-3 h-3 opacity-60" />
           </a>
         </div>
-
         {!isLive && <ScheduleSection />}
       </div>
     </>
@@ -413,72 +274,247 @@ export default function LiveRoomFloat() {
       : '0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(56,189,248,0.06)',
   };
 
-  if (isMobile) {
-    return (
-      <motion.div
-        ref={containerRef}
-        className="fixed left-2 z-[90]"
-        style={{ top: '45%', y: springY }}
-        drag="y"
-        dragConstraints={{ top: -200, bottom: 200 }}
-        dragElastic={0.15}
-        dragMomentum={false}
-        onDragStart={() => { isDragging.current = true; }}
-        onDragEnd={handleDragEnd}
-        data-testid="float-live-room"
-      >
-        <AnimatePresence>
-          {open && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.85, x: -10 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.85, x: -10 }}
-              transition={{ type: "spring", stiffness: 400, damping: 28 }}
-              className="absolute bottom-0 left-[52px] w-[220px] rounded-2xl p-4 overflow-hidden"
-              style={panelStyle}
-            >
-              {panelContent}
-            </motion.div>
-          )}
-        </AnimatePresence>
+  const iconColor = isLive ? '#EF4444' : 'var(--info)';
+  const btnAccent = isLive ? 'rgba(239,68,68,' : 'rgba(56,189,248,';
 
-        <div onClick={handleTap}>
-          <FloatButton isLive={isLive} open={open} wobble={wobble} />
-        </div>
+  const collapsedTab = (
+    <motion.div
+      key="collapsed"
+      initial={{ x: -20, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: -20, opacity: 0 }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      onClick={handleButtonTap}
+      className="cursor-pointer"
+      data-testid="button-float-collapsed"
+    >
+      <motion.div
+        className="flex items-center justify-center relative"
+        style={{
+          width: 20,
+          height: 56,
+          borderRadius: '0 10px 10px 0',
+          background: isLive
+            ? 'linear-gradient(180deg, rgba(239,68,68,0.2), rgba(239,68,68,0.08))'
+            : 'linear-gradient(180deg, rgba(56,189,248,0.15), rgba(56,189,248,0.05))',
+          borderRight: `1px solid ${btnAccent}0.3)`,
+          borderTop: `1px solid ${btnAccent}0.2)`,
+          borderBottom: `1px solid ${btnAccent}0.2)`,
+          boxShadow: `2px 0 12px rgba(0,0,0,0.3), 2px 0 8px ${btnAccent}0.1)`,
+        }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <motion.div
+          animate={{ opacity: [0.4, 0.9, 0.4] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Radio className="w-3 h-3" style={{ color: iconColor }} />
+        </motion.div>
+        {isLive && (
+          <motion.div
+            className="absolute -top-1 -right-1 rounded-full"
+            style={{ width: 6, height: 6, background: '#EF4444' }}
+            animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
+            transition={{ duration: 1, repeat: Infinity }}
+          />
+        )}
       </motion.div>
-    );
-  }
+    </motion.div>
+  );
+
+  const expandedButton = (
+    <motion.div
+      key="expanded"
+      initial={{ x: -30, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: -30, opacity: 0 }}
+      transition={{ type: "spring", stiffness: 350, damping: 28 }}
+    >
+      <motion.div
+        animate={{ y: panelOpen ? 0 : [0, -5, 0, 4, 0] }}
+        transition={panelOpen ? {} : { duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <motion.div
+          onClick={handleButtonTap}
+          whileTap={{ scale: 0.92 }}
+          className="flex flex-col items-center justify-center rounded-xl relative cursor-pointer select-none"
+          style={{
+            width: 46,
+            height: 54,
+            padding: '6px 4px',
+            background: isLive
+              ? (panelOpen ? 'rgba(239,68,68,0.2)' : 'linear-gradient(180deg, rgba(239,68,68,0.18), rgba(239,68,68,0.06))')
+              : (panelOpen ? 'rgba(56,189,248,0.15)' : 'linear-gradient(180deg, rgba(56,189,248,0.12), rgba(56,189,248,0.04))'),
+            border: `1px solid ${btnAccent}${isLive ? '0.35)' : '0.2)'}`,
+          }}
+          data-testid="button-float-trigger"
+        >
+          <motion.div
+            className="absolute -inset-1 rounded-xl pointer-events-none"
+            style={{ filter: 'blur(8px)' }}
+            animate={{
+              boxShadow: isLive
+                ? [
+                    '0 4px 16px rgba(0,0,0,0.3), 0 0 8px rgba(239,68,68,0.1)',
+                    '0 6px 24px rgba(0,0,0,0.35), 0 0 18px rgba(239,68,68,0.25)',
+                    '0 4px 16px rgba(0,0,0,0.3), 0 0 8px rgba(239,68,68,0.1)',
+                  ]
+                : [
+                    '0 4px 16px rgba(0,0,0,0.3), 0 0 6px rgba(56,189,248,0.06)',
+                    '0 6px 24px rgba(0,0,0,0.35), 0 0 14px rgba(56,189,248,0.15)',
+                    '0 4px 16px rgba(0,0,0,0.3), 0 0 6px rgba(56,189,248,0.06)',
+                  ],
+              opacity: panelOpen ? 0 : [0.6, 1, 0.6],
+            }}
+            transition={{ duration: isLive ? 2 : 3.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          {isLive ? (
+            <>
+              <motion.div
+                className="absolute inset-0 rounded-xl pointer-events-none"
+                style={{ border: `1.5px solid ${btnAccent}0.4)` }}
+                animate={{ scale: [1, 1.12, 1], opacity: [0.7, 0.15, 0.7] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div
+                className="absolute inset-0 rounded-xl pointer-events-none"
+                style={{ background: `radial-gradient(circle at center, ${btnAccent}0.1) 0%, transparent 70%)` }}
+                animate={{ opacity: [0.3, 0.7, 0.3] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+            </>
+          ) : (
+            <motion.div
+              className="absolute inset-0 rounded-xl pointer-events-none"
+              style={{ background: `radial-gradient(circle at 50% 40%, ${btnAccent}0.1) 0%, transparent 70%)` }}
+              animate={{ opacity: panelOpen ? 0 : [0.2, 0.55, 0.2] }}
+              transition={{ duration: 3.5, repeat: panelOpen ? 0 : Infinity, ease: "easeInOut" }}
+            />
+          )}
+
+          <div className="relative flex flex-col items-center gap-0.5">
+            {isLive ? (
+              <motion.div
+                animate={{ scale: [1, 1.25, 1], rotate: [0, 8, -8, 0] }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Radio className="w-4.5 h-4.5" style={{ color: iconColor }} />
+              </motion.div>
+            ) : (
+              <motion.div
+                animate={{ scale: [1, 1.06, 1] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Radio className="w-4 h-4" style={{ color: iconColor }} />
+              </motion.div>
+            )}
+
+            {isLive ? (
+              <motion.span
+                className="font-bold tracking-wider leading-none"
+                style={{ fontSize: '8px', color: '#EF4444' }}
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
+                LIVE
+              </motion.span>
+            ) : (
+              <span
+                className="font-semibold leading-none text-center"
+                style={{ fontSize: '8px', color: 'var(--text-strong)', lineHeight: '1.3' }}
+              >
+                直播间
+              </span>
+            )}
+          </div>
+
+          {isLive && (
+            <motion.div
+              className="absolute -top-1.5 -right-1.5 rounded-full"
+              style={{ width: 8, height: 8, background: '#EF4444' }}
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [1, 0.5, 1],
+                boxShadow: [
+                  '0 0 4px rgba(239,68,68,0.4)',
+                  '0 0 12px rgba(239,68,68,0.8)',
+                  '0 0 4px rgba(239,68,68,0.4)',
+                ],
+              }}
+              transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+            />
+          )}
+
+          {!isLive && !panelOpen && (
+            <motion.div
+              className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full"
+              style={{ background: 'var(--success)' }}
+              animate={{ opacity: [1, 0.4, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          )}
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  );
+
+  const panelOffset = isMobile ? 54 : 54;
 
   return (
     <motion.div
       ref={containerRef}
-      className="fixed left-4 z-[90]"
-      style={{ top: '40%', y: springY }}
+      className="fixed left-0 z-[90]"
+      style={{ top: isMobile ? '45%' : '40%', y: springY }}
       drag="y"
-      dragConstraints={{ top: -250, bottom: 250 }}
+      dragConstraints={{ top: isMobile ? -200 : -250, bottom: isMobile ? 200 : 250 }}
       dragElastic={0.12}
       dragMomentum={false}
-      onDragStart={() => { isDragging.current = true; }}
       onDragEnd={handleDragEnd}
       data-testid="float-live-room"
     >
       <AnimatePresence>
-        {open && (
+        {panelOpen && !collapsed && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, x: -10 }}
+            initial={{ opacity: 0, scale: 0.85, x: -10 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
-            exit={{ opacity: 0, scale: 0.9, x: -10 }}
+            exit={{ opacity: 0, scale: 0.85, x: -10 }}
             transition={{ type: "spring", stiffness: 400, damping: 28 }}
-            className="absolute left-[52px] top-1/2 -translate-y-1/2 w-[240px] rounded-2xl p-5 overflow-hidden"
-            style={panelStyle}
+            className={`absolute ${isMobile ? 'bottom-0' : 'top-1/2 -translate-y-1/2'} rounded-2xl ${isMobile ? 'p-4' : 'p-5'} overflow-hidden`}
+            style={{
+              left: `${panelOffset + 8}px`,
+              width: isMobile ? 220 : 240,
+              ...panelStyle,
+            }}
           >
             {panelContent}
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div onClick={handleTap}>
-        <FloatButton isLive={isLive} open={open} wobble={wobble} />
+      <div
+        style={{ paddingLeft: collapsed ? 0 : (isMobile ? 8 : 16) }}
+        onPointerDown={(e) => {
+          const startX = e.clientX;
+          const onMove = (ev: PointerEvent) => {
+            if (ev.clientX - startX < -30 && !collapsed) {
+              setCollapsed(true);
+              setPanelOpen(false);
+              document.removeEventListener("pointermove", onMove);
+              document.removeEventListener("pointerup", onUp);
+            }
+          };
+          const onUp = () => {
+            document.removeEventListener("pointermove", onMove);
+            document.removeEventListener("pointerup", onUp);
+          };
+          document.addEventListener("pointermove", onMove);
+          document.addEventListener("pointerup", onUp);
+        }}
+      >
+        <AnimatePresence mode="wait">
+          {collapsed ? collapsedTab : expandedButton}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
