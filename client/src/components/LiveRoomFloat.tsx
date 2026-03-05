@@ -70,111 +70,137 @@ function FloatButton({ isLive, open, wobble }: { isLive: boolean; open: boolean;
 
   return (
     <motion.div
-      whileTap={{ scale: 0.9 }}
-      className="flex flex-col items-center justify-center rounded-xl relative cursor-grab active:cursor-grabbing select-none"
-      style={{
-        width: 44,
-        height: 52,
-        padding: '6px 4px',
-        background: isLive
-          ? (open ? 'rgba(239,68,68,0.2)' : 'linear-gradient(180deg, rgba(239,68,68,0.18), rgba(239,68,68,0.06))')
-          : (open ? 'rgba(56,189,248,0.15)' : 'linear-gradient(180deg, rgba(56,189,248,0.12), rgba(56,189,248,0.04))'),
-        border: `1px solid ${accentColor}${isLive ? '0.35)' : '0.2)'}`,
-        boxShadow: isLive
-          ? '0 4px 16px rgba(0,0,0,0.4), 0 0 12px rgba(239,68,68,0.15)'
-          : '0 4px 16px rgba(0,0,0,0.4), 0 0 10px rgba(56,189,248,0.08)',
-        rotate: wobble,
-      }}
-      data-testid="button-float-trigger"
+      animate={open ? {} : { y: [0, -4, 0, 3, 0] }}
+      transition={open ? {} : { duration: 4, repeat: Infinity, ease: "easeInOut" }}
     >
-      {isLive ? (
-        <>
-          <motion.div
-            className="absolute inset-0 rounded-xl pointer-events-none"
-            style={{ border: `1.5px solid ${accentColor}0.4)` }}
-            animate={{ scale: [1, 1.12, 1], opacity: [0.7, 0.15, 0.7] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="absolute inset-0 rounded-xl pointer-events-none"
-            style={{ background: `radial-gradient(circle at center, ${accentColor}0.08) 0%, transparent 70%)` }}
-            animate={{ opacity: [0.4, 0.8, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </>
-      ) : (
+      <motion.div
+        whileTap={{ scale: 0.9 }}
+        className="flex flex-col items-center justify-center rounded-xl relative cursor-grab active:cursor-grabbing select-none"
+        style={{
+          width: 44,
+          height: 52,
+          padding: '6px 4px',
+          background: isLive
+            ? (open ? 'rgba(239,68,68,0.2)' : 'linear-gradient(180deg, rgba(239,68,68,0.18), rgba(239,68,68,0.06))')
+            : (open ? 'rgba(56,189,248,0.15)' : 'linear-gradient(180deg, rgba(56,189,248,0.12), rgba(56,189,248,0.04))'),
+          border: `1px solid ${accentColor}${isLive ? '0.35)' : '0.2)'}`,
+          rotate: wobble,
+        }}
+        data-testid="button-float-trigger"
+      >
         <motion.div
-          className="absolute inset-0 rounded-xl pointer-events-none"
-          style={{ background: `${accentColor}0.05)`, filter: 'blur(6px)' }}
-          animate={{ opacity: open ? 0 : [0.3, 0.6, 0.3], scale: open ? 1 : [0.95, 1.08, 0.95] }}
-          transition={{ duration: 3, repeat: open ? 0 : Infinity, ease: "easeInOut" }}
-        />
-      )}
-
-      <div className="relative flex flex-col items-center gap-0.5">
-        {isLive ? (
-          <motion.div
-            animate={{
-              scale: [1, 1.25, 1],
-              rotate: [0, 8, -8, 0],
-            }}
-            transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Radio className="w-4.5 h-4.5" style={{ color: iconColor }} />
-          </motion.div>
-        ) : (
-          <Radio className="w-4 h-4" style={{ color: iconColor }} />
-        )}
-
-        {isLive ? (
-          <motion.span
-            className="font-bold tracking-wider leading-none"
-            style={{ fontSize: '8px', color: '#EF4444' }}
-            animate={{ opacity: [1, 0.5, 1] }}
-            transition={{ duration: 1, repeat: Infinity }}
-          >
-            LIVE
-          </motion.span>
-        ) : (
-          <span
-            className="font-semibold leading-none text-center"
-            style={{ fontSize: '8px', color: 'var(--text-strong)', lineHeight: '1.3' }}
-          >
-            直播间
-          </span>
-        )}
-      </div>
-
-      {isLive && (
-        <motion.div
-          className="absolute -top-1.5 -right-1.5 rounded-full"
-          style={{
-            width: 8,
-            height: 8,
-            background: '#EF4444',
-            boxShadow: '0 0 6px rgba(239,68,68,0.6)',
-          }}
+          className="absolute -inset-1 rounded-xl pointer-events-none"
+          style={{ filter: 'blur(8px)' }}
           animate={{
-            scale: [1, 1.3, 1],
-            opacity: [1, 0.5, 1],
-            boxShadow: [
-              '0 0 4px rgba(239,68,68,0.4)',
-              '0 0 10px rgba(239,68,68,0.8)',
-              '0 0 4px rgba(239,68,68,0.4)',
-            ],
+            boxShadow: isLive
+              ? [
+                  '0 4px 16px rgba(0,0,0,0.3), 0 0 8px rgba(239,68,68,0.1)',
+                  '0 6px 24px rgba(0,0,0,0.35), 0 0 18px rgba(239,68,68,0.25)',
+                  '0 4px 16px rgba(0,0,0,0.3), 0 0 8px rgba(239,68,68,0.1)',
+                ]
+              : [
+                  '0 4px 16px rgba(0,0,0,0.3), 0 0 6px rgba(56,189,248,0.06)',
+                  '0 6px 24px rgba(0,0,0,0.35), 0 0 14px rgba(56,189,248,0.15)',
+                  '0 4px 16px rgba(0,0,0,0.3), 0 0 6px rgba(56,189,248,0.06)',
+                ],
+            opacity: open ? 0 : [0.6, 1, 0.6],
           }}
-          transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: isLive ? 2 : 3.5, repeat: Infinity, ease: "easeInOut" }}
         />
-      )}
 
-      {!isLive && !open && (
-        <motion.div
-          className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full"
-          style={{ background: 'var(--success)' }}
-          animate={{ opacity: [1, 0.4, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
-      )}
+        {isLive ? (
+          <>
+            <motion.div
+              className="absolute inset-0 rounded-xl pointer-events-none"
+              style={{ border: `1.5px solid ${accentColor}0.4)` }}
+              animate={{ scale: [1, 1.12, 1], opacity: [0.7, 0.15, 0.7] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute inset-0 rounded-xl pointer-events-none"
+              style={{ background: `radial-gradient(circle at center, ${accentColor}0.1) 0%, transparent 70%)` }}
+              animate={{ opacity: [0.3, 0.7, 0.3] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </>
+        ) : (
+          <motion.div
+            className="absolute inset-0 rounded-xl pointer-events-none"
+            style={{ background: `radial-gradient(circle at 50% 40%, ${accentColor}0.1) 0%, transparent 70%)` }}
+            animate={{ opacity: open ? 0 : [0.2, 0.55, 0.2] }}
+            transition={{ duration: 3.5, repeat: open ? 0 : Infinity, ease: "easeInOut" }}
+          />
+        )}
+
+        <div className="relative flex flex-col items-center gap-0.5">
+          {isLive ? (
+            <motion.div
+              animate={{
+                scale: [1, 1.25, 1],
+                rotate: [0, 8, -8, 0],
+              }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Radio className="w-4.5 h-4.5" style={{ color: iconColor }} />
+            </motion.div>
+          ) : (
+            <motion.div
+              animate={{ scale: [1, 1.06, 1] }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Radio className="w-4 h-4" style={{ color: iconColor }} />
+            </motion.div>
+          )}
+
+          {isLive ? (
+            <motion.span
+              className="font-bold tracking-wider leading-none"
+              style={{ fontSize: '8px', color: '#EF4444' }}
+              animate={{ opacity: [1, 0.5, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            >
+              LIVE
+            </motion.span>
+          ) : (
+            <span
+              className="font-semibold leading-none text-center"
+              style={{ fontSize: '8px', color: 'var(--text-strong)', lineHeight: '1.3' }}
+            >
+              直播间
+            </span>
+          )}
+        </div>
+
+        {isLive && (
+          <motion.div
+            className="absolute -top-1.5 -right-1.5 rounded-full"
+            style={{
+              width: 8,
+              height: 8,
+              background: '#EF4444',
+            }}
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [1, 0.5, 1],
+              boxShadow: [
+                '0 0 4px rgba(239,68,68,0.4)',
+                '0 0 12px rgba(239,68,68,0.8)',
+                '0 0 4px rgba(239,68,68,0.4)',
+              ],
+            }}
+            transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+          />
+        )}
+
+        {!isLive && !open && (
+          <motion.div
+            className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full"
+            style={{ background: 'var(--success)' }}
+            animate={{ opacity: [1, 0.4, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        )}
+      </motion.div>
     </motion.div>
   );
 }
