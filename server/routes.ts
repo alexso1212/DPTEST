@@ -498,12 +498,19 @@ export async function registerRoutes(
     const sess = req.session as any;
     try {
       if (sess.assignedContact) {
-        const stillAlive = await checkContactAlive(sess.assignedContact.url);
-        if (stillAlive) {
-          return res.json({ ...sess.assignedContact, verified: true });
+        const enabledContacts = await storage.getEnabledSalesContacts();
+        const stillEnabled = enabledContacts.some(c => c.url === sess.assignedContact.url);
+        if (!stillEnabled) {
+          console.log(`[wechat-contact] previously assigned ${sess.assignedContact.name} is no longer enabled, re-routing`);
+          sess.assignedContact = null;
+        } else {
+          const stillAlive = await checkContactAlive(sess.assignedContact.url);
+          if (stillAlive) {
+            return res.json({ ...sess.assignedContact, verified: true });
+          }
+          console.log(`[wechat-contact] previously assigned ${sess.assignedContact.name} is dead, re-routing`);
+          sess.assignedContact = null;
         }
-        console.log(`[wechat-contact] previously assigned ${sess.assignedContact.name} is dead, re-routing`);
-        sess.assignedContact = null;
       }
       const { contacts: alive, allDead } = await getAliveContacts();
       const picked = alive[salesCounter % alive.length];
