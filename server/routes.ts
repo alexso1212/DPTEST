@@ -22,7 +22,7 @@ const BLOCKED_KEYWORDS = [
 ];
 const HEALTHY_KEYWORD = "添加我为微信好友";
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "deltapex2026";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 async function checkContactAlive(url: string, skipCache = false): Promise<boolean> {
   if (!skipCache) {
@@ -533,7 +533,7 @@ export async function registerRoutes(
 
   app.post("/api/admin/login", (req, res) => {
     const { password } = req.body;
-    if (password !== ADMIN_PASSWORD) {
+    if (!ADMIN_PASSWORD || password !== ADMIN_PASSWORD) {
       return res.status(401).json({ message: "密码错误" });
     }
     (req.session as any).isAdmin = true;
