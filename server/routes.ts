@@ -5,7 +5,8 @@ import { insertUserSchema, loginSchema, insertEventSchema, insertSalesContactSch
 import { sendRegistrationNotification, sendResultNotification, sendContactAlertNotification } from "./webhook";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
-import { pool } from "./db";
+import { pool, db } from "./db";
+import { sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 let salesCounter = 0;
@@ -509,6 +510,11 @@ export async function registerRoutes(
       salesCounter++;
       const contact = { name: picked.name, url: picked.url };
       sess.assignedContact = contact;
+      storage.trackEvent({
+        sessionId: req.body?.sessionId || sess.id || "unknown",
+        eventType: "wechat_contact_assign",
+        eventData: { contactName: picked.name, contactUrl: picked.url },
+      }).catch((e: any) => console.error("[track] assign event error:", e));
       res.json({ ...contact, verified: !allDead });
     } catch (err) {
       console.error("[wechat-contact] error:", err);
@@ -646,6 +652,69 @@ export async function registerRoutes(
     } catch (err) {
       console.error("[admin] health check all error:", err);
       res.status(500).json({ message: "检测失败" });
+    }
+  });
+
+  app.get("/api/admin/stats", requireAdmin, async (_req, res) => {
+    try {
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const weekStart = new Date(todayStart);
+      weekStart.setDate(weekStart.getDate() - 7);
+      const monthStart = new Date(todayStart);
+      monthStart.setDate(monthStart.getDate() - 30);
+
+      const overviewResult = await db.execute(sql`
+        SELECT
+          COUNT(*) FILTER (WHERE event_type = 'page_view') AS total_views,
+          COUNT(*) FILTER (WHERE event_type = 'user_register') AS total_registers,
+          COUNT(*) FILTER (WHERE event_type = 'wechat_click') AS total_wechat_clicks,
+          COUNT(*) FILTER (WHERE event_type = 'wechat_contact_assign') AS total_assigns,
+          COUNT(*) FILTER (WHERE event_type = 'quiz_complete') AS total_quiz_completes,
+          COUNT(*) FILTER (WHERE event_type = 'page_view' AND created_at >= ${todayStart}) AS today_views,
+          COUNT(*) FILTER (WHERE event_type = 'user_register' AND created_at >= ${todayStart}) AS today_registers,
+          COUNT(*) FILTER (WHERE event_type = 'wechat_click' AND created_at >= ${todayStart}) AS today_wechat_clicks,
+          COUNT(*) FILTER (WHERE event_type = 'page_view' AND created_at >= ${weekStart}) AS week_views,
+          COUNT(*) FILTER (WHERE event_type = 'user_register' AND created_at >= ${weekStart}) AS week_registers,
+          COUNT(*) FILTER (WHERE event_type = 'wechat_click' AND created_at >= ${weekStart}) AS week_wechat_clicks,
+          COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'page_view') AS total_unique_visitors,
+          COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'page_view' AND created_at >= ${todayStart}) AS today_unique_visitors
+        FROM user_events
+      `);
+      const overview = overviewResult.rows?.[0] || overviewResult[0] || {};
+
+      const contactStats = await db.execute(sql`
+        SELECT
+          event_data->>'contactName' AS contact_name,
+          COUNT(*) AS assign_count
+        FROM user_events
+        WHERE event_type = 'wechat_contact_assign'
+          AND event_data->>'contactName' IS NOT NULL
+        GROUP BY event_data->>'contactName'
+        ORDER BY assign_count DESC
+      `);
+
+      const dailyTrend = await db.execute(sql`
+        SELECT
+          DATE(created_at) AS date,
+          COUNT(*) FILTER (WHERE event_type = 'page_view') AS views,
+          COUNT(*) FILTER (WHERE event_type = 'user_register') AS registers,
+          COUNT(*) FILTER (WHERE event_type = 'wechat_click') AS wechat_clicks
+        FROM user_events
+        WHERE created_at >= ${monthStart}
+        GROUP BY DATE(created_at)
+        ORDER BY date DESC
+        LIMIT 30
+      `);
+
+      res.json({
+        overview: overview || {},
+        contactStats: contactStats.rows || contactStats || [],
+        dailyTrend: (dailyTrend.rows || dailyTrend || []),
+      });
+    } catch (err) {
+      console.error("[admin] stats error:", err);
+      res.status(500).json({ message: "获取统计失败" });
     }
   });
 

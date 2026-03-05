@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Lock, Plus, Trash2, Activity, Power, PowerOff, RefreshCw, Shield, ArrowLeft, X } from "lucide-react";
+import { Lock, Plus, Trash2, Activity, Power, PowerOff, RefreshCw, Shield, ArrowLeft, X, BarChart3, Eye, UserPlus, MessageSquare, Users, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface SalesContact {
@@ -13,6 +13,40 @@ interface SalesContact {
   createdAt: string;
 }
 
+interface StatsOverview {
+  total_views: string;
+  total_registers: string;
+  total_wechat_clicks: string;
+  total_assigns: string;
+  total_quiz_completes: string;
+  today_views: string;
+  today_registers: string;
+  today_wechat_clicks: string;
+  week_views: string;
+  week_registers: string;
+  week_wechat_clicks: string;
+  total_unique_visitors: string;
+  today_unique_visitors: string;
+}
+
+interface ContactStat {
+  contact_name: string;
+  assign_count: string;
+}
+
+interface DailyTrend {
+  date: string;
+  views: string;
+  registers: string;
+  wechat_clicks: string;
+}
+
+interface StatsData {
+  overview: StatsOverview;
+  contactStats: ContactStat[];
+  dailyTrend: DailyTrend[];
+}
+
 function StatusDot({ status }: { status: string | null }) {
   const color = status === "ok" ? "#07C160" : status === "dead" ? "#EF4444" : "#6B7280";
   const label = status === "ok" ? "正常" : status === "dead" ? "异常" : "未检测";
@@ -20,6 +54,164 @@ function StatusDot({ status }: { status: string | null }) {
     <div className="flex items-center gap-1.5">
       <div className="w-2 h-2 rounded-full" style={{ background: color }} />
       <span className="text-xs" style={{ color }}>{label}</span>
+    </div>
+  );
+}
+
+function StatCard({ icon: Icon, label, value, subValue, color }: {
+  icon: typeof Eye;
+  label: string;
+  value: string | number;
+  subValue?: string;
+  color: string;
+}) {
+  return (
+    <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
+      <div className="flex items-center gap-2 mb-2">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${color}15` }}>
+          <Icon className="w-4 h-4" style={{ color }} />
+        </div>
+        <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{label}</span>
+      </div>
+      <div className="text-xl font-bold" style={{ color: 'var(--text-strong)' }} data-testid={`stat-${label}`}>
+        {value}
+      </div>
+      {subValue && (
+        <div className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>{subValue}</div>
+      )}
+    </div>
+  );
+}
+
+function StatsPanel({ stats, loading }: { stats: StatsData | null; loading: boolean }) {
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <div className="w-8 h-8 mx-auto rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
+        <p className="text-xs mt-3" style={{ color: 'var(--text-muted)' }}>加载统计数据...</p>
+      </div>
+    );
+  }
+
+  if (!stats) return null;
+
+  const o = stats.overview;
+  const totalViews = parseInt(o.total_views) || 0;
+  const totalRegisters = parseInt(o.total_registers) || 0;
+  const totalClicks = parseInt(o.total_wechat_clicks) || 0;
+  const totalAssigns = parseInt(o.total_assigns) || 0;
+  const totalQuiz = parseInt(o.total_quiz_completes) || 0;
+  const todayViews = parseInt(o.today_views) || 0;
+  const todayRegisters = parseInt(o.today_registers) || 0;
+  const todayClicks = parseInt(o.today_wechat_clicks) || 0;
+  const uniqueVisitors = parseInt(o.total_unique_visitors) || 0;
+  const todayUnique = parseInt(o.today_unique_visitors) || 0;
+
+  return (
+    <div className="space-y-4" data-testid="stats-panel">
+      <div className="grid grid-cols-2 gap-3">
+        <StatCard
+          icon={Eye}
+          label="总浏览量"
+          value={totalViews.toLocaleString()}
+          subValue={`今日 ${todayViews} / 独立访客 ${uniqueVisitors}`}
+          color="#3B82F6"
+        />
+        <StatCard
+          icon={UserPlus}
+          label="总注册量"
+          value={totalRegisters.toLocaleString()}
+          subValue={`今日 ${todayRegisters}`}
+          color="#07C160"
+        />
+        <StatCard
+          icon={MessageSquare}
+          label="添加客服点击"
+          value={totalClicks.toLocaleString()}
+          subValue={`今日 ${todayClicks}`}
+          color="#F59E0B"
+        />
+        <StatCard
+          icon={Users}
+          label="客服分配次数"
+          value={totalAssigns.toLocaleString()}
+          subValue={`测评完成 ${totalQuiz}`}
+          color="#8B5CF6"
+        />
+      </div>
+
+      {stats.contactStats.length > 0 && (
+        <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-4 h-4" style={{ color: 'var(--gold)' }} />
+            <span className="text-sm font-medium" style={{ color: 'var(--text-strong)' }}>顾问分配统计</span>
+          </div>
+          <div className="space-y-2">
+            {stats.contactStats.map((cs) => {
+              const count = parseInt(cs.assign_count) || 0;
+              const maxCount = Math.max(...stats.contactStats.map(s => parseInt(s.assign_count) || 0), 1);
+              const pct = (count / maxCount) * 100;
+              return (
+                <div key={cs.contact_name} data-testid={`stat-contact-${cs.contact_name}`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs" style={{ color: 'var(--text-strong)' }}>{cs.contact_name}</span>
+                    <span className="text-xs font-medium" style={{ color: 'var(--gold)' }}>{count} 次</span>
+                  </div>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                      className="h-full rounded-full"
+                      style={{ background: 'var(--gold)' }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {stats.dailyTrend.length > 0 && (
+        <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <BarChart3 className="w-4 h-4" style={{ color: 'var(--gold)' }} />
+            <span className="text-sm font-medium" style={{ color: 'var(--text-strong)' }}>近期趋势（最近7天）</span>
+          </div>
+          <div className="space-y-1.5">
+            {stats.dailyTrend.slice(0, 7).map((d) => (
+              <div key={d.date} className="flex items-center gap-3 text-[11px]" data-testid={`stat-day-${d.date}`}>
+                <span className="w-20 shrink-0" style={{ color: 'var(--text-muted)' }}>
+                  {new Date(d.date).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}
+                </span>
+                <div className="flex items-center gap-3 flex-1">
+                  <span style={{ color: '#3B82F6' }}>
+                    <Eye className="w-3 h-3 inline mr-0.5" />{d.views}
+                  </span>
+                  <span style={{ color: '#07C160' }}>
+                    <UserPlus className="w-3 h-3 inline mr-0.5" />{d.registers}
+                  </span>
+                  <span style={{ color: '#F59E0B' }}>
+                    <MessageSquare className="w-3 h-3 inline mr-0.5" />{d.wechat_clicks}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-4 mt-2 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+            <div className="flex items-center gap-1 text-[10px]" style={{ color: '#3B82F6' }}>
+              <div className="w-2 h-2 rounded-full" style={{ background: '#3B82F6' }} /> 浏览
+            </div>
+            <div className="flex items-center gap-1 text-[10px]" style={{ color: '#07C160' }}>
+              <div className="w-2 h-2 rounded-full" style={{ background: '#07C160' }} /> 注册
+            </div>
+            <div className="flex items-center gap-1 text-[10px]" style={{ color: '#F59E0B' }}>
+              <div className="w-2 h-2 rounded-full" style={{ background: '#F59E0B' }} /> 添加客服
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -334,12 +526,17 @@ function ContactCard({ contact, onUpdate, onDelete }: {
   );
 }
 
+type AdminTab = "contacts" | "stats";
+
 export default function AdminPage() {
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [contacts, setContacts] = useState<SalesContact[]>([]);
   const [loading, setLoading] = useState(false);
   const [checkingAll, setCheckingAll] = useState(false);
+  const [tab, setTab] = useState<AdminTab>("contacts");
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   const checkSession = useCallback(async () => {
     try {
@@ -363,13 +560,28 @@ export default function AdminPage() {
     setLoading(false);
   }, []);
 
+  const fetchStats = useCallback(async () => {
+    setStatsLoading(true);
+    try {
+      const res = await fetch("/api/admin/stats", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch {}
+    setStatsLoading(false);
+  }, []);
+
   useEffect(() => {
     checkSession();
   }, [checkSession]);
 
   useEffect(() => {
-    if (isAdmin) fetchContacts();
-  }, [isAdmin, fetchContacts]);
+    if (isAdmin) {
+      fetchContacts();
+      fetchStats();
+    }
+  }, [isAdmin, fetchContacts, fetchStats]);
 
   const handleCheckAll = useCallback(async () => {
     setCheckingAll(true);
@@ -413,60 +625,113 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen pb-12" style={{ background: 'var(--bg-0)' }}>
       <div className="max-w-lg mx-auto px-5 pt-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <a href="/" className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.04)' }} data-testid="link-back-home">
               <ArrowLeft className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
             </a>
-            <div>
-              <h1 className="text-lg font-bold" style={{ color: 'var(--text-strong)' }}>顾问管理</h1>
+            <h1 className="text-lg font-bold" style={{ color: 'var(--text-strong)' }}>管理后台</h1>
+          </div>
+        </div>
+
+        <div className="flex gap-2 mb-5">
+          <button
+            onClick={() => setTab("contacts")}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+            style={{
+              background: tab === "contacts" ? 'rgba(var(--gold-rgb), 0.15)' : 'rgba(255,255,255,0.03)',
+              color: tab === "contacts" ? 'var(--gold)' : 'var(--text-muted)',
+              border: `1px solid ${tab === "contacts" ? 'rgba(var(--gold-rgb), 0.3)' : 'var(--border)'}`,
+            }}
+            data-testid="tab-contacts"
+          >
+            <Users className="w-4 h-4" />
+            顾问管理
+          </button>
+          <button
+            onClick={() => { setTab("stats"); if (!stats) fetchStats(); }}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+            style={{
+              background: tab === "stats" ? 'rgba(var(--gold-rgb), 0.15)' : 'rgba(255,255,255,0.03)',
+              color: tab === "stats" ? 'var(--gold)' : 'var(--text-muted)',
+              border: `1px solid ${tab === "stats" ? 'rgba(var(--gold-rgb), 0.3)' : 'var(--border)'}`,
+            }}
+            data-testid="tab-stats"
+          >
+            <BarChart3 className="w-4 h-4" />
+            数据统计
+          </button>
+        </div>
+
+        {tab === "contacts" && (
+          <>
+            <div className="flex items-center justify-between mb-4">
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                 {enabledCount} 个启用 {deadCount > 0 && <span style={{ color: '#EF4444' }}>/ {deadCount} 个异常</span>}
               </p>
+              <motion.button
+                onClick={handleCheckAll}
+                disabled={checkingAll}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors"
+                style={{ background: 'rgba(var(--primary-rgb), 0.1)', color: 'var(--primary)', border: '1px solid rgba(var(--primary-rgb), 0.2)' }}
+                data-testid="button-check-all"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${checkingAll ? 'animate-spin' : ''}`} />
+                {checkingAll ? "检测中..." : "全部检测"}
+              </motion.button>
             </div>
+
+            <div className="space-y-3 mb-4">
+              {loading && contacts.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-8 h-8 mx-auto rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
+                </div>
+              ) : contacts.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>暂无顾问</p>
+                </div>
+              ) : (
+                contacts.map(contact => (
+                  <ContactCard
+                    key={contact.id}
+                    contact={contact}
+                    onUpdate={fetchContacts}
+                    onDelete={fetchContacts}
+                  />
+                ))
+              )}
+            </div>
+
+            <AddContactForm onAdded={fetchContacts} />
+
+            <div className="mt-8 p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
+              <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-strong)' }}>自动监控</p>
+              <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                系统每30分钟自动检测所有启用顾问的健康状态。当某个顾问从正常变为异常时，会自动通过企业微信群发送告警通知。
+              </p>
+            </div>
+          </>
+        )}
+
+        {tab === "stats" && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>网站运营数据概览</p>
+              <button
+                onClick={fetchStats}
+                disabled={statsLoading}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px]"
+                style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--text-muted)' }}
+                data-testid="button-refresh-stats"
+              >
+                <RefreshCw className={`w-3 h-3 ${statsLoading ? 'animate-spin' : ''}`} />
+                刷新
+              </button>
+            </div>
+            <StatsPanel stats={stats} loading={statsLoading} />
           </div>
-          <motion.button
-            onClick={handleCheckAll}
-            disabled={checkingAll}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors"
-            style={{ background: 'rgba(var(--primary-rgb), 0.1)', color: 'var(--primary)', border: '1px solid rgba(var(--primary-rgb), 0.2)' }}
-            data-testid="button-check-all"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${checkingAll ? 'animate-spin' : ''}`} />
-            {checkingAll ? "检测中..." : "全部检测"}
-          </motion.button>
-        </div>
-
-        <div className="space-y-3 mb-4">
-          {loading && contacts.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-8 h-8 mx-auto rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
-            </div>
-          ) : contacts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>暂无顾问</p>
-            </div>
-          ) : (
-            contacts.map(contact => (
-              <ContactCard
-                key={contact.id}
-                contact={contact}
-                onUpdate={fetchContacts}
-                onDelete={fetchContacts}
-              />
-            ))
-          )}
-        </div>
-
-        <AddContactForm onAdded={fetchContacts} />
-
-        <div className="mt-8 p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
-          <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-strong)' }}>自动监控</p>
-          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-            系统每30分钟自动检测所有启用顾问的健康状态。当某个顾问从正常变为异常时，会自动通过企业微信群发送告警通知。
-          </p>
-        </div>
+        )}
       </div>
     </div>
   );
