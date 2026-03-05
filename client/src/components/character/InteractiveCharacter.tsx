@@ -340,16 +340,16 @@ export default function InteractiveCharacter({ type, size, tier = 0, glowColor =
       x: 0,
     },
     sleep: {
-      y: 30,
-      rotate: -80,
-      scale: 0.85,
-      x: -10,
+      y: 20,
+      rotate: -15,
+      scale: 0.88,
+      x: 0,
     },
     waking: {
-      y: [30, 15, 5, 0],
-      rotate: [-80, -40, -10, 0],
-      scale: [0.85, 0.9, 0.95, 1],
-      x: [-10, -5, 0, 0],
+      y: [20, 10, 3, 0],
+      rotate: [-15, -8, -2, 0],
+      scale: [0.88, 0.92, 0.96, 1],
+      x: 0,
     },
     attack: {
       y: [0, -20, 10, 0],
@@ -381,7 +381,7 @@ export default function InteractiveCharacter({ type, size, tier = 0, glowColor =
     <>
       <div
         className="relative flex justify-center cursor-pointer select-none"
-        style={{ width: size, height: size * 1.38 + (isSleeping ? 20 : 0) }}
+        style={{ width: size, height: size * 1.38 }}
         onClick={handleClick}
         data-testid="interactive-character"
       >
@@ -406,7 +406,7 @@ export default function InteractiveCharacter({ type, size, tier = 0, glowColor =
         />
 
         <motion.div
-          style={{ transformOrigin: 'center bottom' }}
+          style={{ transformOrigin: isSleeping || isWaking ? 'center center' : 'center bottom' }}
           animate={characterVariants[state] || characterVariants.idle}
           transition={transitionMap[state] || transitionMap.idle}
         >

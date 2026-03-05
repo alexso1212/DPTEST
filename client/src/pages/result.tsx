@@ -380,7 +380,7 @@ function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: (
   );
 }
 
-function CharacterCardPanel({ result, onClose }: { result: QuizResult; onClose: () => void }) {
+function CharacterCardPanel({ result, onClose, tier }: { result: QuizResult; onClose: () => void; tier: number }) {
   const { traderType, rank, normalizedScores, avgScore } = result;
 
   return (
@@ -417,6 +417,7 @@ function CharacterCardPanel({ result, onClose }: { result: QuizResult; onClose: 
           scores={normalizedScores}
           rank={{ name: rank.name, emoji: rank.icon, score: avgScore }}
           showAnimation={false}
+          tier={tier}
         />
       </motion.div>
     </motion.div>
@@ -828,7 +829,7 @@ export default function ResultPage({ result }: ResultPageProps) {
 
           <AnimatePresence>
             {showCardPanel && (
-              <CharacterCardPanel result={result} onClose={() => setShowCardPanel(false)} />
+              <CharacterCardPanel result={result} onClose={() => setShowCardPanel(false)} tier={user?.tier ?? 0} />
             )}
           </AnimatePresence>
 
