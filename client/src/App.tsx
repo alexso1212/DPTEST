@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
+import AdminPage from "@/pages/admin";
 import LiveRoomFloat from "@/components/LiveRoomFloat";
 import WeChatBrowserGuide from "@/components/WeChatBrowserGuide";
 import LandingPage from "@/pages/landing";
@@ -175,6 +176,8 @@ function Router() {
           </Route>
 
           <Route path="/report/:token" component={ReportPage} />
+
+          <Route path="/admin" component={AdminPage} />
 
           <Route component={NotFound} />
         </Switch>

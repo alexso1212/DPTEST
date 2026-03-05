@@ -1,22 +1,18 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema, insertEventSchema } from "@shared/schema";
-import { sendRegistrationNotification, sendResultNotification } from "./webhook";
+import { insertUserSchema, loginSchema, insertEventSchema, insertSalesContactSchema } from "@shared/schema";
+import { sendRegistrationNotification, sendResultNotification, sendContactAlertNotification } from "./webhook";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
 import bcrypt from "bcryptjs";
 
-const SALES_CONTACTS = [
-  { name: "默认顾问", url: "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4" },
-  { name: "Deven", url: "https://work.weixin.qq.com/ca/cawcde66939ac2ab81" },
-  { name: "Anna", url: "https://work.weixin.qq.com/ca/cawcde2d7a8f8a7ac3" },
-];
 let salesCounter = 0;
 
 const contactHealthCache: Map<string, { alive: boolean; checkedAt: number }> = new Map();
 const HEALTH_CACHE_TTL = 5 * 60 * 1000;
+const HEALTH_MONITOR_INTERVAL = 30 * 60 * 1000;
 
 const BLOCKED_KEYWORDS = [
   "已停用", "无法访问", "已暂停", "异常", "已失效",
@@ -26,10 +22,14 @@ const BLOCKED_KEYWORDS = [
 ];
 const HEALTHY_KEYWORD = "添加我为微信好友";
 
-async function checkContactAlive(url: string): Promise<boolean> {
-  const cached = contactHealthCache.get(url);
-  if (cached && Date.now() - cached.checkedAt < HEALTH_CACHE_TTL) {
-    return cached.alive;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "deltapex2026";
+
+async function checkContactAlive(url: string, skipCache = false): Promise<boolean> {
+  if (!skipCache) {
+    const cached = contactHealthCache.get(url);
+    if (cached && Date.now() - cached.checkedAt < HEALTH_CACHE_TTL) {
+      return cached.alive;
+    }
   }
   try {
     const controller = new AbortController();
@@ -56,16 +56,47 @@ async function checkContactAlive(url: string): Promise<boolean> {
   }
 }
 
-async function getAliveContacts(): Promise<{ contacts: typeof SALES_CONTACTS; allDead: boolean }> {
+async function getAliveContacts(): Promise<{ contacts: { name: string; url: string }[]; allDead: boolean }> {
+  const allContacts = await storage.getEnabledSalesContacts();
+  if (allContacts.length === 0) {
+    return { contacts: [{ name: "默认顾问", url: "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4" }], allDead: true };
+  }
   const results = await Promise.all(
-    SALES_CONTACTS.map(async (c) => ({
+    allContacts.map(async (c) => ({
       ...c,
       alive: await checkContactAlive(c.url),
     }))
   );
   const alive = results.filter(r => r.alive);
   if (alive.length > 0) return { contacts: alive, allDead: false };
-  return { contacts: [SALES_CONTACTS[0]], allDead: true };
+  return { contacts: [allContacts[0]], allDead: true };
+}
+
+function requireAdmin(req: any, res: any, next: any) {
+  if (!(req.session as any).isAdmin) {
+    return res.status(401).json({ message: "未授权" });
+  }
+  next();
+}
+
+async function runHealthMonitor() {
+  console.log("[health-monitor] Running scheduled health check...");
+  try {
+    const contacts = await storage.getEnabledSalesContacts();
+    for (const contact of contacts) {
+      const alive = await checkContactAlive(contact.url, true);
+      const newStatus = alive ? "ok" : "dead";
+      const oldStatus = contact.lastHealthStatus;
+      await storage.updateContactHealth(contact.id, newStatus);
+      if (oldStatus === "ok" && newStatus === "dead") {
+        console.log(`[health-monitor] ALERT: ${contact.name} went from OK to DEAD`);
+        sendContactAlertNotification({ name: contact.name, url: contact.url }).catch(console.error);
+      }
+    }
+    console.log(`[health-monitor] Checked ${contacts.length} contacts`);
+  } catch (err) {
+    console.error("[health-monitor] Error:", err);
+  }
 }
 
 export async function registerRoutes(
@@ -460,10 +491,11 @@ export async function registerRoutes(
       res.json({ ...contact, verified: !allDead });
     } catch (err) {
       console.error("[wechat-contact] error:", err);
-      const contact = SALES_CONTACTS[salesCounter % SALES_CONTACTS.length];
+      const allContacts = await storage.getEnabledSalesContacts();
+      const fallback = allContacts[0] || { name: "默认顾问", url: "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4" };
       salesCounter++;
-      sess.assignedContact = contact;
-      res.json({ ...contact, verified: false });
+      sess.assignedContact = { name: fallback.name, url: fallback.url };
+      res.json({ ...sess.assignedContact, verified: false });
     }
   });
 
@@ -478,10 +510,11 @@ export async function registerRoutes(
         console.log(`[wechat-switch] user blocked ${sess.assignedContact.name}, blocked list: ${sess.blockedContacts.length}`);
         sess.assignedContact = null;
       }
-      const available = SALES_CONTACTS.filter(c => !sess.blockedContacts.includes(c.url));
+      const allContacts = await storage.getEnabledSalesContacts();
+      const available = allContacts.filter(c => !sess.blockedContacts.includes(c.url));
       if (available.length === 0) {
         sess.blockedContacts = [];
-        const picked = SALES_CONTACTS[salesCounter % SALES_CONTACTS.length];
+        const picked = allContacts[salesCounter % allContacts.length] || { name: "默认顾问", url: "https://work.weixin.qq.com/ca/cawcde75d99eb3fce4" };
         salesCounter++;
         const contact = { name: picked.name, url: picked.url };
         sess.assignedContact = contact;
@@ -497,6 +530,106 @@ export async function registerRoutes(
       res.status(500).json({ message: "切换失败" });
     }
   });
+
+  app.post("/api/admin/login", (req, res) => {
+    const { password } = req.body;
+    if (password !== ADMIN_PASSWORD) {
+      return res.status(401).json({ message: "密码错误" });
+    }
+    (req.session as any).isAdmin = true;
+    res.json({ ok: true });
+  });
+
+  app.get("/api/admin/session", (req, res) => {
+    res.json({ isAdmin: !!(req.session as any).isAdmin });
+  });
+
+  app.get("/api/admin/contacts", requireAdmin, async (_req, res) => {
+    try {
+      const contacts = await storage.getAllSalesContacts();
+      res.json(contacts);
+    } catch (err) {
+      console.error("[admin] get contacts error:", err);
+      res.status(500).json({ message: "获取失败" });
+    }
+  });
+
+  app.post("/api/admin/contacts", requireAdmin, async (req, res) => {
+    try {
+      const parsed = insertSalesContactSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors[0].message });
+      }
+      const contact = await storage.createSalesContact(parsed.data);
+      res.json(contact);
+    } catch (err) {
+      console.error("[admin] create contact error:", err);
+      res.status(500).json({ message: "添加失败" });
+    }
+  });
+
+  app.patch("/api/admin/contacts/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "无效ID" });
+      const { name, url, enabled } = req.body;
+      const updated = await storage.updateSalesContact(id, { name, url, enabled });
+      if (!updated) return res.status(404).json({ message: "顾问不存在" });
+      res.json(updated);
+    } catch (err) {
+      console.error("[admin] update contact error:", err);
+      res.status(500).json({ message: "更新失败" });
+    }
+  });
+
+  app.delete("/api/admin/contacts/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "无效ID" });
+      await storage.deleteSalesContact(id);
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("[admin] delete contact error:", err);
+      res.status(500).json({ message: "删除失败" });
+    }
+  });
+
+  app.post("/api/admin/contacts/:id/health-check", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "无效ID" });
+      const contacts = await storage.getAllSalesContacts();
+      const contact = contacts.find(c => c.id === id);
+      if (!contact) return res.status(404).json({ message: "顾问不存在" });
+      const alive = await checkContactAlive(contact.url, true);
+      const status = alive ? "ok" : "dead";
+      await storage.updateContactHealth(id, status);
+      res.json({ id, status, checkedAt: new Date().toISOString() });
+    } catch (err) {
+      console.error("[admin] health check error:", err);
+      res.status(500).json({ message: "检测失败" });
+    }
+  });
+
+  app.post("/api/admin/contacts/health-check-all", requireAdmin, async (_req, res) => {
+    try {
+      const contacts = await storage.getEnabledSalesContacts();
+      const results = [];
+      for (const contact of contacts) {
+        const alive = await checkContactAlive(contact.url, true);
+        const status = alive ? "ok" : "dead";
+        await storage.updateContactHealth(contact.id, status);
+        results.push({ id: contact.id, name: contact.name, status });
+      }
+      res.json(results);
+    } catch (err) {
+      console.error("[admin] health check all error:", err);
+      res.status(500).json({ message: "检测失败" });
+    }
+  });
+
+  setInterval(runHealthMonitor, HEALTH_MONITOR_INTERVAL);
+  setTimeout(runHealthMonitor, 10000);
 
   return httpServer;
 }

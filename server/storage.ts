@@ -1,4 +1,4 @@
-import { users, quizResults, userEvents, type User, type InsertUser } from "@shared/schema";
+import { users, quizResults, userEvents, salesContacts, type User, type InsertUser, type SalesContact, type InsertSalesContact } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, gte, lte } from "drizzle-orm";
 import crypto from "crypto";
@@ -33,6 +33,12 @@ export interface IStorage {
     eventData?: Record<string, unknown>;
   }): Promise<void>;
   getUserEvents(userId: number, limit?: number): Promise<(typeof userEvents.$inferSelect)[]>;
+  getAllSalesContacts(): Promise<SalesContact[]>;
+  getEnabledSalesContacts(): Promise<SalesContact[]>;
+  createSalesContact(data: InsertSalesContact): Promise<SalesContact>;
+  updateSalesContact(id: number, data: Partial<Pick<SalesContact, 'name' | 'url' | 'enabled'>>): Promise<SalesContact | undefined>;
+  deleteSalesContact(id: number): Promise<void>;
+  updateContactHealth(id: number, status: string): Promise<void>;
 }
 
 function generateShareToken(): string {
@@ -151,6 +157,40 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userEvents.userId, userId))
       .orderBy(desc(userEvents.createdAt))
       .limit(limit);
+  }
+
+  async getAllSalesContacts(): Promise<SalesContact[]> {
+    return db.select().from(salesContacts).orderBy(salesContacts.id);
+  }
+
+  async getEnabledSalesContacts(): Promise<SalesContact[]> {
+    return db.select().from(salesContacts).where(eq(salesContacts.enabled, true)).orderBy(salesContacts.id);
+  }
+
+  async createSalesContact(data: InsertSalesContact): Promise<SalesContact> {
+    const [contact] = await db.insert(salesContacts).values(data).returning();
+    return contact;
+  }
+
+  async updateSalesContact(id: number, data: Partial<Pick<SalesContact, 'name' | 'url' | 'enabled'>>): Promise<SalesContact | undefined> {
+    const updates: Record<string, unknown> = {};
+    if (data.name !== undefined) updates.name = data.name;
+    if (data.url !== undefined) updates.url = data.url;
+    if (data.enabled !== undefined) updates.enabled = data.enabled;
+    if (Object.keys(updates).length === 0) return undefined;
+    const [updated] = await db.update(salesContacts).set(updates).where(eq(salesContacts.id, id)).returning();
+    return updated || undefined;
+  }
+
+  async deleteSalesContact(id: number): Promise<void> {
+    await db.delete(salesContacts).where(eq(salesContacts.id, id));
+  }
+
+  async updateContactHealth(id: number, status: string): Promise<void> {
+    await db.update(salesContacts).set({
+      lastHealthCheck: new Date(),
+      lastHealthStatus: status,
+    }).where(eq(salesContacts.id, id));
   }
 }
 

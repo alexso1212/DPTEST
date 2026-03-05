@@ -48,6 +48,35 @@ export async function sendRegistrationNotification({ phone, wechatName }: Regist
   }
 }
 
+export async function sendContactAlertNotification({ name, url }: { name: string; url: string }): Promise<{ success: boolean }> {
+  const content = [
+    `## ⚠️ 企业微信顾问异常告警`,
+    ``,
+    `> 以下顾问的企业微信链接检测异常，可能无法正常添加`,
+    ``,
+    `**顾问名称：** <font color="warning">${name}</font>`,
+    `**链接：** ${url}`,
+    `**检测时间：** ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`,
+    ``,
+    `---`,
+    `💡 请检查该顾问的企业微信状态，必要时在管理后台禁用该顾问`,
+  ].join('\n');
+
+  try {
+    const res = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ msgtype: "markdown", markdown: { content } }),
+    });
+    const data = await res.json();
+    console.log("Contact alert webhook sent:", data);
+    return { success: true };
+  } catch (err) {
+    console.error("Failed to send contact alert webhook:", err);
+    return { success: false };
+  }
+}
+
 interface ResultWebhookPayload {
   phone: string;
   wechatName?: string;

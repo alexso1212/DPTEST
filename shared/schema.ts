@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, serial, integer, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, serial, integer, jsonb, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -36,6 +36,27 @@ export const userEvents = pgTable("user_events", {
   eventData: jsonb("event_data"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const salesContacts = pgTable("sales_contacts", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  url: text("url").notNull(),
+  enabled: boolean("enabled").default(true).notNull(),
+  lastHealthCheck: timestamp("last_health_check"),
+  lastHealthStatus: varchar("last_health_status", { length: 20 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertSalesContactSchema = createInsertSchema(salesContacts).pick({
+  name: true,
+  url: true,
+}).extend({
+  name: z.string().min(1, "请输入顾问名称"),
+  url: z.string().url("请输入有效的链接"),
+});
+
+export type SalesContact = typeof salesContacts.$inferSelect;
+export type InsertSalesContact = z.infer<typeof insertSalesContactSchema>;
 
 export const insertUserSchema = createInsertSchema(users).pick({
   phone: true,
