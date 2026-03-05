@@ -29,7 +29,7 @@ interface ResultPageProps {
 
 const ease = { duration: 0.22, ease: "easeOut" as const };
 
-function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: () => void }) {
+function CharacterCardReveal({ result, onDone, tier = 0 }: { result: QuizResult; onDone: () => void; tier?: number }) {
   const [phase, setPhase] = useState(0);
   const [ready, setReady] = useState(false);
   const { traderType, rank } = result;
@@ -284,7 +284,7 @@ function CharacterCardReveal({ result, onDone }: { result: QuizResult; onDone: (
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.4, duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
                 >
-                  <CharacterSVG type={traderType.code} size={160} tier={user?.tier ?? 0} />
+                  <CharacterSVG type={traderType.code} size={160} tier={tier} />
                 </motion.div>
 
                 <div className="text-center w-full">
@@ -516,7 +516,7 @@ export default function ResultPage({ result }: ResultPageProps) {
     <>
       <AnimatePresence>
         {showUnbox && (
-          <CharacterCardReveal result={result} onDone={() => setShowUnbox(false)} />
+          <CharacterCardReveal result={result} onDone={() => setShowUnbox(false)} tier={user?.tier ?? 0} />
         )}
       </AnimatePresence>
 
