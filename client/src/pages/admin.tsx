@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Lock, Plus, Trash2, Activity, Power, PowerOff, RefreshCw, Shield, ArrowLeft, X, BarChart3, Eye, UserPlus, MessageSquare, Users, TrendingUp } from "lucide-react";
+import { Lock, Plus, Trash2, Activity, Power, PowerOff, RefreshCw, Shield, ArrowLeft, X, BarChart3, Eye, UserPlus, MessageSquare, Users, TrendingUp, Pencil, Check, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface SalesContact {
@@ -41,11 +41,38 @@ interface DailyTrend {
   wechat_clicks: string;
 }
 
+interface FunnelData {
+  step_view: string;
+  step_register: string;
+  step_quiz: string;
+  step_wechat: string;
+}
+
+interface TraderType {
+  type_code: string;
+  count: string;
+}
+
+interface HourlyData {
+  hour: string;
+  count: string;
+}
+
 interface StatsData {
   overview: StatsOverview;
   contactStats: ContactStat[];
   dailyTrend: DailyTrend[];
+  funnel: FunnelData;
+  traderTypes: TraderType[];
+  hourlyDistribution: HourlyData[];
 }
+
+const TRADER_TYPE_NAMES: Record<string, string> = {
+  RS: "风险猎手", RM: "稳健策略师", RT: "技术分析师", RI: "直觉交易者",
+  AS: "激进狙击手", AM: "平衡操盘手", AT: "量化分析师", AI: "灵感交易者",
+  DS: "防守大师", DM: "保守管理者", DT: "数据矿工", DI: "感知守护者",
+  ES: "情绪冲浪者", EM: "心态教练", ET: "系统执行者", EI: "市场哲学家",
+};
 
 function StatusDot({ status }: { status: string | null }) {
   const color = status === "ok" ? "#07C160" : status === "dead" ? "#EF4444" : "#6B7280";
@@ -83,6 +110,142 @@ function StatCard({ icon: Icon, label, value, subValue, color }: {
   );
 }
 
+function FunnelChart({ funnel }: { funnel: FunnelData }) {
+  const steps = [
+    { label: "浏览", value: parseInt(funnel.step_view) || 0, color: "#3B82F6" },
+    { label: "注册", value: parseInt(funnel.step_register) || 0, color: "#07C160" },
+    { label: "完成测评", value: parseInt(funnel.step_quiz) || 0, color: "#8B5CF6" },
+    { label: "添加客服", value: parseInt(funnel.step_wechat) || 0, color: "#F59E0B" },
+  ];
+  const maxVal = Math.max(steps[0].value, 1);
+
+  return (
+    <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
+      <div className="flex items-center gap-2 mb-3">
+        <TrendingUp className="w-4 h-4" style={{ color: 'var(--gold)' }} />
+        <span className="text-sm font-medium" style={{ color: 'var(--text-strong)' }}>转化漏斗</span>
+      </div>
+      <div className="space-y-3">
+        {steps.map((step, i) => {
+          const pct = (step.value / maxVal) * 100;
+          const convRate = i > 0 && steps[i - 1].value > 0
+            ? ((step.value / steps[i - 1].value) * 100).toFixed(1)
+            : null;
+          return (
+            <div key={step.label} data-testid={`funnel-${step.label}`}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs" style={{ color: 'var(--text-strong)' }}>{step.label}</span>
+                  {convRate && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--text-muted)' }}>
+                      {convRate}%
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs font-medium" style={{ color: step.color }}>{step.value}</span>
+              </div>
+              <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ duration: 0.6, delay: i * 0.1, ease: "easeOut" }}
+                  className="h-full rounded-full"
+                  style={{ background: step.color }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TraderTypeChart({ types }: { types: TraderType[] }) {
+  if (types.length === 0) return null;
+  const total = types.reduce((sum, t) => sum + (parseInt(t.count) || 0), 0);
+  const colors = ["#F59E0B", "#3B82F6", "#07C160", "#8B5CF6", "#EF4444", "#EC4899", "#14B8A6", "#F97316"];
+
+  return (
+    <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
+      <div className="flex items-center gap-2 mb-3">
+        <Users className="w-4 h-4" style={{ color: 'var(--gold)' }} />
+        <span className="text-sm font-medium" style={{ color: 'var(--text-strong)' }}>交易者类型分布</span>
+      </div>
+      <div className="space-y-2">
+        {types.map((t, i) => {
+          const count = parseInt(t.count) || 0;
+          const pct = total > 0 ? ((count / total) * 100).toFixed(1) : "0";
+          const color = colors[i % colors.length];
+          const name = TRADER_TYPE_NAMES[t.type_code] || t.type_code;
+          return (
+            <div key={t.type_code} data-testid={`type-${t.type_code}`}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-medium" style={{ color }}>{t.type_code}</span>
+                  <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{name}</span>
+                </div>
+                <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{count} ({pct}%)</span>
+              </div>
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${parseFloat(pct)}%` }}
+                  transition={{ duration: 0.5, delay: i * 0.05 }}
+                  className="h-full rounded-full"
+                  style={{ background: color }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function HourlyChart({ data }: { data: HourlyData[] }) {
+  if (data.length === 0) return null;
+  const hours = Array.from({ length: 24 }, (_, i) => {
+    const found = data.find(d => parseInt(d.hour) === i);
+    return { hour: i, count: found ? parseInt(found.count) || 0 : 0 };
+  });
+  const maxCount = Math.max(...hours.map(h => h.count), 1);
+
+  return (
+    <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
+      <div className="flex items-center gap-2 mb-3">
+        <Clock className="w-4 h-4" style={{ color: 'var(--gold)' }} />
+        <span className="text-sm font-medium" style={{ color: 'var(--text-strong)' }}>访问时段分布（近7天）</span>
+      </div>
+      <div className="flex items-end gap-[2px] h-20">
+        {hours.map(h => {
+          const heightPct = (h.count / maxCount) * 100;
+          const isHigh = h.count >= maxCount * 0.7;
+          return (
+            <div key={h.hour} className="flex-1 flex flex-col items-center justify-end h-full" title={`${h.hour}:00 - ${h.count} 次`}>
+              <motion.div
+                initial={{ height: 0 }}
+                animate={{ height: `${Math.max(heightPct, 2)}%` }}
+                transition={{ duration: 0.4, delay: h.hour * 0.02 }}
+                className="w-full rounded-t-sm"
+                style={{ background: isHigh ? 'var(--gold)' : 'rgba(var(--gold-rgb), 0.3)', minHeight: '1px' }}
+              />
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex justify-between mt-1">
+        <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>0:00</span>
+        <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>6:00</span>
+        <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>12:00</span>
+        <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>18:00</span>
+        <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>23:00</span>
+      </div>
+    </div>
+  );
+}
+
 function StatsPanel({ stats, loading }: { stats: StatsData | null; loading: boolean }) {
   if (loading) {
     return (
@@ -105,7 +268,6 @@ function StatsPanel({ stats, loading }: { stats: StatsData | null; loading: bool
   const todayRegisters = parseInt(o.today_registers) || 0;
   const todayClicks = parseInt(o.today_wechat_clicks) || 0;
   const uniqueVisitors = parseInt(o.total_unique_visitors) || 0;
-  const todayUnique = parseInt(o.today_unique_visitors) || 0;
 
   return (
     <div className="space-y-4" data-testid="stats-panel">
@@ -140,6 +302,8 @@ function StatsPanel({ stats, loading }: { stats: StatsData | null; loading: bool
         />
       </div>
 
+      {stats.funnel && <FunnelChart funnel={stats.funnel} />}
+
       {stats.contactStats.length > 0 && (
         <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2 mb-3">
@@ -172,6 +336,9 @@ function StatsPanel({ stats, loading }: { stats: StatsData | null; loading: bool
           </div>
         </div>
       )}
+
+      {stats.traderTypes && <TraderTypeChart types={stats.traderTypes} />}
+      {stats.hourlyDistribution && <HourlyChart data={stats.hourlyDistribution} />}
 
       {stats.dailyTrend.length > 0 && (
         <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
@@ -389,6 +556,10 @@ function ContactCard({ contact, onUpdate, onDelete }: {
   const [checking, setChecking] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState(contact.name);
+  const [editUrl, setEditUrl] = useState(contact.url);
+  const [saving, setSaving] = useState(false);
 
   const toggleEnabled = useCallback(async () => {
     try {
@@ -443,6 +614,36 @@ function ContactCard({ contact, onUpdate, onDelete }: {
     setConfirmDelete(false);
   }, [contact, onDelete, toast]);
 
+  const handleSaveEdit = useCallback(async () => {
+    if (!editName || !editUrl) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/contacts/${contact.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editName, url: editUrl }),
+        credentials: "include",
+      });
+      if (res.ok) {
+        toast({ title: "已保存" });
+        setEditing(false);
+        onUpdate();
+      } else {
+        const data = await res.json();
+        toast({ title: data.message || "保存失败", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "网络错误", variant: "destructive" });
+    }
+    setSaving(false);
+  }, [contact.id, editName, editUrl, onUpdate, toast]);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditName(contact.name);
+    setEditUrl(contact.url);
+    setEditing(false);
+  }, [contact]);
+
   return (
     <div
       className="rounded-xl p-4 transition-all"
@@ -453,75 +654,125 @@ function ContactCard({ contact, onUpdate, onDelete }: {
       }}
       data-testid={`card-contact-${contact.id}`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-semibold truncate" style={{ color: 'var(--text-strong)' }}>{contact.name}</span>
-            <StatusDot status={contact.lastHealthStatus} />
-          </div>
-          <p className="text-xs truncate mb-1" style={{ color: 'var(--text-muted)' }}>{contact.url}</p>
-          {contact.lastHealthCheck && (
-            <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-              上次检测: {new Date(contact.lastHealthCheck).toLocaleString('zh-CN')}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            onClick={runHealthCheck}
-            disabled={checking}
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-            style={{ background: 'rgba(255,255,255,0.04)' }}
-            title="健康检测"
-            data-testid={`button-check-${contact.id}`}
-          >
-            <Activity className={`w-3.5 h-3.5 ${checking ? 'animate-pulse' : ''}`} style={{ color: 'var(--info)' }} />
-          </button>
-          <button
-            onClick={toggleEnabled}
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-            style={{ background: 'rgba(255,255,255,0.04)' }}
-            title={contact.enabled ? "禁用" : "启用"}
-            data-testid={`button-toggle-${contact.id}`}
-          >
-            {contact.enabled ? (
-              <Power className="w-3.5 h-3.5" style={{ color: '#07C160' }} />
-            ) : (
-              <PowerOff className="w-3.5 h-3.5" style={{ color: '#EF4444' }} />
-            )}
-          </button>
-          {confirmDelete ? (
-            <div className="flex items-center gap-1">
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="px-2 py-1 rounded text-[10px] font-medium"
-                style={{ background: '#EF4444', color: '#fff' }}
-                data-testid={`button-confirm-delete-${contact.id}`}
-              >
-                {deleting ? "..." : "确认"}
-              </button>
-              <button
-                onClick={() => setConfirmDelete(false)}
-                className="px-2 py-1 rounded text-[10px]"
-                style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)' }}
-              >
-                取消
-              </button>
-            </div>
-          ) : (
+      {editing ? (
+        <div className="space-y-2.5">
+          <input
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            placeholder="顾问名称"
+            className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(var(--gold-rgb), 0.3)', color: 'var(--text-strong)' }}
+            data-testid={`input-edit-name-${contact.id}`}
+          />
+          <input
+            value={editUrl}
+            onChange={(e) => setEditUrl(e.target.value)}
+            placeholder="企业微信链接"
+            className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(var(--gold-rgb), 0.3)', color: 'var(--text-strong)' }}
+            data-testid={`input-edit-url-${contact.id}`}
+          />
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setConfirmDelete(true)}
+              onClick={handleSaveEdit}
+              disabled={saving || !editName || !editUrl}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium"
+              style={{ background: 'var(--gold)', color: '#000' }}
+              data-testid={`button-save-edit-${contact.id}`}
+            >
+              <Check className="w-3 h-3" />
+              {saving ? "保存中..." : "保存"}
+            </button>
+            <button
+              onClick={handleCancelEdit}
+              className="px-3 py-1.5 rounded-lg text-xs"
+              style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)' }}
+              data-testid={`button-cancel-edit-${contact.id}`}
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm font-semibold truncate" style={{ color: 'var(--text-strong)' }}>{contact.name}</span>
+              <StatusDot status={contact.lastHealthStatus} />
+            </div>
+            <p className="text-xs truncate mb-1" style={{ color: 'var(--text-muted)' }}>{contact.url}</p>
+            {contact.lastHealthCheck && (
+              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                上次检测: {new Date(contact.lastHealthCheck).toLocaleString('zh-CN')}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => { setEditName(contact.name); setEditUrl(contact.url); setEditing(true); }}
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
               style={{ background: 'rgba(255,255,255,0.04)' }}
-              title="删除"
-              data-testid={`button-delete-${contact.id}`}
+              title="编辑"
+              data-testid={`button-edit-${contact.id}`}
             >
-              <Trash2 className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+              <Pencil className="w-3.5 h-3.5" style={{ color: 'var(--gold)' }} />
             </button>
-          )}
+            <button
+              onClick={runHealthCheck}
+              disabled={checking}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+              style={{ background: 'rgba(255,255,255,0.04)' }}
+              title="健康检测"
+              data-testid={`button-check-${contact.id}`}
+            >
+              <Activity className={`w-3.5 h-3.5 ${checking ? 'animate-pulse' : ''}`} style={{ color: 'var(--info)' }} />
+            </button>
+            <button
+              onClick={toggleEnabled}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+              style={{ background: 'rgba(255,255,255,0.04)' }}
+              title={contact.enabled ? "禁用" : "启用"}
+              data-testid={`button-toggle-${contact.id}`}
+            >
+              {contact.enabled ? (
+                <Power className="w-3.5 h-3.5" style={{ color: '#07C160' }} />
+              ) : (
+                <PowerOff className="w-3.5 h-3.5" style={{ color: '#EF4444' }} />
+              )}
+            </button>
+            {confirmDelete ? (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="px-2 py-1 rounded text-[10px] font-medium"
+                  style={{ background: '#EF4444', color: '#fff' }}
+                  data-testid={`button-confirm-delete-${contact.id}`}
+                >
+                  {deleting ? "..." : "确认"}
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  className="px-2 py-1 rounded text-[10px]"
+                  style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)' }}
+                >
+                  取消
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                style={{ background: 'rgba(255,255,255,0.04)' }}
+                title="删除"
+                data-testid={`button-delete-${contact.id}`}
+              >
+                <Trash2 className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

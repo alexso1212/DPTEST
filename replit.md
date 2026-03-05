@@ -62,7 +62,9 @@ Each of the 16 trader types has a unique visual identity including specific colo
 - **Database**: PostgreSQL
 - **ORM**: Drizzle ORM
 - **Notifications**: Enterprise WeChat Webhook
-- **Sales Contacts**: Database-backed (`sales_contacts` table) round-robin distribution via `GET /api/wechat-contact`; `POST /api/wechat-contact/switch` for user self-service switching with session blacklist; admin management at `/admin` (password-protected via ADMIN_PASSWORD env var) with CRUD, enable/disable, health checking, and auto-monitoring every 30 mins with WeChat webhook alerts on status changes
+- **Sales Contacts**: Database-backed (`sales_contacts` table) round-robin distribution via `GET /api/wechat-contact`; `POST /api/wechat-contact/switch` for user self-service switching with session blacklist; admin management at `/admin` (password-protected via ADMIN_PASSWORD env var) with full CRUD (add/edit/delete), enable/disable, health checking, auto-monitoring every 30 mins with alerts; if a contact is disabled/deleted, users auto-reassigned on next visit
+- **Admin Stats**: `/admin` "数据统计" tab with overview cards, conversion funnel (浏览→注册→测评→添加客服), trader type distribution, hourly traffic heatmap, consultant assignment stats, daily trends
+- **External Data API**: `GET /api/external/stats` (requires `x-api-key` header with EXTERNAL_API_KEY env var) exposes analytics data for integration with buddy.ai; returns overview, funnel, trader types, contact stats, daily trends, and masked user list
 - **Live Room**: B站直播间 `https://live.bilibili.com/1874453448` + 腾讯会议 `https://meeting.tencent.com/p/3621520297`（浮动按钮展开面板双入口）
 - **Font Hosting**: Noto Sans SC, Noto Serif SC, Oswald, Barlow Condensed, Space Mono (implied by usage, likely Google Fonts or self-hosted)
 - **Image Generation**: `html2canvas` (for sharing result cards)

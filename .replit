@@ -41,3 +41,8 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_database:1.0.0"]
+
+[userenv]
+
+[userenv.shared]
+EXTERNAL_API_KEY = "64dd476d05dc30fbb7bc329fd9837d69ad13e333d361ab75488ba5c9f055df1e"
