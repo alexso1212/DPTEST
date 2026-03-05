@@ -7,7 +7,7 @@ import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLin
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
 import CharacterSVG from "@/components/character/CharacterSVG";
-import AnimatedCharacter from "@/components/character/AnimatedCharacter";
+import InteractiveCharacter from "@/components/character/InteractiveCharacter";
 import TierRoadmap from "@/components/character/TierRoadmap";
 import RankBadge from "@/components/RankBadge";
 import { usePageView, useTracking } from "@/hooks/use-tracking";
@@ -204,7 +204,7 @@ export default function HomePage() {
               className="flex justify-center"
               style={{ marginBottom: '-16px', marginTop: '-4px' }}
             >
-              <AnimatedCharacter
+              <InteractiveCharacter
                 type={quizResult.traderTypeCode}
                 size={155}
                 tier={user?.tier ?? 0}
