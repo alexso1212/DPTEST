@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useCallback } from "react";
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { SiWechat } from "react-icons/si";
-import { Radio, Wrench, Trophy, ExternalLink, Target, Zap, ChevronRight } from "lucide-react";
+import { Radio, Wrench, Trophy, ExternalLink, Target, Zap, ChevronRight, Camera, X } from "lucide-react";
+import { QRCodeCanvas } from "qrcode.react";
 import { traderTypes, rankTiers } from "@/data/traderTypes";
 import { dimensionLabels, type Dimension } from "@/data/questions";
 import RadarChartComponent from "@/components/RadarChart";
@@ -110,6 +111,37 @@ function ReportContent({
   const cc = traderType?.cardColors;
   const [showWeChatModal, setShowWeChatModal] = useState(false);
   const [showVerifyCodeModal, setShowVerifyCodeModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const reportCardRef = useRef<HTMLDivElement>(null);
+
+  const handleGenerateImage = useCallback(async () => {
+    if (!reportCardRef.current) return;
+    setGenerating(true);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(reportCardRef.current, {
+        backgroundColor: "#0D0F14",
+        scale: 2,
+        useCORS: true,
+      });
+      const dataUrl = canvas.toDataURL("image/png");
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        setGeneratedImage(dataUrl);
+      } else {
+        const link = document.createElement("a");
+        link.download = `交易报告-${traderType?.name || 'report'}.png`;
+        link.href = dataUrl;
+        link.click();
+      }
+    } catch (err) {
+      console.error("Failed to generate report image:", err);
+    } finally {
+      setGenerating(false);
+    }
+  }, [traderType]);
   const { handleContact: handleWeChatMobile } = useWeChatContact();
   const primaryColor = cc?.primary || c1;
   const { trackEvent } = useTracking();
@@ -594,6 +626,19 @@ function ReportContent({
             <SiWechat className="w-5 h-5" />
             添加专属顾问
           </motion.button>
+
+          <motion.button
+            onClick={() => setShowShareModal(true)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-medium mt-3 transition-all duration-200"
+            style={{ border: '1px solid var(--gold)', color: 'var(--gold)', background: 'transparent' }}
+            data-testid="button-share-report"
+          >
+            <Camera className="w-4 h-4" />
+            保存报告卡片
+          </motion.button>
+
           <p className="text-xs italic mt-4 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
             "我们不教你怎么赚钱——<br />
             我们让你亲眼看到专业交易是什么样的"
@@ -609,6 +654,193 @@ function ReportContent({
           </p>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showShareModal && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ background: 'rgba(0,0,0,0.85)' }}
+            onClick={() => setShowShareModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={ease}
+              className="max-w-sm w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                ref={reportCardRef}
+                style={{
+                  borderRadius: "20px",
+                  overflow: "hidden",
+                  background: `linear-gradient(170deg, ${cc?.dark || '#0d0f14'} 0%, #0d0f14 40%, ${cc?.dark || '#0d0f14'} 100%)`,
+                  border: `1px solid ${cc?.glow || c1 + '40'}`,
+                  boxShadow: `0 0 25px ${cc?.glow || c1 + '20'}`,
+                }}
+              >
+                <div style={{ textAlign: "center", padding: "20px 16px 0" }}>
+                  <div style={{ fontFamily: "'Space Mono',monospace", fontSize: "11px", color: primaryColor, letterSpacing: "3px" }}>
+                    DELTAPEX TRADING REPORT
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "center", padding: "8px 10px 0", position: "relative" }}>
+                  <div style={{
+                    position: "absolute", width: "100px", height: "100px", borderRadius: "50%", top: "50%", left: "50%",
+                    transform: "translate(-50%,-50%)",
+                    background: `radial-gradient(circle, ${primaryColor}33 0%, transparent 70%)`,
+                  }} />
+                  <CharacterSVG type={traderType.code} size={150} tier={tier} />
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0 28px" }}>
+                  <div style={{ flex: 1, height: "1px", background: "linear-gradient(90deg, transparent, #C9A456, transparent)" }} />
+                  <span style={{ color: "#C9A456", fontSize: "10px" }}>✦</span>
+                  <div style={{ flex: 1, height: "1px", background: "linear-gradient(90deg, transparent, #C9A456, transparent)" }} />
+                </div>
+
+                <div style={{ textAlign: "center", padding: "8px 16px 0" }}>
+                  <h3 style={{ fontFamily: "Georgia, 'Noto Serif SC', serif", fontSize: "20px", fontWeight: 900, color: "#E8E6E1", margin: 0, letterSpacing: "4px" }}>
+                    {traderType.name}
+                  </h3>
+                  <p style={{ fontFamily: "'Space Mono',monospace", fontSize: "10px", color: primaryColor, margin: "3px 0 0", letterSpacing: "2px" }}>
+                    {traderType.subtitle}
+                  </p>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "4px", padding: "10px 0 6px" }}>
+                  <span style={{ color: rank.color, fontSize: "14px", fontWeight: 600 }}>{rank.name}</span>
+                  <span style={{ color: rank.color, fontSize: "24px", fontWeight: 700, fontFamily: "'Barlow Condensed', Oswald, monospace", marginLeft: "6px" }}>
+                    {avgScore}
+                  </span>
+                  <span style={{ color: "#94A3B8", fontSize: "12px" }}>/100</span>
+                </div>
+
+                <div style={{ padding: "0 24px 8px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                    {sortedDims.map((dim, i) => {
+                      const val = scores[dim];
+                      const filled = Math.round(val / 20);
+                      return (
+                        <div key={dim} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "12px" }}>
+                          <span style={{ color: "#94A3B8", width: "56px" }}>{dimensionLabels[dim]}</span>
+                          <span style={{ color: i < 2 ? primaryColor : '#38BDF8', flex: 1, textAlign: "center" }}>
+                            {'◆'.repeat(Math.min(5, filled))}{'◇'.repeat(Math.max(0, 5 - filled))}
+                          </span>
+                          <span style={{ color: i < 2 ? primaryColor : '#94A3B8', fontSize: "11px", width: "28px", textAlign: "right", fontFamily: "'Barlow Condensed', monospace" }}>{val}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div style={{ padding: "8px 24px 0" }}>
+                  <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: "10px", padding: "10px 14px" }}>
+                    <p style={{ fontFamily: "Georgia, 'Noto Serif SC', serif", fontSize: "12px", color: "#C9A456", fontStyle: "italic", margin: 0, lineHeight: 1.7, textAlign: "center" }}>
+                      "{traderType.quote}"
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px 18px", borderTop: "1px solid rgba(255,255,255,0.06)", marginTop: "12px" }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ color: "#C9A456", fontSize: "12px", margin: 0, fontWeight: 600 }}>
+                      扫码测测你是哪类交易员
+                    </p>
+                    <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "10px", margin: "4px 0 0" }}>
+                      Deltapex Trading Group
+                    </p>
+                  </div>
+                  <div style={{ background: "#fff", borderRadius: "6px", padding: "4px", flexShrink: 0 }}>
+                    <QRCodeCanvas value="https://dptest.org" size={56} level="M" bgColor="#ffffff" fgColor="#0D0F14" />
+                  </div>
+                </div>
+              </div>
+
+              <motion.button
+                onClick={handleGenerateImage}
+                disabled={generating}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full mt-3 py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200"
+                style={{ background: 'transparent', border: '1px solid var(--gold)', color: 'var(--gold)', opacity: generating ? 0.6 : 1 }}
+                data-testid="button-download-report-card"
+              >
+                {generating ? (
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--gold)', borderTopColor: 'transparent' }} />
+                    生成中...
+                  </>
+                ) : (
+                  <>
+                    <Camera className="w-4 h-4" />
+                    保存到相册
+                  </>
+                )}
+              </motion.button>
+
+              <motion.button
+                onClick={() => setShowShareModal(false)}
+                whileTap={{ scale: 0.98 }}
+                className="w-full mt-2 py-3 rounded-xl text-sm"
+                style={{ color: 'var(--text-muted)' }}
+                data-testid="button-close-share-report"
+              >
+                关闭
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {generatedImage && (
+          <motion.div
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ background: 'rgba(0,0,0,0.92)' }}
+            onClick={() => setGeneratedImage(null)}
+          >
+            <motion.button
+              onClick={() => setGeneratedImage(null)}
+              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.1)', color: '#94A3B8' }}
+              whileTap={{ scale: 0.9 }}
+              data-testid="button-close-image-modal"
+            >
+              <X className="w-5 h-5" />
+            </motion.button>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="flex flex-col items-center gap-4 max-w-sm w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="text-sm font-medium text-center" style={{ color: 'var(--gold)' }}>
+                长按图片保存到相册
+              </p>
+              <img
+                src={generatedImage}
+                alt="交易报告卡片"
+                className="w-full rounded-2xl"
+                style={{ boxShadow: '0 0 40px rgba(0,0,0,0.5)' }}
+                data-testid="img-generated-report"
+              />
+              <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
+                长按上方图片 → 保存图片
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <VerifyCodeModal
         open={showVerifyCodeModal}

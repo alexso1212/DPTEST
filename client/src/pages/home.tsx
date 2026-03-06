@@ -3,9 +3,13 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { motion } from "framer-motion";
-import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLink, Building2, Radio, Wrench, Trophy, TrendingUp, TrendingDown, Minus, History } from "lucide-react";
+import { LogOut, ChevronRight, RotateCcw, Gamepad2, FileText, Clock, ExternalLink, Building2, Radio, Wrench, Trophy, TrendingUp, TrendingDown, Minus, History, Camera } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { traderTypes, rankTiers, rarityMap } from "@/data/traderTypes";
+import ShareCard from "@/components/ShareCard";
+import type { QuizResult } from "@/utils/calculateResult";
+import { type Dimension } from "@/data/questions";
 import CharacterSVG from "@/components/character/CharacterSVG";
 import InteractiveCharacter from "@/components/character/InteractiveCharacter";
 import TierRoadmap from "@/components/character/TierRoadmap";
@@ -107,6 +111,22 @@ export default function HomePage() {
   const cc = traderType?.cardColors ?? (traderType ? { primary: traderType.colors[0], secondary: traderType.colors[1], dark: '#0d0f14', glow: `${traderType.colors[0]}40` } : null);
 
   const hasResult = !!(quizResult && traderType && rank && cc);
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  const shareResult = useMemo<QuizResult | null>(() => {
+    if (!quizResult || !traderType || !rank) return null;
+    const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
+    const sorted = [...dims].sort((a, b) => (quizResult.scores[b] ?? 0) - (quizResult.scores[a] ?? 0));
+    return {
+      rawScores: quizResult.scores as Record<Dimension, number>,
+      normalizedScores: quizResult.scores as Record<Dimension, number>,
+      traderType,
+      rank,
+      avgScore: quizResult.avgScore,
+      rarity: rarityMap[quizResult.traderTypeCode] || '8%',
+      top2: [sorted[0], sorted[1]] as [Dimension, Dimension],
+    };
+  }, [quizResult, traderType, rank]);
 
   return (
     <div
@@ -335,6 +355,16 @@ export default function HomePage() {
                 <RotateCcw className="w-3 h-3" />
                 重新测评
               </motion.button>
+              <motion.button
+                onClick={() => setShowShareModal(true)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="py-2 px-3 rounded-xl text-xs font-medium flex items-center justify-center gap-1 transition-all duration-200"
+                style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}
+                data-testid="button-share-card-home"
+              >
+                <Camera className="w-3 h-3" />
+              </motion.button>
             </motion.div>
 
             {quizResult.shareToken && (
@@ -416,6 +446,39 @@ export default function HomePage() {
           </>
         )}
       </div>
+
+      <AnimatePresence>
+        {showShareModal && shareResult && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ background: 'rgba(0,0,0,0.8)' }}
+            onClick={() => setShowShareModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={ease}
+              className="max-w-sm w-full max-h-[85vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ShareCard result={shareResult} tier={user?.tier ?? 0} />
+              <motion.button
+                onClick={() => setShowShareModal(false)}
+                whileTap={{ scale: 0.98 }}
+                className="w-full mt-3 py-3 rounded-xl text-sm"
+                style={{ color: 'var(--text-muted)' }}
+                data-testid="button-close-share-home"
+              >
+                关闭
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

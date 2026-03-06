@@ -27,7 +27,7 @@ The design adheres to a permanent "Institutional Dark" theme (v2) inspired by Bl
 - **Time-gated Access**: Users can view the full report directly from the homepage after 4 hours post-assessment.
 - **Re-assessment**: Users can retake the quiz.
 - **Growth Journey**: Displays a timeline of historical assessment records, including character changes, score trends, and rank/type shifts.
-- **Shareable Image**: Uses `html2canvas` to generate shareable result cards.
+- **Shareable Image**: Uses `html2canvas` + `qrcode.react` (QRCodeCanvas) to generate shareable cards with QR code pointing to `https://dptest.org` for viral growth. Available on: result page (ShareCard), home page (camera button → ShareCard modal), report page (custom report card with scores + QR code). Mobile users see long-press-to-save preview; desktop users get auto-download.
 - **WeChat Integration**: "Claim Report" button triggers a webhook to push detailed user profiles and sales strategies to a WeChat group.
 - **Responsive Design**: All pages are responsive, with specific layouts for mobile and desktop for modals, feature links, and report dimension cards.
 - **Behavior Tracking**: Frontend event tracking and backend storage (`user_events` table) for all critical user actions for future AI analysis.

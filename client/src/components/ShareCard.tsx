@@ -4,6 +4,7 @@ import { dimensionLabels, type Dimension } from "@/data/questions";
 import CharacterSVG from "@/components/character/CharacterSVG";
 import { Camera, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { QRCodeCanvas } from "qrcode.react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ShareCardProps {
@@ -139,13 +140,18 @@ export default function ShareCard({ result, tier = 0 }: ShareCardProps) {
           </div>
         </div>
 
-        <div style={{ textAlign: "center", padding: "10px 16px 16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <p style={{ color: "#C9A456", fontSize: "12px", margin: 0 }}>
-            测测你是什么类型的交易员 →
-          </p>
-          <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "10px", margin: "4px 0 0" }}>
-            Deltapex Trading Group
-          </p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px 16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ flex: 1 }}>
+            <p style={{ color: "#C9A456", fontSize: "12px", margin: 0, fontWeight: 600 }}>
+              扫码测测你是哪类交易员
+            </p>
+            <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "10px", margin: "4px 0 0" }}>
+              Deltapex Trading Group
+            </p>
+          </div>
+          <div style={{ background: "#fff", borderRadius: "6px", padding: "4px", flexShrink: 0 }}>
+            <QRCodeCanvas value="https://dptest.org" size={56} level="M" bgColor="#ffffff" fgColor="#0D0F14" />
+          </div>
         </div>
       </div>
 
