@@ -119,7 +119,7 @@ export default function ShareCard({ result, tier = 0 }: ShareCardProps) {
 
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "4px", padding: "12px 0 4px" }}>
           <span style={{ color: rank.color, fontSize: "28px", fontWeight: 700, fontFamily: "'Barlow Condensed', Oswald, monospace" }}>
-            ??
+            {result.avgScore}
           </span>
           <span style={{ color: "#94A3B8", fontSize: "12px" }}>/100</span>
         </div>
