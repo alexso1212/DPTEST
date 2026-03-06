@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { SiWechat } from "react-icons/si";
@@ -541,7 +541,7 @@ export default function ResultPage({ result }: ResultPageProps) {
   }, [user, showUnbox]);
 
   useEffect(() => {
-    if (user && !resultSaved) {
+    if (user && !resultSaved && sessionStorage.getItem("quiz_result_saved") !== "true") {
       const answers = (() => {
         try { return JSON.parse(localStorage.getItem('quiz_answers') || sessionStorage.getItem('quiz_answers') || '[]'); } catch { return []; }
       })();
@@ -559,6 +559,7 @@ export default function ResultPage({ result }: ResultPageProps) {
           credentials: "include",
         }).then(() => {
           setResultSaved(true);
+          sessionStorage.setItem("quiz_result_saved", "true");
           queryClient.invalidateQueries({ queryKey: ["/api/quiz-result"] });
           queryClient.invalidateQueries({ queryKey: ["/api/me"] });
         }).catch(() => {});

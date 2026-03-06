@@ -116,6 +116,7 @@ function Router() {
   const handleQuizComplete = useCallback(async (answers: number[]) => {
     localStorage.setItem(ANSWERS_KEY, JSON.stringify(answers));
     sessionStorage.setItem(ANSWERS_KEY, JSON.stringify(answers));
+    sessionStorage.removeItem("quiz_result_saved");
     const result = calculateResult(answers);
     setQuizResult(result);
 
@@ -133,6 +134,7 @@ function Router() {
         credentials: "include",
       });
       if (res.ok) {
+        sessionStorage.setItem("quiz_result_saved", "true");
         queryClient.invalidateQueries({ queryKey: ["/api/quiz-result"] });
         queryClient.invalidateQueries({ queryKey: ["/api/me"] });
       }
