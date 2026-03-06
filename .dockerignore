@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.env
+*.md
+.local
+.config
+.cache
+generated-icon.png
+attached_assets
+trader-cards-evolution.JSX

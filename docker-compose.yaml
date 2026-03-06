@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: deltapex
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: deltapex_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deltapex -d deltapex_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  app:
+    build: .
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      PORT: "5000"
+      DATABASE_URL: postgresql://deltapex:${DB_PASSWORD}@db:5432/deltapex_db
+      SESSION_SECRET: ${SESSION_SECRET}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      EXTERNAL_API_KEY: ${EXTERNAL_API_KEY:-}
+      BASE_URL: ${BASE_URL:-http://localhost:5000}
+      WECHAT_WEBHOOK_URL: ${WECHAT_WEBHOOK_URL:-}
+
+volumes:
+  pgdata:

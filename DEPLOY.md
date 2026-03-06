@@ -354,18 +354,103 @@ pm2 restart deltapex
 
 ---
 
-## 十二、项目结构简要说明
+## 十二、Docker 部署（推荐）
+
+项目已包含 `Dockerfile` 和 `docker-compose.yaml`，可以一键部署。
+
+### 12.1 前提条件
+
+在 Mac 上安装 [Docker Desktop](https://www.docker.com/products/docker-desktop/)，或者在 Linux 服务器上安装 Docker 和 Docker Compose。
+
+### 12.2 配置环境变量
+
+```bash
+# 复制环境变量模板
+cp .env.example .env
+
+# 编辑 .env 文件，填入实际值
+nano .env
+```
+
+`.env` 文件内容说明：
+
+```bash
+DB_PASSWORD=deltapex123                           # 数据库密码
+SESSION_SECRET=change_me_to_a_random_string       # 会话密钥（openssl rand -hex 32 生成）
+ADMIN_PASSWORD=1212                               # 管理后台密码
+EXTERNAL_API_KEY=                                 # 外部 API 密钥（可选）
+BASE_URL=https://test.deltapex.cn                 # 站点域名
+WECHAT_WEBHOOK_URL=                               # 企微 Webhook（可选）
+```
+
+### 12.3 启动
+
+```bash
+# 构建并启动（后台运行）
+docker compose up -d --build
+
+# 首次启动会自动：
+# 1. 创建 PostgreSQL 数据库
+# 2. 推送数据库表结构（drizzle-kit push）
+# 3. 启动 Node.js 应用
+```
+
+启动后访问 `http://localhost:5000` 确认应用正常运行。
+
+### 12.4 常用命令
+
+```bash
+# 查看运行状态
+docker compose ps
+
+# 查看应用日志
+docker compose logs -f app
+
+# 查看数据库日志
+docker compose logs -f db
+
+# 重启应用（代码更新后）
+docker compose up -d --build app
+
+# 停止所有服务
+docker compose down
+
+# 停止并删除数据（谨慎！会清空数据库）
+docker compose down -v
+```
+
+### 12.5 配合 Nginx 和 SSL
+
+在宿主机上安装 Nginx，配置反向代理到 `127.0.0.1:5000`（参考第六节的 Nginx 配置）。
+然后使用 Certbot 配置 SSL 证书（参考第六节第三步）。
+
+### 12.6 数据库备份
+
+```bash
+# 备份
+docker compose exec db pg_dump -U deltapex deltapex_db > backup_$(date +%Y%m%d).sql
+
+# 恢复
+cat backup_20260306.sql | docker compose exec -T db psql -U deltapex deltapex_db
+```
+
+---
+
+## 十三、项目结构简要说明
 
 ```
 deltapex/
-├── client/           # 前端源码（React + Vite）
-├── server/           # 后端源码（Express）
-├── shared/           # 前后端共享类型和 schema
-├── dist/             # 构建产物（npm run build 后生成）
-│   ├── index.cjs     # 服务端打包入口
-│   └── public/       # 前端静态文件
+├── client/              # 前端源码（React + Vite）
+├── server/              # 后端源码（Express）
+├── shared/              # 前后端共享类型和 schema
+├── dist/                # 构建产物（npm run build 后生成）
+│   ├── index.cjs        # 服务端打包入口
+│   └── public/          # 前端静态文件
+├── Dockerfile           # Docker 镜像构建
+├── docker-compose.yaml  # Docker Compose 编排
+├── docker-entrypoint.sh # 容器启动脚本（自动迁移数据库）
+├── .env.example         # 环境变量模板
 ├── package.json
-├── drizzle.config.ts # 数据库迁移配置
-├── .env              # 环境变量（需手动创建，不要提交到 Git）
-└── DEPLOY.md         # 本文档
+├── drizzle.config.ts    # 数据库迁移配置
+└── DEPLOY.md            # 本文档
 ```
