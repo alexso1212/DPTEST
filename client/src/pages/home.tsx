@@ -94,6 +94,23 @@ export default function HomePage() {
     : null;
   const { remaining: countdown, unlocked: reportUnlocked } = useCountdown(unlockTime);
 
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  const shareResult = useMemo<QuizResult | null>(() => {
+    if (!quizResult || !traderType || !rank) return null;
+    const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
+    const sorted = [...dims].sort((a, b) => (quizResult.scores[b] ?? 0) - (quizResult.scores[a] ?? 0));
+    return {
+      rawScores: quizResult.scores as Record<Dimension, number>,
+      normalizedScores: quizResult.scores as Record<Dimension, number>,
+      traderType,
+      rank,
+      avgScore: quizResult.avgScore,
+      rarity: rarityMap[quizResult.traderTypeCode] || '8%',
+      top2: [sorted[0], sorted[1]] as [Dimension, Dimension],
+    };
+  }, [quizResult, traderType, rank]);
+
   const handleLogout = async () => {
     await apiRequest("POST", "/api/logout");
     await queryClient.invalidateQueries({ queryKey: ["/api/me"] });
@@ -111,22 +128,6 @@ export default function HomePage() {
   const cc = traderType?.cardColors ?? (traderType ? { primary: traderType.colors[0], secondary: traderType.colors[1], dark: '#0d0f14', glow: `${traderType.colors[0]}40` } : null);
 
   const hasResult = !!(quizResult && traderType && rank && cc);
-  const [showShareModal, setShowShareModal] = useState(false);
-
-  const shareResult = useMemo<QuizResult | null>(() => {
-    if (!quizResult || !traderType || !rank) return null;
-    const dims: Dimension[] = ['RISK', 'MENTAL', 'SYSTEM', 'ADAPT', 'EXEC', 'EDGE'];
-    const sorted = [...dims].sort((a, b) => (quizResult.scores[b] ?? 0) - (quizResult.scores[a] ?? 0));
-    return {
-      rawScores: quizResult.scores as Record<Dimension, number>,
-      normalizedScores: quizResult.scores as Record<Dimension, number>,
-      traderType,
-      rank,
-      avgScore: quizResult.avgScore,
-      rarity: rarityMap[quizResult.traderTypeCode] || '8%',
-      top2: [sorted[0], sorted[1]] as [Dimension, Dimension],
-    };
-  }, [quizResult, traderType, rank]);
 
   return (
     <div
@@ -291,7 +292,7 @@ export default function HomePage() {
               transition={{ ...ease, delay: 0.28 }}
               className="mt-2"
             >
-              <TierRoadmap type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} />
+              <TierRoadmap type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} loginDays={user?.loginDays ?? 0} />
               {user && (user.tier ?? 0) < 3 && (
                 <div className="mt-2 px-3 py-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
                   <div className="flex items-center justify-between mb-1">

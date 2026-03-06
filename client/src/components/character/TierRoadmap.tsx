@@ -7,12 +7,15 @@ import CharacterSVG from "./CharacterSVG";
 import SilhouettePreview from "./SilhouettePreview";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+const TIER_LOGIN_DAYS = [0, 7, 21, 60];
+
 interface TierRoadmapProps {
   type: string;
   currentTier?: number;
+  loginDays?: number;
 }
 
-export default function TierRoadmap({ type, currentTier = 0 }: TierRoadmapProps) {
+export default function TierRoadmap({ type, currentTier = 0, loginDays = 0 }: TierRoadmapProps) {
   const [open, setOpen] = useState(false);
   const char = CHARACTERS[type];
   const isMobile = useIsMobile();
@@ -181,19 +184,42 @@ export default function TierRoadmap({ type, currentTier = 0 }: TierRoadmapProps)
                         Lv.{tierData.level}
                       </span>
 
-                      {!isUnlocked && (
-                        <p
+                      <p
+                        style={{
+                          fontSize: "9px",
+                          color: isCurrent ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.25)",
+                          textAlign: "center",
+                          maxWidth: isMobile ? "70px" : "100px",
+                          lineHeight: 1.4,
+                          margin: 0,
+                        }}
+                      >
+                        {tierData.criteria}
+                      </p>
+
+                      {isCurrent && tierIndex < 3 && (
+                        <span
                           style={{
                             fontSize: "9px",
-                            color: "rgba(255,255,255,0.25)",
-                            textAlign: "center",
-                            maxWidth: isMobile ? "70px" : "100px",
-                            lineHeight: 1.4,
-                            margin: 0,
+                            color: char.colors.primary,
+                            fontFamily: "'Barlow Condensed', monospace",
                           }}
                         >
-                          {tierData.criteria}
-                        </p>
+                          已登录 {loginDays} 天
+                        </span>
+                      )}
+
+                      {!isUnlocked && tierIndex > 0 && (
+                        <span
+                          style={{
+                            fontSize: "9px",
+                            color: char.colors.accent,
+                            fontWeight: 600,
+                            fontFamily: "'Barlow Condensed', monospace",
+                          }}
+                        >
+                          还需 {Math.max(0, TIER_LOGIN_DAYS[tierIndex] - loginDays)} 天
+                        </span>
                       )}
                     </div>
                   );
