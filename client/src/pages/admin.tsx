@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Lock, Plus, Trash2, Activity, Power, PowerOff, RefreshCw, Shield, ArrowLeft, X, BarChart3, Eye, UserPlus, MessageSquare, Users, TrendingUp, Pencil, Check, Clock } from "lucide-react";
+import { Lock, Plus, Trash2, Activity, Power, PowerOff, RefreshCw, Shield, ArrowLeft, X, BarChart3, Eye, UserPlus, MessageSquare, Users, TrendingUp, Pencil, Check, Clock, Copy, Search, Download, Phone, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface SalesContact {
@@ -65,6 +65,23 @@ interface StatsData {
   funnel: FunnelData;
   traderTypes: TraderType[];
   hourlyDistribution: HourlyData[];
+}
+
+interface AdminUser {
+  id: number;
+  phone: string;
+  nickname: string | null;
+  wechat_id: string | null;
+  source: string | null;
+  tier: number;
+  login_days: number;
+  last_login_date: string | null;
+  last_active_at: string | null;
+  created_at: string;
+  trader_type_code: string | null;
+  avg_score: number | null;
+  rank_name: string | null;
+  quiz_completed_at: string | null;
 }
 
 const TRADER_TYPE_NAMES: Record<string, string> = {
@@ -379,6 +396,224 @@ function StatsPanel({ stats, loading }: { stats: StatsData | null; loading: bool
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+const TIER_NAMES: Record<number, string> = { 0: "学徒", 1: "交易者", 2: "精英", 3: "职业操盘手" };
+
+function UsersPanel({ users, loading, onRefresh }: { users: AdminUser[]; loading: boolean; onRefresh: () => void }) {
+  const { toast } = useToast();
+  const [search, setSearch] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const filtered = users.filter(u => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      u.phone.includes(q) ||
+      (u.nickname && u.nickname.toLowerCase().includes(q)) ||
+      (u.wechat_id && u.wechat_id.toLowerCase().includes(q)) ||
+      (u.trader_type_code && (TRADER_TYPE_NAMES[u.trader_type_code] || u.trader_type_code).toLowerCase().includes(q))
+    );
+  });
+
+  const copyText = useCallback(async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(text);
+      toast({ title: `${label} 已复制` });
+      setTimeout(() => setCopiedId(null), 1500);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopiedId(text);
+      toast({ title: `${label} 已复制` });
+      setTimeout(() => setCopiedId(null), 1500);
+    }
+  }, [toast]);
+
+  const exportCSV = useCallback(() => {
+    const escapeCSV = (val: string | number | null | undefined): string => {
+      if (val == null || val === "") return '""';
+      const s = String(val);
+      if (/^[=+\-@\t\r]/.test(s)) return `"'${s.replace(/"/g, '""')}"`;
+      if (s.includes(",") || s.includes('"') || s.includes("\n")) return `"${s.replace(/"/g, '""')}"`;
+      return s;
+    };
+    const header = "ID,手机号,昵称,微信号,来源,阶段,登录天数,交易者类型,综合评分,注册时间,测评时间,最后活跃";
+    const rows = filtered.map(u => [
+      u.id,
+      escapeCSV(u.phone),
+      escapeCSV(u.nickname),
+      escapeCSV(u.wechat_id),
+      escapeCSV(u.source),
+      escapeCSV(TIER_NAMES[u.tier] || `T${u.tier}`),
+      u.login_days,
+      escapeCSV(u.trader_type_code ? (TRADER_TYPE_NAMES[u.trader_type_code] || u.trader_type_code) : ""),
+      u.avg_score ?? "",
+      u.created_at ? new Date(u.created_at).toLocaleDateString("zh-CN") : "",
+      u.quiz_completed_at ? new Date(u.quiz_completed_at).toLocaleDateString("zh-CN") : "",
+      u.last_active_at ? new Date(u.last_active_at).toLocaleDateString("zh-CN") : "",
+    ].join(","));
+    const csv = "\uFEFF" + [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `客户资料_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: `已导出 ${filtered.length} 条记录` });
+  }, [filtered, toast]);
+
+  const formatDate = (d: string | null) => {
+    if (!d) return "-";
+    return new Date(d).toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+  };
+
+  if (loading && users.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="w-8 h-8 mx-auto rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3" data-testid="users-panel">
+      <div className="flex items-center gap-2">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+          <input
+            type="text"
+            placeholder="搜索手机号 / 昵称 / 微信号"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 rounded-xl text-xs outline-none"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', color: 'var(--text-strong)' }}
+            data-testid="input-search-users"
+          />
+        </div>
+        <button
+          onClick={exportCSV}
+          className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium shrink-0"
+          style={{ background: 'rgba(var(--primary-rgb), 0.1)', color: 'var(--primary)', border: '1px solid rgba(var(--primary-rgb), 0.2)' }}
+          data-testid="button-export-csv"
+        >
+          <Download className="w-3.5 h-3.5" />
+          导出
+        </button>
+      </div>
+
+      <div className="text-[11px] flex items-center justify-between" style={{ color: 'var(--text-muted)' }}>
+        <span>共 {filtered.length} 位客户{search && ` (筛选自 ${users.length})`}</span>
+        <button onClick={onRefresh} disabled={loading} className="flex items-center gap-1" data-testid="button-refresh-users">
+          <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+          刷新
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {filtered.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{search ? "未找到匹配客户" : "暂无客户数据"}</p>
+          </div>
+        ) : (
+          filtered.map(u => (
+            <div
+              key={u.id}
+              className="rounded-xl p-3"
+              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}
+              data-testid={`user-card-${u.id}`}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(var(--gold-rgb), 0.1)' }}>
+                    <User className="w-4 h-4" style={{ color: 'var(--gold)' }} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-medium" style={{ color: 'var(--text-strong)' }}>
+                        {u.nickname || "未设置昵称"}
+                      </span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(var(--gold-rgb), 0.1)', color: 'var(--gold)' }}>
+                        {TIER_NAMES[u.tier] || `T${u.tier}`}
+                      </span>
+                    </div>
+                    <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                      注册 {formatDate(u.created_at)}
+                    </div>
+                  </div>
+                </div>
+                <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--text-muted)' }}>
+                  #{u.id}
+                </span>
+              </div>
+
+              <div className="space-y-1.5 ml-10">
+                <CopyRow icon={<Phone className="w-3 h-3" />} label="手机" value={u.phone} onCopy={copyText} copiedId={copiedId} />
+                {u.wechat_id && (
+                  <CopyRow icon={<MessageSquare className="w-3 h-3" />} label="微信" value={u.wechat_id} onCopy={copyText} copiedId={copiedId} />
+                )}
+                {u.trader_type_code && (
+                  <div className="flex items-center gap-2 text-[11px]">
+                    <span style={{ color: 'var(--text-muted)' }}>类型</span>
+                    <span style={{ color: 'var(--primary)' }}>{TRADER_TYPE_NAMES[u.trader_type_code] || u.trader_type_code}</span>
+                    {u.avg_score != null && (
+                      <span style={{ color: 'var(--gold)' }}>{u.avg_score}分</span>
+                    )}
+                  </div>
+                )}
+                <div className="flex items-center gap-3 text-[11px] flex-wrap" style={{ color: 'var(--text-muted)' }}>
+                  <span data-testid={`text-login-days-${u.id}`}>登录 {u.login_days} 天</span>
+                  {u.source && <span data-testid={`text-source-${u.id}`}>来源: {u.source}</span>}
+                  {u.quiz_completed_at && <span data-testid={`text-quiz-date-${u.id}`}>测评 {formatDate(u.quiz_completed_at)}</span>}
+                  {u.last_active_at && <span data-testid={`text-active-${u.id}`}>活跃 {formatDate(u.last_active_at)}</span>}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CopyRow({ icon, label, value, onCopy, copiedId }: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  onCopy: (text: string, label: string) => void;
+  copiedId: string | null;
+}) {
+  const isCopied = copiedId === value;
+  return (
+    <div className="flex items-center gap-2 text-[11px] group">
+      <span style={{ color: 'var(--text-muted)' }}>{icon}</span>
+      <span style={{ color: 'var(--text-muted)' }}>{label}</span>
+      <span
+        className="font-mono select-all cursor-pointer"
+        style={{ color: 'var(--text-strong)' }}
+        onClick={() => onCopy(value, label)}
+        data-testid={`copy-${label}-${value}`}
+      >
+        {value}
+      </span>
+      <button
+        onClick={() => onCopy(value, label)}
+        className="opacity-0 group-hover:opacity-100 transition-opacity"
+        style={{ color: isCopied ? 'var(--success)' : 'var(--text-muted)' }}
+        data-testid={`button-copy-${label}-${value}`}
+      >
+        {isCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+      </button>
     </div>
   );
 }
@@ -777,7 +1012,7 @@ function ContactCard({ contact, onUpdate, onDelete }: {
   );
 }
 
-type AdminTab = "contacts" | "stats";
+type AdminTab = "contacts" | "stats" | "users";
 
 export default function AdminPage() {
   const { toast } = useToast();
@@ -788,6 +1023,8 @@ export default function AdminPage() {
   const [tab, setTab] = useState<AdminTab>("contacts");
   const [stats, setStats] = useState<StatsData | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
 
   const checkSession = useCallback(async () => {
     try {
@@ -821,6 +1058,18 @@ export default function AdminPage() {
       }
     } catch {}
     setStatsLoading(false);
+  }, []);
+
+  const fetchUsers = useCallback(async () => {
+    setUsersLoading(true);
+    try {
+      const res = await fetch("/api/admin/users", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setAdminUsers(data);
+      }
+    } catch {}
+    setUsersLoading(false);
   }, []);
 
   useEffect(() => {
@@ -885,10 +1134,10 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="flex gap-2 mb-5">
+        <div className="flex gap-1.5 mb-5 overflow-x-auto">
           <button
             onClick={() => setTab("contacts")}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+            className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors whitespace-nowrap"
             style={{
               background: tab === "contacts" ? 'rgba(var(--gold-rgb), 0.15)' : 'rgba(255,255,255,0.03)',
               color: tab === "contacts" ? 'var(--gold)' : 'var(--text-muted)',
@@ -900,8 +1149,21 @@ export default function AdminPage() {
             顾问管理
           </button>
           <button
+            onClick={() => { setTab("users"); if (adminUsers.length === 0) fetchUsers(); }}
+            className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors whitespace-nowrap"
+            style={{
+              background: tab === "users" ? 'rgba(var(--gold-rgb), 0.15)' : 'rgba(255,255,255,0.03)',
+              color: tab === "users" ? 'var(--gold)' : 'var(--text-muted)',
+              border: `1px solid ${tab === "users" ? 'rgba(var(--gold-rgb), 0.3)' : 'var(--border)'}`,
+            }}
+            data-testid="tab-users"
+          >
+            <User className="w-4 h-4" />
+            客户资料
+          </button>
+          <button
             onClick={() => { setTab("stats"); if (!stats) fetchStats(); }}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+            className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors whitespace-nowrap"
             style={{
               background: tab === "stats" ? 'rgba(var(--gold-rgb), 0.15)' : 'rgba(255,255,255,0.03)',
               color: tab === "stats" ? 'var(--gold)' : 'var(--text-muted)',
@@ -963,6 +1225,10 @@ export default function AdminPage() {
               </p>
             </div>
           </>
+        )}
+
+        {tab === "users" && (
+          <UsersPanel users={adminUsers} loading={usersLoading} onRefresh={fetchUsers} />
         )}
 
         {tab === "stats" && (

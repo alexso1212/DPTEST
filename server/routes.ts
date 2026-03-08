@@ -674,6 +674,37 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/admin/users", requireAdmin, async (_req, res) => {
+    try {
+      const result = await db.execute(sql`
+        SELECT
+          u.id,
+          u.phone,
+          u.nickname,
+          u.wechat_id,
+          u.source,
+          u.tier,
+          u.login_days,
+          u.last_login_date,
+          u.last_active_at,
+          u.created_at,
+          q.trader_type_code,
+          q.avg_score,
+          q.rank_name,
+          q.created_at AS quiz_completed_at
+        FROM users u
+        LEFT JOIN LATERAL (
+          SELECT * FROM quiz_results WHERE user_id = u.id ORDER BY created_at DESC LIMIT 1
+        ) q ON true
+        ORDER BY u.created_at DESC
+      `);
+      res.json(result.rows || result || []);
+    } catch (err) {
+      console.error("[admin] users error:", err);
+      res.status(500).json({ message: "获取用户列表失败" });
+    }
+  });
+
   app.get("/api/admin/stats", requireAdmin, async (_req, res) => {
     try {
       const now = new Date();
