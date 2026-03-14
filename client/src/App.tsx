@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
 import AdminPage from "@/pages/admin";
+import AdminChatPage from "@/pages/admin-chat";
+import ChatWidget from "@/components/ChatWidget";
 import LiveRoomFloat from "@/components/LiveRoomFloat";
 import WeChatBrowserGuide from "@/components/WeChatBrowserGuide";
 import LandingPage from "@/pages/landing";
@@ -180,6 +182,7 @@ function Router() {
           <Route path="/report/:token" component={ReportPage} />
 
           <Route path="/admin" component={AdminPage} />
+          <Route path="/admin/chat" component={AdminChatPage} />
 
           <Route component={NotFound} />
         </Switch>
@@ -196,6 +199,7 @@ function App() {
           <WeChatBrowserGuide />
           <Toaster />
           <Router />
+          <ChatWidget />
           <LiveRoomFloat />
         </TooltipProvider>
       </ThemeProvider>

@@ -1,8 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { SiWechat } from "react-icons/si";
-import { Camera, Home, X, UserPlus, LogIn } from "lucide-react";
+import { Camera, Home, X, UserPlus, LogIn, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import RadarChartComponent from "@/components/RadarChart";
 import ShareCard from "@/components/ShareCard";
@@ -12,14 +11,11 @@ import TierRoadmap from "@/components/character/TierRoadmap";
 import CharacterCard from "@/components/CharacterCard";
 import RankBadge from "@/components/RankBadge";
 import LoginModal from "@/components/LoginModal";
-import WeChatContactModal, { useWeChatContact, VerifyingOverlay } from "@/components/WeChatContactModal";
-import VerifyCodeModal from "@/components/VerifyCodeModal";
-import { generateVerifyCode } from "@/utils/verifyCode";
+// 企业微信跳转已停用
 import type { QuizResult } from "@/utils/calculateResult";
 import { dimensionLabels, type Dimension } from "@/data/questions";
 import { usePageView, useTracking } from "@/hooks/use-tracking";
-import { salesStrategy } from "@/data/salesStrategy";
-import { sendResultWebhook } from "@/utils/webhook";
+// 企业微信相关 imports 已移除
 import { useAuth } from "@/lib/auth";
 import { queryClient } from "@/lib/queryClient";
 
@@ -526,12 +522,9 @@ export default function ResultPage({ result }: ResultPageProps) {
   usePageView("result");
   const [showCardPanel, setShowCardPanel] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showWeChatModal, setShowWeChatModal] = useState(false);
-  const [showVerifyCodeModal, setShowVerifyCodeModal] = useState(false);
   const [resultSaved, setResultSaved] = useState(!!user);
   const [c1] = traderType.colors;
   const cc = traderType.cardColors;
-  const { handleContact: handleWeChatMobile, checking: wechatChecking } = useWeChatContact();
 
   useEffect(() => {
     if (!user && !showUnbox) {
@@ -578,31 +571,11 @@ export default function ResultPage({ result }: ResultPageProps) {
     return [...dims].sort((a, b) => normalizedScores[b] - normalizedScores[a]);
   }, [normalizedScores]);
 
-  const verifyCode = useMemo(() => generateVerifyCode(user?.phone, traderType.name), [user?.phone, traderType.name]);
-
-  const handleContactWeChat = useCallback(() => {
-    trackEvent("wechat_click", { page: "result", traderType: traderType.code });
-    const strategy = salesStrategy[traderType.code];
-    if (user?.phone && strategy) {
-      sendResultWebhook({
-        phone: user.phone,
-        scores: normalizedScores,
-        traderType: { code: traderType.code, name: traderType.name, emoji: traderType.icon },
-        rank: { name: rank.name, emoji: rank.icon },
-        avgScore,
-        salesStrategy: strategy,
-        verifyCode,
-      });
-    }
-    setShowVerifyCodeModal(true);
-  }, [traderType, rank, avgScore, normalizedScores, user, trackEvent, verifyCode]);
-
-  const handleVerifyProceed = useCallback(async () => {
-    const mobileHandled = await handleWeChatMobile();
-    if (!mobileHandled) {
-      setShowWeChatModal(true);
-    }
-  }, [handleWeChatMobile]);
+  // "咨询顾问"按钮：触发聊天气泡打开（通过自定义事件）
+  const handleOpenChat = useCallback(() => {
+    trackEvent("chat_click", { page: "result", traderType: traderType.code });
+    window.dispatchEvent(new CustomEvent("open-chat-widget"));
+  }, [traderType, trackEvent]);
 
   return (
     <>
@@ -813,15 +786,15 @@ export default function ResultPage({ result }: ResultPageProps) {
               style={{ background: 'var(--bg-1)', border: '1px solid var(--border)' }}
             >
               <motion.button
-                onClick={handleContactWeChat}
+                onClick={handleOpenChat}
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 className="w-full py-3.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 mb-3 transition-all duration-200"
-                style={{ background: '#07C160' }}
-                data-testid="button-wechat-contact"
+                style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
+                data-testid="button-chat-contact"
               >
-                <SiWechat className="w-5 h-5" />
-                添加专属顾问，免费一对一指导
+                <MessageCircle className="w-5 h-5" />
+                咨询专属顾问，免费一对一指导
               </motion.button>
 
               <p className="text-xs italic text-center leading-relaxed" style={{ color: 'var(--text-muted)' }}>
@@ -874,15 +847,15 @@ export default function ResultPage({ result }: ResultPageProps) {
                 生成交易员卡片
               </motion.button>
               <motion.button
-                onClick={handleContactWeChat}
+                onClick={handleOpenChat}
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 text-white transition-all duration-200"
-                style={{ background: '#07C160' }}
-                data-testid="button-contact-wechat"
+                style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
+                data-testid="button-chat-contact-bottom"
               >
-                <SiWechat className="w-4 h-4" />
-                联系顾问
+                <MessageCircle className="w-4 h-4" />
+                咨询顾问
               </motion.button>
             </div>
           </div>
@@ -946,22 +919,6 @@ export default function ResultPage({ result }: ResultPageProps) {
               </motion.button>
             </motion.div>
           )}
-
-          <VerifyCodeModal
-            open={showVerifyCodeModal}
-            onClose={() => setShowVerifyCodeModal(false)}
-            verifyCode={verifyCode}
-            onProceed={handleVerifyProceed}
-          />
-
-          <AnimatePresence>
-            {wechatChecking && <VerifyingOverlay />}
-          </AnimatePresence>
-
-          <WeChatContactModal
-            open={showWeChatModal}
-            onClose={() => setShowWeChatModal(false)}
-          />
 
           <LoginModal
             open={showLoginModal}

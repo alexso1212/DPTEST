@@ -49,6 +49,45 @@ export const salesContacts = pgTable("sales_contacts", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// ========== 聊天系统 ==========
+
+export const conversations = pgTable("conversations", {
+  id: serial("id").primaryKey(),
+
+  // 客户信息（已登录用户关联 userId，未登录用匿名 sessionId）
+  userId: integer("user_id"),
+  sessionId: varchar("session_id", { length: 64 }).notNull(),
+
+  // 会话状态：ai（AI 接管）、human（人工接管）、closed（已关闭）
+  status: varchar("status", { length: 20 }).default("ai").notNull(),
+
+  // 接管的客服人员（admin 表暂用 salesContacts 的 name，后续可扩展）
+  assignedAgent: varchar("assigned_agent", { length: 100 }),
+
+  // 客户的测评结果摘要（方便客服快速了解）
+  quizSummary: jsonb("quiz_summary"),
+
+  lastMessageAt: timestamp("last_message_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").notNull(),
+
+  // 发送者角色：user（客户）、ai（AI 客服）、agent（人工客服）
+  role: varchar("role", { length: 10 }).notNull(),
+  content: text("content").notNull(),
+
+  // 人工客服的名称（role=agent 时填写）
+  agentName: varchar("agent_name", { length: 100 }),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type Conversation = typeof conversations.$inferSelect;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+
 export const insertSalesContactSchema = createInsertSchema(salesContacts).pick({
   name: true,
   url: true,

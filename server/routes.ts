@@ -506,75 +506,13 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/wechat-contact", async (req, res) => {
-    const sess = req.session as any;
-    try {
-      if (sess.assignedContact) {
-        const enabledContacts = await storage.getEnabledSalesContacts();
-        const stillEnabled = enabledContacts.some(c => c.url === sess.assignedContact.url);
-        if (!stillEnabled) {
-          console.log(`[wechat-contact] previously assigned ${sess.assignedContact.name} is no longer enabled, re-routing`);
-          sess.assignedContact = null;
-        } else {
-          const stillAlive = await checkContactAlive(sess.assignedContact.url);
-          if (stillAlive) {
-            return res.json({ ...sess.assignedContact, verified: true });
-          }
-          console.log(`[wechat-contact] previously assigned ${sess.assignedContact.name} is dead, re-routing`);
-          sess.assignedContact = null;
-        }
-      }
-      const { contacts: alive, allDead } = await getAliveContacts();
-      const picked = alive[salesCounter % alive.length];
-      salesCounter++;
-      const contact = { name: picked.name, url: picked.url };
-      sess.assignedContact = contact;
-      storage.trackEvent({
-        sessionId: req.body?.sessionId || sess.id || "unknown",
-        eventType: "wechat_contact_assign",
-        eventData: { contactName: picked.name, contactUrl: picked.url },
-      }).catch((e: any) => console.error("[track] assign event error:", e));
-      res.json({ ...contact, verified: !allDead });
-    } catch (err) {
-      console.error("[wechat-contact] error:", err);
-      const allContacts = await storage.getEnabledSalesContacts();
-      const fallback = allContacts[0] || { name: "Deven", url: "https://work.weixin.qq.com/ca/cawcde66939ac2ab81" };
-      salesCounter++;
-      sess.assignedContact = { name: fallback.name, url: fallback.url };
-      res.json({ ...sess.assignedContact, verified: false });
-    }
+  // 企业微信跳转已暂停 —— 多个企业微信因跳转被封号
+  app.get("/api/wechat-contact", async (_req, res) => {
+    res.json({ disabled: true, message: "企业微信顾问服务暂停中" });
   });
 
-  app.post("/api/wechat-contact/switch", async (req, res) => {
-    const sess = req.session as any;
-    try {
-      if (!sess.blockedContacts) sess.blockedContacts = [];
-      if (sess.assignedContact) {
-        if (!sess.blockedContacts.includes(sess.assignedContact.url)) {
-          sess.blockedContacts.push(sess.assignedContact.url);
-        }
-        console.log(`[wechat-switch] user blocked ${sess.assignedContact.name}, blocked list: ${sess.blockedContacts.length}`);
-        sess.assignedContact = null;
-      }
-      const allContacts = await storage.getEnabledSalesContacts();
-      const available = allContacts.filter(c => !sess.blockedContacts.includes(c.url));
-      if (available.length === 0) {
-        sess.blockedContacts = [];
-        const picked = allContacts[salesCounter % allContacts.length] || { name: "Deven", url: "https://work.weixin.qq.com/ca/cawcde66939ac2ab81" };
-        salesCounter++;
-        const contact = { name: picked.name, url: picked.url };
-        sess.assignedContact = contact;
-        return res.json({ ...contact, verified: true, switched: true });
-      }
-      const picked = available[salesCounter % available.length];
-      salesCounter++;
-      const contact = { name: picked.name, url: picked.url };
-      sess.assignedContact = contact;
-      res.json({ ...contact, verified: true, switched: true });
-    } catch (err) {
-      console.error("[wechat-switch] error:", err);
-      res.status(500).json({ message: "切换失败" });
-    }
+  app.post("/api/wechat-contact/switch", async (_req, res) => {
+    res.json({ disabled: true, message: "企业微信顾问服务暂停中" });
   });
 
   app.post("/api/admin/login", (req, res) => {
@@ -934,8 +872,63 @@ export async function registerRoutes(
   });
 
   seedDefaultContacts();
-  setInterval(runHealthMonitor, HEALTH_MONITOR_INTERVAL);
-  setTimeout(runHealthMonitor, 10000);
+  // 企业微信健康检查已暂停 —— 跳转功能关闭期间无需检测
+  // setInterval(runHealthMonitor, HEALTH_MONITOR_INTERVAL);
+  // setTimeout(runHealthMonitor, 10000);
+
+  // ========== 聊天系统 API ==========
+
+  // 获取/创建会话（客户端用）
+  app.post("/api/chat/conversation", async (req, res) => {
+    try {
+      const sess = req.session as any;
+      const sessionId = sess?.id || req.body?.sessionId || "anon-" + Date.now();
+      const userId = sess?.userId ? parseInt(sess.userId) : undefined;
+      const conv = await storage.getOrCreateConversation(sessionId, userId);
+
+      // 如果客户有测评结果，附加到会话
+      if (userId) {
+        const quiz = await storage.getLatestQuizResult(userId);
+        if (quiz && !conv.quizSummary) {
+          await storage.updateConversationQuizSummary(conv.id, {
+            traderType: quiz.traderTypeCode,
+            avgScore: quiz.avgScore,
+            rankName: quiz.rankName,
+            scores: quiz.scores,
+          });
+        }
+      }
+
+      res.json(conv);
+    } catch (err) {
+      console.error("[chat] create conversation error:", err);
+      res.status(500).json({ message: "创建会话失败" });
+    }
+  });
+
+  // 获取会话消息历史
+  app.get("/api/chat/conversation/:id/messages", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "无效ID" });
+      const messages = await storage.getConversationMessages(id);
+      res.json(messages);
+    } catch (err) {
+      console.error("[chat] get messages error:", err);
+      res.status(500).json({ message: "获取消息失败" });
+    }
+  });
+
+  // 管理后台：获取所有活跃会话
+  app.get("/api/admin/conversations", requireAdmin, async (_req, res) => {
+    try {
+      const convs = await storage.getActiveConversations();
+      res.json(convs);
+    } catch (err) {
+      console.error("[admin] get conversations error:", err);
+      res.status(500).json({ message: "获取会话失败" });
+    }
+  });
 
   return httpServer;
 }

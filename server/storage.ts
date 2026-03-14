@@ -1,4 +1,4 @@
-import { users, quizResults, userEvents, salesContacts, type User, type InsertUser, type SalesContact, type InsertSalesContact } from "@shared/schema";
+import { users, quizResults, userEvents, salesContacts, conversations, chatMessages, type User, type InsertUser, type SalesContact, type InsertSalesContact, type Conversation, type ChatMessage } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, or, gte, lte, ne, isNull } from "drizzle-orm";
 import crypto from "crypto";
@@ -226,6 +226,87 @@ export class DatabaseStorage implements IStorage {
       lastHealthCheck: new Date(),
       lastHealthStatus: status,
     }).where(eq(salesContacts.id, id));
+  }
+
+  // ========== 聊天系统 ==========
+
+  async getOrCreateConversation(sessionId: string, userId?: number): Promise<Conversation> {
+    // 先找现有的未关闭会话
+    const conditions = userId
+      ? or(eq(conversations.sessionId, sessionId), eq(conversations.userId, userId!))
+      : eq(conversations.sessionId, sessionId);
+    const [existing] = await db
+      .select()
+      .from(conversations)
+      .where(and(conditions, sql`${conversations.status} != 'closed'`))
+      .orderBy(desc(conversations.createdAt))
+      .limit(1);
+    if (existing) return existing;
+
+    const [conv] = await db.insert(conversations).values({
+      sessionId,
+      userId: userId ?? null,
+      status: "ai",
+    }).returning();
+    return conv;
+  }
+
+  async getConversation(id: number): Promise<Conversation | undefined> {
+    const [conv] = await db.select().from(conversations).where(eq(conversations.id, id));
+    return conv || undefined;
+  }
+
+  async getConversationMessages(conversationId: number, limit = 100): Promise<ChatMessage[]> {
+    return db
+      .select()
+      .from(chatMessages)
+      .where(eq(chatMessages.conversationId, conversationId))
+      .orderBy(chatMessages.createdAt)
+      .limit(limit);
+  }
+
+  async addMessage(conversationId: number, role: string, content: string, agentName?: string): Promise<ChatMessage> {
+    const [msg] = await db.insert(chatMessages).values({
+      conversationId,
+      role,
+      content,
+      agentName: agentName ?? null,
+    }).returning();
+    await db.update(conversations).set({ lastMessageAt: new Date() }).where(eq(conversations.id, conversationId));
+    return msg;
+  }
+
+  async updateConversationStatus(id: number, status: string, assignedAgent?: string): Promise<void> {
+    const updates: Record<string, unknown> = { status };
+    if (assignedAgent !== undefined) updates.assignedAgent = assignedAgent;
+    await db.update(conversations).set(updates).where(eq(conversations.id, id));
+  }
+
+  async updateConversationQuizSummary(conversationId: number, summary: Record<string, unknown>): Promise<void> {
+    await db.update(conversations).set({ quizSummary: summary }).where(eq(conversations.id, conversationId));
+  }
+
+  async getActiveConversations(): Promise<(Conversation & { lastMessage?: string; unreadCount?: number })[]> {
+    const convs = await db
+      .select()
+      .from(conversations)
+      .where(sql`${conversations.status} != 'closed'`)
+      .orderBy(desc(conversations.lastMessageAt));
+
+    const results = [];
+    for (const conv of convs) {
+      const [lastMsg] = await db
+        .select()
+        .from(chatMessages)
+        .where(eq(chatMessages.conversationId, conv.id))
+        .orderBy(desc(chatMessages.createdAt))
+        .limit(1);
+      results.push({
+        ...conv,
+        lastMessage: lastMsg?.content,
+      });
+    }
+    return results;
   }
 }
 

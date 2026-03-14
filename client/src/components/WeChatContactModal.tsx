@@ -67,6 +67,8 @@ export function useWeChatContact(onBeforeOpen?: () => void) {
     setChecking(true);
     const c = await fetchContact();
     setChecking(false);
+    // 企业微信跳转已暂停
+    if ((c as any)?.disabled) return false;
     if (isMobile) {
       window.open(c?.url || FALLBACK_URL, "_blank");
       return true;
@@ -78,6 +80,8 @@ export function useWeChatContact(onBeforeOpen?: () => void) {
     setChecking(true);
     const c = await switchContact();
     setChecking(false);
+    // 企业微信跳转已暂停
+    if ((c as any)?.disabled) return false;
     if (isMobile && c) {
       window.open(c.url, "_blank");
       return true;
@@ -165,12 +169,19 @@ export default function WeChatContactModal({ open, onClose }: WeChatContactModal
   const [loading, setLoading] = useState(false);
   const [switching, setSwitching] = useState(false);
 
+  const [disabled, setDisabled] = useState(false);
+
   const doFetch = useCallback(() => {
     setLoading(true);
     setContact(null);
+    setDisabled(false);
     fetch("/api/wechat-contact", { credentials: "include" })
       .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data) setContact(data); setLoading(false); })
+      .then(data => {
+        if (data?.disabled) { setDisabled(true); setLoading(false); return; }
+        if (data) setContact(data);
+        setLoading(false);
+      })
       .catch(() => { setLoading(false); });
   }, []);
 
@@ -192,8 +203,9 @@ export default function WeChatContactModal({ open, onClose }: WeChatContactModal
   const verified = contact?.verified !== false;
 
   const handleQRClick = useCallback(() => {
+    if (disabled) return;
     window.location.href = url;
-  }, [url]);
+  }, [url, disabled]);
 
   const handleRetry = useCallback(() => {
     doFetch();
@@ -246,7 +258,15 @@ export default function WeChatContactModal({ open, onClose }: WeChatContactModal
               )}
             </div>
 
-            {loading ? (
+            {disabled ? (
+              <div className="flex flex-col items-center gap-3 py-8">
+                <AlertTriangle className="w-10 h-10" style={{ color: '#F59E0B' }} />
+                <p className="text-sm font-medium" style={{ color: '#F59E0B' }}>顾问服务暂停中</p>
+                <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
+                  企业微信顾问功能正在维护，请稍后再试
+                </p>
+              </div>
+            ) : loading ? (
               <div className="flex flex-col items-center gap-3 py-8">
                 <div className="relative w-12 h-12">
                   <motion.div
