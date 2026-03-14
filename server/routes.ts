@@ -669,7 +669,7 @@ export async function registerRoutes(
           COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'page_view' AND created_at >= ${todayStart}) AS today_unique_visitors
         FROM user_events
       `);
-      const overview = overviewResult.rows?.[0] || overviewResult[0] || {};
+      const overview = (overviewResult as any).rows?.[0] || (overviewResult as any)[0] || {};
 
       const contactStats = await db.execute(sql`
         SELECT
@@ -703,7 +703,7 @@ export async function registerRoutes(
           COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'wechat_click') AS step_wechat
         FROM user_events
       `);
-      const funnel = funnelResult.rows?.[0] || funnelResult[0] || {};
+      const funnel = (funnelResult as any).rows?.[0] || (funnelResult as any)[0] || {};
 
       const traderTypeResult = await db.execute(sql`
         SELECT
@@ -833,8 +833,8 @@ export async function registerRoutes(
       res.json({
         source: "dptest.org",
         generatedAt: new Date().toISOString(),
-        overview: overviewResult.rows?.[0] || overviewResult[0] || {},
-        funnel: funnelResult.rows?.[0] || funnelResult[0] || {},
+        overview: (overviewResult as any).rows?.[0] || (overviewResult as any)[0] || {},
+        funnel: (funnelResult as any).rows?.[0] || (funnelResult as any)[0] || {},
         traderTypes: traderTypeResult.rows || traderTypeResult || [],
         contactStats: contactStats.rows || contactStats || [],
         dailyTrend: dailyTrend.rows || dailyTrend || [],

@@ -2,17 +2,14 @@ import { useMemo, useState, useRef, useCallback } from "react";
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { SiWechat } from "react-icons/si";
-import { Radio, Wrench, Trophy, ExternalLink, Target, Zap, ChevronRight, Camera, X } from "lucide-react";
+import { Radio, Wrench, Trophy, ExternalLink, Target, Zap, ChevronRight, Camera, X, MessageCircle } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 import { traderTypes, rankTiers } from "@/data/traderTypes";
 import { dimensionLabels, type Dimension } from "@/data/questions";
 import RadarChartComponent from "@/components/RadarChart";
 import CharacterSVG from "@/components/character/CharacterSVG";
 import RankBadge from "@/components/RankBadge";
-import WeChatContactModal, { useWeChatContact } from "@/components/WeChatContactModal";
-import VerifyCodeModal from "@/components/VerifyCodeModal";
-import { generateVerifyCode } from "@/utils/verifyCode";
+// 企业微信跳转已停用
 import { usePageView, useTracking } from "@/hooks/use-tracking";
 
 const ease = { duration: 0.22, ease: "easeOut" as const };
@@ -109,8 +106,6 @@ function ReportContent({
 }) {
   const [c1, c2] = traderType?.colors ?? ['#C9A456', '#94A3B8'];
   const cc = traderType?.cardColors;
-  const [showWeChatModal, setShowWeChatModal] = useState(false);
-  const [showVerifyCodeModal, setShowVerifyCodeModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -142,23 +137,13 @@ function ReportContent({
       setGenerating(false);
     }
   }, [traderType]);
-  const { handleContact: handleWeChatMobile } = useWeChatContact();
   const primaryColor = cc?.primary || c1;
   const { trackEvent } = useTracking();
   usePageView("report");
 
-  const verifyCode = useMemo(() => generateVerifyCode(undefined, traderType?.name || ''), [traderType?.name]);
-
-  const handleContactWeChat = () => {
-    trackEvent("wechat_click", { page: "report" });
-    setShowVerifyCodeModal(true);
-  };
-
-  const handleVerifyProceed = async () => {
-    const mobileHandled = await handleWeChatMobile();
-    if (!mobileHandled) {
-      setShowWeChatModal(true);
-    }
+  const handleOpenChat = () => {
+    trackEvent("chat_click", { page: "report" });
+    window.dispatchEvent(new CustomEvent("open-chat-widget"));
   };
 
   const sortedDims = useMemo(() => {
@@ -616,15 +601,15 @@ function ReportContent({
           </div>
 
           <motion.button
-            onClick={handleContactWeChat}
+            onClick={handleOpenChat}
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-sm text-white transition-all duration-200"
-            style={{ background: '#07C160' }}
-            data-testid="button-wechat-contact"
+            style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
+            data-testid="button-chat-contact"
           >
-            <SiWechat className="w-5 h-5" />
-            添加专属顾问
+            <MessageCircle className="w-5 h-5" />
+            咨询专属顾问
           </motion.button>
 
           <motion.button
@@ -842,17 +827,6 @@ function ReportContent({
         )}
       </AnimatePresence>
 
-      <VerifyCodeModal
-        open={showVerifyCodeModal}
-        onClose={() => setShowVerifyCodeModal(false)}
-        verifyCode={verifyCode}
-        onProceed={handleVerifyProceed}
-      />
-
-      <WeChatContactModal
-        open={showWeChatModal}
-        onClose={() => setShowWeChatModal(false)}
-      />
     </div>
   );
 }

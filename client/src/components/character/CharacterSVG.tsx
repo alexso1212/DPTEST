@@ -795,7 +795,7 @@ export default function CharacterSVG({ type, size, tier = 0, animated = false }:
         />
       )}
 
-      {!animated && WeaponFn && null}
+      {/* WeaponFn 已移至下方按类型渲染 */}
       {type === "RS" && WeaponRS({ tier, handX: 0, handY: 0, c1: a, c2: "#A0785A" })}
       {type === "SM" && WeaponSM({ tier, handX: 0, handY: 0, c1: a, c2: p })}
       {type === "RE" && WeaponRE({ tier, handX: 0, handY: 0, c1: "#E8622E", c2: "#FF8A5C" })}

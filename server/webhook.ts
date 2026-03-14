@@ -1,4 +1,4 @@
-const WEBHOOK_URL = process.env.WECHAT_WEBHOOK_URL || "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1b7a8fca-f469-4cd0-9158-4e7eff0780ef";
+const WEBHOOK_URL = process.env.WECHAT_WEBHOOK_URL || "";
 
 const recentSubmits = new Map<string, number>();
 
