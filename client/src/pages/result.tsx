@@ -526,12 +526,23 @@ export default function ResultPage({ result }: ResultPageProps) {
   const [c1] = traderType.colors;
   const cc = traderType.cardColors;
 
+  // 未登录用户延迟弹出登录框（等用户看完内容再弹）
   useEffect(() => {
     if (!user && !showUnbox) {
-      const timer = setTimeout(() => setShowLoginModal(true), 3000);
+      const timer = setTimeout(() => setShowLoginModal(true), 10000);
       return () => clearTimeout(timer);
     }
   }, [user, showUnbox]);
+
+  // 开箱动画完成后 5 秒自动弹出聊天气泡
+  useEffect(() => {
+    if (!showUnbox) {
+      const timer = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("open-chat-widget"));
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showUnbox]);
 
   useEffect(() => {
     if (user && !resultSaved && sessionStorage.getItem("quiz_result_saved") !== "true") {
@@ -651,8 +662,30 @@ export default function ResultPage({ result }: ResultPageProps) {
                 🕸️ 你的能力轮廓
               </h3>
               <RadarChartComponent scores={normalizedScores} hideScores />
-              <p className="text-xs text-center mt-3" style={{ color: 'var(--text-muted)' }}>
-                向下滑动查看六维详细分析
+            </motion.div>
+
+            {/* 首个强 CTA — 紧跟雷达图，在用户第一屏可见 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.28, ...ease }}
+            >
+              <motion.button
+                onClick={handleOpenChat}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-4 rounded-xl font-bold text-base text-white flex items-center justify-center gap-2.5 transition-all duration-200"
+                style={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  boxShadow: '0 4px 20px rgba(102, 126, 234, 0.35)',
+                }}
+                data-testid="button-chat-primary"
+              >
+                <MessageCircle className="w-5 h-5" />
+                免费咨询专属顾问
+              </motion.button>
+              <p className="text-[10px] text-center mt-2" style={{ color: 'var(--text-muted)' }}>
+                AI 顾问 24 小时在线 · 人工顾问实时响应
               </p>
             </motion.div>
 
