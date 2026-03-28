@@ -8,6 +8,7 @@ import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { getAdminStats, getExternalStats } from "./stats";
 
 let salesCounter = 0;
 
@@ -629,6 +630,7 @@ export async function registerRoutes(
           q.trader_type_code,
           q.avg_score,
           q.rank_name,
+          q.scores,
           q.created_at AS quiz_completed_at
         FROM users u
         LEFT JOIN LATERAL (
@@ -645,95 +647,7 @@ export async function registerRoutes(
 
   app.get("/api/admin/stats", requireAdmin, async (_req, res) => {
     try {
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const weekStart = new Date(todayStart);
-      weekStart.setDate(weekStart.getDate() - 7);
-      const monthStart = new Date(todayStart);
-      monthStart.setDate(monthStart.getDate() - 30);
-
-      const overviewResult = await db.execute(sql`
-        SELECT
-          COUNT(*) FILTER (WHERE event_type = 'page_view') AS total_views,
-          COUNT(*) FILTER (WHERE event_type = 'user_register') AS total_registers,
-          COUNT(*) FILTER (WHERE event_type = 'wechat_click') AS total_wechat_clicks,
-          COUNT(*) FILTER (WHERE event_type = 'wechat_contact_assign') AS total_assigns,
-          COUNT(*) FILTER (WHERE event_type = 'quiz_complete') AS total_quiz_completes,
-          COUNT(*) FILTER (WHERE event_type = 'page_view' AND created_at >= ${todayStart}) AS today_views,
-          COUNT(*) FILTER (WHERE event_type = 'user_register' AND created_at >= ${todayStart}) AS today_registers,
-          COUNT(*) FILTER (WHERE event_type = 'wechat_click' AND created_at >= ${todayStart}) AS today_wechat_clicks,
-          COUNT(*) FILTER (WHERE event_type = 'page_view' AND created_at >= ${weekStart}) AS week_views,
-          COUNT(*) FILTER (WHERE event_type = 'user_register' AND created_at >= ${weekStart}) AS week_registers,
-          COUNT(*) FILTER (WHERE event_type = 'wechat_click' AND created_at >= ${weekStart}) AS week_wechat_clicks,
-          COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'page_view') AS total_unique_visitors,
-          COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'page_view' AND created_at >= ${todayStart}) AS today_unique_visitors
-        FROM user_events
-      `);
-      const overview = (overviewResult as any).rows?.[0] || (overviewResult as any)[0] || {};
-
-      const contactStats = await db.execute(sql`
-        SELECT
-          event_data->>'contactName' AS contact_name,
-          COUNT(*) AS assign_count
-        FROM user_events
-        WHERE event_type = 'wechat_contact_assign'
-          AND event_data->>'contactName' IS NOT NULL
-        GROUP BY event_data->>'contactName'
-        ORDER BY assign_count DESC
-      `);
-
-      const dailyTrend = await db.execute(sql`
-        SELECT
-          DATE(created_at) AS date,
-          COUNT(*) FILTER (WHERE event_type = 'page_view') AS views,
-          COUNT(*) FILTER (WHERE event_type = 'user_register') AS registers,
-          COUNT(*) FILTER (WHERE event_type = 'wechat_click') AS wechat_clicks
-        FROM user_events
-        WHERE created_at >= ${monthStart}
-        GROUP BY DATE(created_at)
-        ORDER BY date DESC
-        LIMIT 30
-      `);
-
-      const funnelResult = await db.execute(sql`
-        SELECT
-          COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'page_view') AS step_view,
-          COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'user_register') AS step_register,
-          COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'quiz_complete') AS step_quiz,
-          COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'wechat_click') AS step_wechat
-        FROM user_events
-      `);
-      const funnel = (funnelResult as any).rows?.[0] || (funnelResult as any)[0] || {};
-
-      const traderTypeResult = await db.execute(sql`
-        SELECT
-          event_data->>'traderTypeCode' AS type_code,
-          COUNT(*) AS count
-        FROM user_events
-        WHERE event_type = 'quiz_complete'
-          AND event_data->>'traderTypeCode' IS NOT NULL
-        GROUP BY event_data->>'traderTypeCode'
-        ORDER BY count DESC
-      `);
-
-      const hourlyResult = await db.execute(sql`
-        SELECT
-          EXTRACT(HOUR FROM created_at) AS hour,
-          COUNT(*) AS count
-        FROM user_events
-        WHERE event_type = 'page_view' AND created_at >= ${weekStart}
-        GROUP BY EXTRACT(HOUR FROM created_at)
-        ORDER BY hour
-      `);
-
-      res.json({
-        overview: overview || {},
-        contactStats: contactStats.rows || contactStats || [],
-        dailyTrend: (dailyTrend.rows || dailyTrend || []),
-        funnel: funnel || {},
-        traderTypes: traderTypeResult.rows || traderTypeResult || [],
-        hourlyDistribution: hourlyResult.rows || hourlyResult || [],
-      });
+      res.json(await getAdminStats());
     } catch (err) {
       console.error("[admin] stats error:", err);
       res.status(500).json({ message: "获取统计失败" });
@@ -752,94 +666,7 @@ export async function registerRoutes(
 
   app.get("/api/external/stats", requireApiKey, async (_req, res) => {
     try {
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const weekStart = new Date(todayStart);
-      weekStart.setDate(weekStart.getDate() - 7);
-
-      const overviewResult = await db.execute(sql`
-        SELECT
-          COUNT(*) FILTER (WHERE event_type = 'page_view') AS total_views,
-          COUNT(*) FILTER (WHERE event_type = 'user_register') AS total_registers,
-          COUNT(*) FILTER (WHERE event_type = 'wechat_click') AS total_wechat_clicks,
-          COUNT(*) FILTER (WHERE event_type = 'wechat_contact_assign') AS total_assigns,
-          COUNT(*) FILTER (WHERE event_type = 'quiz_complete') AS total_quiz_completes,
-          COUNT(*) FILTER (WHERE event_type = 'page_view' AND created_at >= ${todayStart}) AS today_views,
-          COUNT(*) FILTER (WHERE event_type = 'user_register' AND created_at >= ${todayStart}) AS today_registers,
-          COUNT(*) FILTER (WHERE event_type = 'wechat_click' AND created_at >= ${todayStart}) AS today_wechat_clicks,
-          COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'page_view') AS total_unique_visitors,
-          COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'page_view' AND created_at >= ${todayStart}) AS today_unique_visitors
-        FROM user_events
-      `);
-
-      const funnelResult = await db.execute(sql`
-        SELECT
-          COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'page_view') AS step_view,
-          COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'user_register') AS step_register,
-          COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'quiz_complete') AS step_quiz,
-          COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'wechat_click') AS step_wechat
-        FROM user_events
-      `);
-
-      const traderTypeResult = await db.execute(sql`
-        SELECT
-          event_data->>'traderTypeCode' AS type_code,
-          COUNT(*) AS count
-        FROM user_events
-        WHERE event_type = 'quiz_complete'
-          AND event_data->>'traderTypeCode' IS NOT NULL
-        GROUP BY event_data->>'traderTypeCode'
-        ORDER BY count DESC
-      `);
-
-      const contactStats = await db.execute(sql`
-        SELECT
-          event_data->>'contactName' AS contact_name,
-          COUNT(*) AS assign_count
-        FROM user_events
-        WHERE event_type = 'wechat_contact_assign'
-          AND event_data->>'contactName' IS NOT NULL
-        GROUP BY event_data->>'contactName'
-        ORDER BY assign_count DESC
-      `);
-
-      const dailyTrend = await db.execute(sql`
-        SELECT
-          DATE(created_at) AS date,
-          COUNT(*) FILTER (WHERE event_type = 'page_view') AS views,
-          COUNT(*) FILTER (WHERE event_type = 'user_register') AS registers,
-          COUNT(*) FILTER (WHERE event_type = 'wechat_click') AS wechat_clicks
-        FROM user_events
-        WHERE created_at >= ${weekStart}
-        GROUP BY DATE(created_at)
-        ORDER BY date DESC
-      `);
-
-      const usersResult = await db.execute(sql`
-        SELECT
-          id, phone, nickname, source, tier,
-          created_at AS registered_at,
-          last_active_at
-        FROM users
-        ORDER BY created_at DESC
-        LIMIT 100
-      `);
-
-      const maskedUsers = (usersResult.rows || usersResult || []).map((u: any) => ({
-        ...u,
-        phone: u.phone ? u.phone.slice(0, 3) + "****" + u.phone.slice(-4) : null,
-      }));
-
-      res.json({
-        source: "dptest.org",
-        generatedAt: new Date().toISOString(),
-        overview: (overviewResult as any).rows?.[0] || (overviewResult as any)[0] || {},
-        funnel: (funnelResult as any).rows?.[0] || (funnelResult as any)[0] || {},
-        traderTypes: traderTypeResult.rows || traderTypeResult || [],
-        contactStats: contactStats.rows || contactStats || [],
-        dailyTrend: dailyTrend.rows || dailyTrend || [],
-        users: maskedUsers,
-      });
+      res.json(await getExternalStats());
     } catch (err) {
       console.error("[external] stats error:", err);
       res.status(500).json({ message: "获取统计失败" });

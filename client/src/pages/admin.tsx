@@ -81,6 +81,7 @@ interface AdminUser {
   trader_type_code: string | null;
   avg_score: number | null;
   rank_name: string | null;
+  scores: Record<string, number> | null;
   quiz_completed_at: string | null;
 }
 
@@ -447,7 +448,18 @@ function UsersPanel({ users, loading, onRefresh }: { users: AdminUser[]; loading
       if (s.includes(",") || s.includes('"') || s.includes("\n")) return `"${s.replace(/"/g, '""')}"`;
       return s;
     };
-    const header = "ID,手机号,昵称,微信号,来源,阶段,登录天数,交易者类型,综合评分,注册时间,测评时间,最后活跃";
+    const DIMENSION_NAMES: Record<string, string> = {
+      EDGE: "认知格局", EXEC: "执行力", RISK: "风险管理",
+      ADAPT: "市场适应", MENTAL: "交易心理", SYSTEM: "系统思维",
+    };
+    const DIMENSIONS = ["EDGE", "EXEC", "RISK", "ADAPT", "MENTAL", "SYSTEM"];
+    const getWeakest = (scores: Record<string, number> | null) => {
+      if (!scores) return "";
+      const entries = DIMENSIONS.map(d => [d, scores[d] ?? 999] as const);
+      const min = entries.reduce((a, b) => a[1] <= b[1] ? a : b);
+      return DIMENSION_NAMES[min[0]] || min[0];
+    };
+    const header = "ID,手机号,昵称,微信号,来源,阶段,登录天数,交易者���型,综合评分,认知格局,执行力,风险管理,市场适应,交易心理,��统思维,薄弱维度,注册时间,测评时间,最��活跃";
     const rows = filtered.map(u => [
       u.id,
       escapeCSV(u.phone),
@@ -458,6 +470,13 @@ function UsersPanel({ users, loading, onRefresh }: { users: AdminUser[]; loading
       u.login_days,
       escapeCSV(u.trader_type_code ? (TRADER_TYPE_NAMES[u.trader_type_code] || u.trader_type_code) : ""),
       u.avg_score ?? "",
+      u.scores?.EDGE ?? "",
+      u.scores?.EXEC ?? "",
+      u.scores?.RISK ?? "",
+      u.scores?.ADAPT ?? "",
+      u.scores?.MENTAL ?? "",
+      u.scores?.SYSTEM ?? "",
+      escapeCSV(getWeakest(u.scores)),
       u.created_at ? new Date(u.created_at).toLocaleDateString("zh-CN") : "",
       u.quiz_completed_at ? new Date(u.quiz_completed_at).toLocaleDateString("zh-CN") : "",
       u.last_active_at ? new Date(u.last_active_at).toLocaleDateString("zh-CN") : "",

@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, Home, X, UserPlus, LogIn, MessageCircle } from "lucide-react";
+import { Camera, Home, X, LogIn, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import RadarChartComponent from "@/components/RadarChart";
 import ShareCard from "@/components/ShareCard";
@@ -853,16 +853,16 @@ export default function ResultPage({ result }: ResultPageProps) {
                 onClick={() => user ? navigate("/home") : setShowLoginModal(true)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="py-3 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-200"
+                className={`${user ? 'py-3 px-4' : 'flex-1 py-3'} rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-200`}
                 style={{
-                  background: 'transparent',
-                  border: `1px solid ${user ? 'var(--gold)' : 'var(--border)'}`,
-                  color: user ? 'var(--gold)' : 'var(--text-muted)',
+                  background: user ? 'transparent' : 'var(--primary)',
+                  border: `1px solid ${user ? 'var(--gold)' : 'var(--primary)'}`,
+                  color: user ? 'var(--gold)' : '#FFFFFF',
                 }}
                 data-testid="button-go-home"
               >
                 {user ? <Home className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
-                {user && <span>首页</span>}
+                <span>{user ? '首页' : '登录 / 注册'}</span>
               </motion.button>
               <motion.button
                 onClick={() => setShowShareModal(true)}
@@ -930,28 +930,6 @@ export default function ResultPage({ result }: ResultPageProps) {
               <CharacterCardPanel result={result} onClose={() => setShowCardPanel(false)} tier={user?.tier ?? 0} />
             )}
           </AnimatePresence>
-
-          {!user && (
-            <motion.div
-              initial={{ y: 60, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5, ...ease }}
-              className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-5 pt-3"
-              style={{ background: 'linear-gradient(to top, #0D0F14 60%, transparent)' }}
-            >
-              <motion.button
-                onClick={() => setShowLoginModal(true)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full max-w-lg md:max-w-2xl mx-auto py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 text-white transition-all duration-200"
-                style={{ background: 'var(--primary)' }}
-                data-testid="button-login-prompt"
-              >
-                <UserPlus className="w-4 h-4" />
-                登录 / 注册以保存结果
-              </motion.button>
-            </motion.div>
-          )}
 
           <LoginModal
             open={showLoginModal}
