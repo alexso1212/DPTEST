@@ -81,6 +81,13 @@ function requireAdmin(req: any, res: any, next: any) {
   next();
 }
 
+function requireAgent(req: any, res: any, next: any) {
+  if (!(req.session as any).agentName) {
+    return res.status(401).json({ message: "未登录" });
+  }
+  next();
+}
+
 async function runHealthMonitor() {
   console.log("[health-monitor] Running scheduled health check...");
   try {
@@ -130,7 +137,7 @@ export async function registerRoutes(
 
   app.use(
     session({
-      store: new PgStore({ pool, createTableIfMissing: true }),
+      store: new PgStore({ pool }),
       secret: process.env.SESSION_SECRET || "survey-session-secret",
       resave: false,
       saveUninitialized: false,
@@ -172,7 +179,13 @@ export async function registerRoutes(
         storage.updateUserProfile(user.id, { source: req.body.source });
       }
 
-      res.json({ id: user.id, phone: user.phone });
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ message: "注册失败，请重试" });
+        }
+        res.json({ id: user.id, phone: user.phone });
+      });
     } catch (err) {
       console.error("Register error:", err);
       res.status(500).json({ message: "注册失败，请稍后重试" });
@@ -209,12 +222,18 @@ export async function registerRoutes(
 
       const loginResult = await storage.trackDailyLogin(user.id);
 
-      res.json({
-        id: user.id,
-        phone: user.phone,
-        tier: loginResult.newTier,
-        loginDays: loginResult.loginDays,
-        tierChanged: loginResult.tierChanged,
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ message: "登录失败，请重试" });
+        }
+        res.json({
+          id: user.id,
+          phone: user.phone,
+          tier: loginResult.newTier,
+          loginDays: loginResult.loginDays,
+          tierChanged: loginResult.tierChanged,
+        });
       });
     } catch (err) {
       console.error("Login error:", err);
@@ -224,14 +243,24 @@ export async function registerRoutes(
 
   app.post("/api/reset-password", async (req, res) => {
     try {
-      const { phone, newPassword } = req.body;
+      const { phone, oldPassword, newPassword } = req.body;
       if (!phone || !newPassword || newPassword.length < 6) {
         return res.status(400).json({ message: "请输入手机号和新密码（至少6位）" });
       }
 
       const user = await storage.getUserByPhone(phone);
       if (!user) {
-        return res.json({ ok: true });
+        // 不泄露用户是否存在
+        return res.status(400).json({ message: "手机号或原密码错误" });
+      }
+
+      // 必须验证原密码
+      if (!oldPassword) {
+        return res.status(400).json({ message: "请输入原密码" });
+      }
+      const valid = await bcrypt.compare(oldPassword, user.password);
+      if (!valid) {
+        return res.status(400).json({ message: "原密码错误" });
       }
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -242,6 +271,14 @@ export async function registerRoutes(
       console.error("Reset password error:", err);
       res.status(500).json({ message: "重置失败，请稍后重试" });
     }
+  });
+
+  // 公开接口：用户总数（社会证明）
+  app.get("/api/public-stats", async (_req, res) => {
+    try {
+      const stats = await storage.getPublicStats();
+      res.json(stats);
+    } catch { res.json({ totalUsers: 0 }); }
   });
 
   app.get("/api/me", async (req, res) => {
@@ -516,13 +553,84 @@ export async function registerRoutes(
     res.json({ disabled: true, message: "企业微信顾问服务暂停中" });
   });
 
+  // ===== 客服 Agent 独立登录系统 =====
+
+  app.post("/api/agent/login", async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ message: "请输入账号和密码" });
+    const agent = await storage.getAgentByUsername(username);
+    if (!agent) return res.status(401).json({ message: "账号不存在" });
+    const valid = await bcrypt.compare(password, agent.password);
+    if (!valid) return res.status(401).json({ message: "密码错误" });
+    (req.session as any).agentId = agent.id;
+    (req.session as any).agentName = agent.name;
+    req.session.save((err) => {
+      if (err) return res.status(500).json({ message: "登录失败" });
+      res.json({ ok: true, name: agent.name });
+    });
+  });
+
+  app.get("/api/agent/session", (req, res) => {
+    const agentName = (req.session as any).agentName;
+    res.json({ agentName: agentName || null });
+  });
+
+  app.post("/api/agent/logout", (req, res) => {
+    (req.session as any).agentName = null;
+    (req.session as any).agentId = null;
+    req.session.save(() => res.json({ ok: true }));
+  });
+
+  app.get("/api/agent/conversations", requireAgent, async (_req, res) => {
+    try {
+      const convs = await storage.getActiveConversations();
+      res.json(convs);
+    } catch (err) {
+      console.error("[agent] get conversations error:", err);
+      res.status(500).json({ message: "获取会话失败" });
+    }
+  });
+
+  app.patch("/api/agent/conversations/:id/invite", requireAgent, async (req, res) => {
+    const convId = parseInt(req.params.id);
+    const { status } = req.body as { status: 'early' | 'late' };
+    const agentName = (req.session as any).agentName as string;
+    if (!['early', 'late'].includes(status)) return res.status(400).json({ message: "无效的邀约类型" });
+    try {
+      await storage.markConversationInvite(convId, status, agentName);
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("[agent] mark invite error:", err);
+      res.status(500).json({ message: "记录失败" });
+    }
+  });
+
+  app.get("/api/agent/dashboard", requireAgent, async (req, res) => {
+    const agentName = (req.session as any).agentName as string;
+    try {
+      const stats = await storage.getAgentStats(agentName);
+      res.json(stats);
+    } catch (err) {
+      console.error("[agent] dashboard error:", err);
+      res.status(500).json({ message: "获取数据失败" });
+    }
+  });
+
+  // ===== Admin 登录 =====
+
   app.post("/api/admin/login", (req, res) => {
     const { password } = req.body;
     if (!ADMIN_PASSWORD || password !== ADMIN_PASSWORD) {
       return res.status(401).json({ message: "密码错误" });
     }
     (req.session as any).isAdmin = true;
-    res.json({ ok: true });
+    req.session.save((err) => {
+      if (err) {
+        console.error("Admin session save error:", err);
+        return res.status(500).json({ message: "登录失败" });
+      }
+      res.json({ ok: true });
+    });
   });
 
   app.get("/api/admin/session", (req, res) => {
@@ -622,6 +730,7 @@ export async function registerRoutes(
           u.nickname,
           u.wechat_id,
           u.source,
+          u.tags,
           u.tier,
           u.login_days,
           u.last_login_date,
@@ -642,6 +751,19 @@ export async function registerRoutes(
     } catch (err) {
       console.error("[admin] users error:", err);
       res.status(500).json({ message: "获取用户列表失败" });
+    }
+  });
+
+  // 更新客户标签/备注
+  app.patch("/api/admin/users/:id/tags", requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { tags } = req.body;
+      await db.execute(sql`UPDATE users SET tags = ${JSON.stringify(tags)}::jsonb WHERE id = ${userId}`);
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("[admin] update tags error:", err);
+      res.status(500).json({ message: "更新失败" });
     }
   });
 

@@ -13,6 +13,12 @@ export default function LandingPage() {
   const [, navigate] = useLocation();
   const { user, isLoading } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
+  const [userCount, setUserCount] = useState<number | null>(null);
+  useEffect(() => {
+    fetch("/api/public-stats").then(r => r.ok ? r.json() : null).then(d => {
+      if (d?.totalUsers) setUserCount(d.totalUsers);
+    }).catch(() => {});
+  }, []);
   usePageView("landing");
 
   useEffect(() => {
@@ -88,6 +94,11 @@ export default function LandingPage() {
           transition={{ ...ease, delay: 0.16 }}
           className="w-full max-w-xs md:max-w-sm space-y-3"
         >
+          {userCount && userCount > 10 && (
+            <p className="text-center text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
+              ✨ 已有 <span className="font-bold" style={{ color: 'var(--primary)' }}>{userCount.toLocaleString()}</span> 位交易者完成测评
+            </p>
+          )}
           <motion.button
             onClick={() => navigate("/quiz")}
             whileHover={{ scale: 1.02, y: -2 }}
