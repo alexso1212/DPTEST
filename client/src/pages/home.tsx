@@ -129,6 +129,10 @@ export default function HomePage() {
 
   const hasResult = !!(quizResult && traderType && rank && cc);
 
+  const tierTarget = (user.tier ?? 0) < 1 ? 7 : (user.tier ?? 0) < 2 ? 21 : 60;
+  const tierNextName = (user.tier ?? 0) < 1 ? '交易者' : (user.tier ?? 0) < 2 ? '精英' : '职业操盘手';
+  const tierProgress = Math.min(100, ((user.loginDays ?? 0) / tierTarget) * 100);
+
   return (
     <div
       className="min-h-screen relative"
@@ -146,21 +150,19 @@ export default function HomePage() {
           <div className="absolute inset-0 pointer-events-none" style={{
             background: `radial-gradient(ellipse 70% 40% at 25% 40%, ${cc.primary}0c, transparent 55%)`,
           }} />
-          <div className="absolute inset-0 pointer-events-none" style={{
-            background: `radial-gradient(ellipse 70% 40% at 75% 60%, ${cc.primary}08, transparent 55%)`,
-          }} />
         </>
       )}
 
-      <div className="relative max-w-lg md:max-w-2xl mx-auto px-4 pt-2 pb-10">
+      <div className="relative max-w-lg md:max-w-2xl mx-auto px-4 pt-3 pb-10">
+        {/* Top bar */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={ease}
-          className="flex items-center justify-between mb-1"
+          className="flex items-center justify-between mb-4"
         >
           <div className="flex items-center gap-1.5">
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>你好，</p>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>你好,</p>
             <p className="text-xs font-bold font-num" style={{ color: 'var(--text-strong)' }} data-testid="text-user-phone">
               {user.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')}
             </p>
@@ -183,132 +185,162 @@ export default function HomePage() {
           </div>
         ) : hasResult ? (
           <>
+            {/* Hero Card */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ ...ease, delay: 0.06 }}
-              className="flex items-center mb-1"
+              className="rounded-2xl overflow-hidden mb-3"
+              style={{
+                background: `linear-gradient(160deg, ${cc.dark} 0%, ${cc.primary}10 100%)`,
+                border: `1px solid ${cc.primary}20`,
+              }}
             >
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: "4px",
-                background: `${cc.primary}15`, padding: "2px 8px", borderRadius: "12px",
-                border: `1px solid ${cc.primary}30`,
-              }}>
-                <span style={{ fontSize: "10px" }}>{traderType.element.icon}</span>
-                <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "9px", color: cc.secondary || cc.primary, letterSpacing: "1px" }}>
-                  {traderType.element.name.toUpperCase()}
-                </span>
+              <div className="relative px-5 pt-5 pb-4">
+                <div className="absolute inset-0 pointer-events-none" style={{
+                  background: `radial-gradient(ellipse 80% 50% at 50% 25%, ${cc.primary}14, transparent 70%)`,
+                }} />
+
+                <div className="flex justify-center mb-1 relative">
+                  <div style={{
+                    display: "inline-flex", alignItems: "center", gap: "4px",
+                    background: `${cc.primary}15`, padding: "2px 10px", borderRadius: "12px",
+                    border: `1px solid ${cc.primary}25`,
+                  }}>
+                    <span style={{ fontSize: "10px" }}>{traderType.element.icon}</span>
+                    <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "9px", color: cc.secondary || cc.primary, letterSpacing: "1px" }}>
+                      {traderType.element.name.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex justify-center relative" style={{ margin: '-6px 0 -10px' }}>
+                  <InteractiveCharacter
+                    type={quizResult.traderTypeCode}
+                    size={190}
+                    tier={user?.tier ?? 0}
+                    glowColor={`${cc.primary}28`}
+                  />
+                </div>
+
+                <div className="text-center relative">
+                  <h2 className="font-serif font-bold" style={{ fontSize: "22px", color: "#E8E6E1", letterSpacing: "3px" }} data-testid="text-trader-type">
+                    {traderType.name}
+                  </h2>
+                  <p className="font-tag tracking-widest" style={{ fontSize: "9px", color: cc.primary }}>
+                    {traderType.subtitle}
+                  </p>
+                </div>
+
+                <div className="flex justify-center mt-3 relative">
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", gap: "5px",
+                    background: "rgba(201,164,86,0.08)", padding: "4px 14px", borderRadius: "16px",
+                    border: "1px solid rgba(201,164,86,0.18)",
+                    fontSize: "12px", color: "#C9A456",
+                  }}>
+                    <RankBadge tier={rank} size="sm" />
+                    {rank.name} · {quizResult.avgScore}/100
+                  </span>
+                </div>
               </div>
             </motion.div>
 
+            {/* Stats Row */}
             <motion.div
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ ...ease, delay: 0.08 }}
-              className="flex items-center justify-center gap-3"
+              transition={{ ...ease, delay: 0.12 }}
+              className="grid grid-cols-3 gap-2 mb-3"
             >
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: "4px",
-                background: "rgba(201,164,86,0.06)", padding: "3px 10px", borderRadius: "16px",
-                border: "1px solid rgba(201,164,86,0.15)",
-                fontSize: "11px", color: "#C9A456",
-              }}>
-                <RankBadge tier={rank} size="sm" />
-                {rank.name} · {quizResult.avgScore}/100
-              </span>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ ...ease, delay: 0.1 }}
-              className="flex justify-center"
-              style={{ marginBottom: '-16px', marginTop: '-4px' }}
-            >
-              <InteractiveCharacter
-                type={quizResult.traderTypeCode}
-                size={155}
-                tier={user?.tier ?? 0}
-                glowColor={`${cc.primary}28`}
-              />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...ease, delay: 0.16 }}
-            >
-              <div className="text-center">
-                <h2 className="font-serif font-bold" style={{ fontSize: "20px", color: "#E8E6E1", letterSpacing: "3px" }} data-testid="text-trader-type">
-                  {traderType.name}
-                </h2>
-                <p className="font-tag tracking-widest" style={{ fontSize: "9px", color: cc.primary }}>
-                  {traderType.subtitle}
+              <div className="rounded-xl p-2.5 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <p className="text-[10px] mb-0.5" style={{ color: 'var(--text-muted)' }}>综合分</p>
+                <p className="font-num text-xl font-bold leading-tight" style={{ color: cc.primary }}>{quizResult.avgScore}</p>
+              </div>
+              <div className="rounded-xl p-2.5 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <p className="text-[10px] mb-0.5" style={{ color: 'var(--text-muted)' }}>段位</p>
+                <p className="text-sm font-bold leading-tight" style={{ color: 'var(--gold)' }}>{rank.name}</p>
+              </div>
+              <div className="rounded-xl p-2.5 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <p className="text-[10px] mb-0.5" style={{ color: 'var(--text-muted)' }}>登录</p>
+                <p className="font-num text-xl font-bold leading-tight" style={{ color: 'var(--text-strong)' }}>
+                  {user.loginDays ?? 0}
+                  <span className="text-[10px] font-normal ml-0.5" style={{ color: 'var(--text-muted)' }}>天</span>
                 </p>
               </div>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...ease, delay: 0.22 }}
-              className="flex justify-center mt-1"
-            >
-              <svg viewBox="0 0 200 200" style={{ width: "180px", height: "180px" }}>
-                {[0.3, 0.6, 0.9].map((s, i) => {
-                  const pts = [0,1,2,3,4,5].map(j => {
-                    const a = (Math.PI*2*j)/6 - Math.PI/2;
-                    return `${100+Math.cos(a)*55*s},${100+Math.sin(a)*55*s}`;
-                  }).join(" ");
-                  return <polygon key={i} points={pts} fill="none" stroke="#2a2a3a" strokeWidth="0.5"/>;
-                })}
-                {(() => {
-                  const vals = dimKeys.map(k => (quizResult.scores[k] ?? 50) / 100);
-                  const pts = vals.map((v, i) => {
-                    const a = (Math.PI*2*i)/6 - Math.PI/2;
-                    return `${100+Math.cos(a)*55*v},${100+Math.sin(a)*55*v}`;
-                  }).join(" ");
-                  return (
-                    <>
-                      <polygon points={pts} fill={`${cc.primary}33`} stroke={cc.primary} strokeWidth="1.5"/>
-                      {vals.map((v, i) => {
-                        const a = (Math.PI*2*i)/6 - Math.PI/2;
-                        return <circle key={i} cx={100+Math.cos(a)*55*v} cy={100+Math.sin(a)*55*v} r="2.5" fill="#C9A456" stroke="#0D0F14" strokeWidth="1"/>;
-                      })}
-                    </>
-                  );
-                })()}
-                {dimLabels.map((l, i) => {
-                  const a = (Math.PI*2*i)/6 - Math.PI/2;
-                  const val = quizResult.scores[dimKeys[i]] ?? 50;
-                  return <text key={i} x={100+Math.cos(a)*75} y={100+Math.sin(a)*75} textAnchor="middle" dominantBaseline="middle" fill="#8B95A5" fontSize="9">{l} {val}</text>;
-                })}
-              </svg>
-            </motion.div>
-
+            {/* Radar Card */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ ...ease, delay: 0.28 }}
-              className="mt-2"
+              transition={{ ...ease, delay: 0.18 }}
+              className="rounded-2xl p-4 mb-3"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+            >
+              <h3 className="text-xs font-semibold mb-1 flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
+                <span className="w-1 h-3.5 rounded-full" style={{ background: cc.primary }} />
+                能力雷达
+              </h3>
+              <div className="flex justify-center">
+                <svg viewBox="0 0 200 200" style={{ width: "195px", height: "195px" }}>
+                  {[0.3, 0.6, 0.9].map((s, i) => {
+                    const pts = [0,1,2,3,4,5].map(j => {
+                      const a = (Math.PI*2*j)/6 - Math.PI/2;
+                      return `${100+Math.cos(a)*55*s},${100+Math.sin(a)*55*s}`;
+                    }).join(" ");
+                    return <polygon key={i} points={pts} fill="none" stroke="#2a2a3a" strokeWidth="0.5"/>;
+                  })}
+                  {(() => {
+                    const vals = dimKeys.map(k => (quizResult.scores[k] ?? 50) / 100);
+                    const pts = vals.map((v, i) => {
+                      const a = (Math.PI*2*i)/6 - Math.PI/2;
+                      return `${100+Math.cos(a)*55*v},${100+Math.sin(a)*55*v}`;
+                    }).join(" ");
+                    return (
+                      <>
+                        <polygon points={pts} fill={`${cc.primary}33`} stroke={cc.primary} strokeWidth="1.5"/>
+                        {vals.map((v, i) => {
+                          const a = (Math.PI*2*i)/6 - Math.PI/2;
+                          return <circle key={i} cx={100+Math.cos(a)*55*v} cy={100+Math.sin(a)*55*v} r="2.5" fill="#C9A456" stroke="#0D0F14" strokeWidth="1"/>;
+                        })}
+                      </>
+                    );
+                  })()}
+                  {dimLabels.map((l, i) => {
+                    const a = (Math.PI*2*i)/6 - Math.PI/2;
+                    const val = quizResult.scores[dimKeys[i]] ?? 50;
+                    return <text key={i} x={100+Math.cos(a)*75} y={100+Math.sin(a)*75} textAnchor="middle" dominantBaseline="middle" fill="#8B95A5" fontSize="9">{l} {val}</text>;
+                  })}
+                </svg>
+              </div>
+            </motion.div>
+
+            {/* Tier Progress Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...ease, delay: 0.24 }}
+              className="rounded-2xl p-4 mb-3"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
             >
               <TierRoadmap type={quizResult.traderTypeCode} currentTier={user?.tier ?? 0} loginDays={user?.loginDays ?? 0} />
-              {user && (user.tier ?? 0) < 3 && (
-                <div className="mt-2 px-3 py-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div className="flex items-center justify-between mb-1">
+              {(user.tier ?? 0) < 3 && (
+                <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                      {(user.tier ?? 0) < 1 ? '下一阶: 交易者 (登录7天)' : (user.tier ?? 0) < 2 ? '下一阶: 精英 (登录21天)' : '下一阶: 职业操盘手 (登录60天)'}
+                      下一阶: {tierNextName} (登录{tierTarget}天)
                     </span>
                     <span className="text-[10px] font-num font-bold" style={{ color: 'var(--gold)' }}>
-                      {user.loginDays ?? 0}/{(user.tier ?? 0) < 1 ? 7 : (user.tier ?? 0) < 2 ? 21 : 60}天
+                      {user.loginDays ?? 0}/{tierTarget}天
                     </span>
                   </div>
-                  <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
-                        width: `${Math.min(100, ((user.loginDays ?? 0) / ((user.tier ?? 0) < 1 ? 7 : (user.tier ?? 0) < 2 ? 21 : 60)) * 100)}%`,
-                        background: 'var(--gold)',
+                        width: `${tierProgress}%`,
+                        background: 'linear-gradient(90deg, var(--gold), var(--gold-hover))',
                       }}
                     />
                   </div>
@@ -316,11 +348,12 @@ export default function HomePage() {
               )}
             </motion.div>
 
+            {/* Action Buttons */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ ...ease, delay: 0.36 }}
-              className="flex gap-2 mb-2 mt-1"
+              transition={{ ...ease, delay: 0.3 }}
+              className="flex gap-2 mb-2"
             >
               <motion.button
                 onClick={() => {
@@ -338,7 +371,7 @@ export default function HomePage() {
                 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex-1 py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1 transition-all duration-200"
+                className="flex-1 py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1 transition-all duration-200"
                 style={{ background: `${cc.primary}18`, color: cc.primary, border: `1px solid ${cc.primary}25` }}
                 data-testid="button-view-result"
               >
@@ -349,7 +382,7 @@ export default function HomePage() {
                 onClick={() => navigate("/quiz")}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex-1 py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1 transition-all duration-200"
+                className="flex-1 py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1 transition-all duration-200"
                 style={{ border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-muted)' }}
                 data-testid="button-retake"
               >
@@ -360,20 +393,21 @@ export default function HomePage() {
                 onClick={() => setShowShareModal(true)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="py-2 px-3 rounded-xl text-xs font-medium flex items-center justify-center gap-1 transition-all duration-200"
-                style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}
+                className="py-2.5 px-3.5 rounded-xl text-xs font-medium flex items-center justify-center transition-all duration-200"
+                style={{ border: '1px solid rgba(201,164,86,0.3)', color: 'var(--gold)', background: 'rgba(201,164,86,0.06)' }}
                 data-testid="button-share-card-home"
               >
-                <Camera className="w-3 h-3" />
+                <Camera className="w-3.5 h-3.5" />
               </motion.button>
             </motion.div>
 
+            {/* Report CTA */}
             {quizResult.shareToken && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ ...ease, delay: 0.36 }}
-                className="mb-3"
+                transition={{ ...ease, delay: 0.34 }}
+                className="mb-4"
               >
                 {reportUnlocked ? (
                   <motion.button
@@ -396,44 +430,68 @@ export default function HomePage() {
               </motion.div>
             )}
 
+            {/* Growth Timeline */}
             {historyData && historyData.length >= 2 && (
               <GrowthTimeline history={historyData} cc={cc} />
             )}
 
+            {/* Feature Links */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...ease, delay: 0.4 }}
             >
-              <div className="h-[1px] mb-6" style={{ background: `linear-gradient(90deg, transparent, ${cc.primary}20, transparent)` }} />
-              <h3 className="text-sm font-semibold px-1 mb-3" style={{ color: 'var(--text-muted)' }}>更多功能</h3>
-              <FeatureLinks cc={cc} />
+              <div className="h-[1px] mb-5" style={{ background: `linear-gradient(90deg, transparent, ${cc.primary}20, transparent)` }} />
+              <h3 className="text-xs font-semibold px-1 mb-3 flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
+                <span className="w-1 h-3.5 rounded-full" style={{ background: 'var(--text-muted)' }} />
+                更多功能
+              </h3>
+              <FeatureLinks />
             </motion.div>
           </>
         ) : (
           <>
+            {/* Empty state - no quiz result */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...ease, delay: 0.08 }}
-              className="text-center py-16"
             >
-              <h3 className="text-base font-bold mb-1" style={{ color: 'var(--text-strong)' }}>
-                你还没有完成交易能力测评
-              </h3>
-              <p className="text-xs mb-6" style={{ color: 'var(--text-muted)' }}>
-                2分钟 · 12道实战情境题 · 发现你的交易DNA
-              </p>
-              <motion.button
-                onClick={() => navigate("/quiz")}
-                whileHover={{ scale: 1.02, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full max-w-xs mx-auto h-11 rounded-xl font-bold text-sm text-white transition-all duration-200"
-                style={{ background: 'var(--primary)' }}
-                data-testid="button-start-quiz"
+              <div
+                className="rounded-2xl overflow-hidden mb-6"
+                style={{
+                  background: 'linear-gradient(160deg, #0f1620 0%, rgba(230,57,70,0.06) 100%)',
+                  border: '1px solid rgba(230,57,70,0.12)',
+                }}
               >
-                开始测评
-              </motion.button>
+                <div className="relative px-6 py-14 text-center">
+                  <div className="absolute inset-0 pointer-events-none" style={{
+                    background: 'radial-gradient(ellipse 80% 50% at 50% 30%, rgba(230,57,70,0.08), transparent 70%)',
+                  }} />
+                  <div
+                    className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center relative"
+                    style={{ background: 'rgba(230,57,70,0.1)', border: '1px solid rgba(230,57,70,0.18)' }}
+                  >
+                    <Gamepad2 className="w-7 h-7" style={{ color: 'var(--primary)' }} />
+                  </div>
+                  <h3 className="text-lg font-bold mb-1.5 relative" style={{ color: 'var(--text-strong)' }}>
+                    发现你的交易DNA
+                  </h3>
+                  <p className="text-xs mb-6 relative" style={{ color: 'var(--text-muted)' }}>
+                    2分钟 · 12道实战情境题 · 生成专属交易画像
+                  </p>
+                  <motion.button
+                    onClick={() => navigate("/quiz")}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full max-w-xs mx-auto h-12 rounded-xl font-bold text-sm text-white relative transition-all duration-200"
+                    style={{ background: 'var(--primary)' }}
+                    data-testid="button-start-quiz"
+                  >
+                    开始测评
+                  </motion.button>
+                </div>
+              </div>
             </motion.div>
 
             <motion.div
@@ -441,7 +499,10 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...ease, delay: 0.16 }}
             >
-              <h3 className="text-sm font-semibold px-1 mb-3" style={{ color: 'var(--text-muted)' }}>更多功能</h3>
+              <h3 className="text-xs font-semibold px-1 mb-3 flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
+                <span className="w-1 h-3.5 rounded-full" style={{ background: 'var(--text-muted)' }} />
+                更多功能
+              </h3>
               <FeatureLinks />
             </motion.div>
           </>
@@ -510,14 +571,14 @@ function GrowthTimeline({ history, cc }: { history: StoredQuizResult[]; cc: { pr
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...ease, delay: 0.38 }}
-      className="mb-6"
+      className="mb-4"
     >
-      <div className="h-[1px] mb-5" style={{ background: `linear-gradient(90deg, transparent, ${cc.primary}20, transparent)` }} />
+      <div className="h-[1px] mb-4" style={{ background: `linear-gradient(90deg, transparent, ${cc.primary}20, transparent)` }} />
 
       <motion.button
         onClick={() => setOpen(!open)}
         whileTap={{ scale: 0.98 }}
-        className="flex items-center gap-2 px-3 py-2 rounded-xl w-full"
+        className="flex items-center gap-2 px-3 py-2.5 rounded-xl w-full"
         style={{
           background: open ? `${cc.primary}08` : 'rgba(255,255,255,0.02)',
           border: `1px solid ${open ? `${cc.primary}20` : 'rgba(255,255,255,0.06)'}`,
@@ -683,40 +744,34 @@ function GrowthTimeline({ history, cc }: { history: StoredQuizResult[]; cc: { pr
   );
 }
 
-function FeatureLinks({ cc }: { cc?: { primary: string; glow: string } }) {
+function FeatureLinks() {
   const items = [
-    { icon: <Building2 className="w-5 h-5" />, title: "自营交易实盘申请 PropFirm", desc: "公司出资 · 你来操盘 · 通过考核获实盘账号", color: 'var(--primary)', href: "https://deltapex.zeabur.app" },
-    { icon: <Radio className="w-5 h-5" />, title: "职业交易直播间", desc: "实盘直播 & Ali交易日志", color: 'var(--info)', href: "https://live.bilibili.com/1874453448" },
-    { icon: <Wrench className="w-5 h-5" />, title: "机构订单流交易工具", desc: "ATAS订单流分析工具", color: 'var(--success)', href: "https://atas.net/cn/?rs=partners_oft281860" },
-    { icon: <Trophy className="w-5 h-5" />, title: "学员案例", desc: "真实学员通过考核业绩展示", color: 'var(--info)', href: "https://deltapex.zeabur.app/cases.html" },
-    { icon: <Gamepad2 className="w-5 h-5" />, title: "交易模拟游戏", desc: "即将上线", color: 'var(--text-muted)', href: null as string | null },
+    { icon: <Building2 className="w-4.5 h-4.5" />, title: "PropFirm", desc: "公司出资 · 你来操盘", color: 'var(--primary)', href: "https://deltapex.zeabur.app" },
+    { icon: <Radio className="w-4.5 h-4.5" />, title: "交易直播间", desc: "实盘直播 & 交易日志", color: 'var(--info)', href: "https://live.bilibili.com/1874453448" },
+    { icon: <Wrench className="w-4.5 h-4.5" />, title: "订单流工具", desc: "ATAS 分析工具", color: 'var(--success)', href: "https://atas.net/cn/?rs=partners_oft281860" },
+    { icon: <Trophy className="w-4.5 h-4.5" />, title: "学员案例", desc: "真实业绩展示", color: 'var(--info)', href: "https://deltapex.zeabur.app/cases.html" },
+    { icon: <Gamepad2 className="w-4.5 h-4.5" />, title: "交易模拟", desc: "即将上线", color: 'var(--text-muted)', href: null as string | null },
   ];
 
-  const cardBg = cc ? `rgba(255,255,255,0.02)` : 'var(--bg-1)';
-  const cardBorder = cc ? `1px solid rgba(255,255,255,0.06)` : '1px solid var(--border)';
-
   return (
-    <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
+    <div className="grid grid-cols-2 gap-2">
       {items.map((item) => {
-        const content = (
+        const inner = (
           <>
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: `color-mix(in srgb, ${item.color} 15%, transparent)`, color: item.color }}
+              className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ background: `color-mix(in srgb, ${item.color} 12%, transparent)`, color: item.color }}
             >
               {item.icon}
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>{item.title}</p>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{item.desc}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold leading-tight truncate" style={{ color: 'var(--text-strong)' }}>{item.title}</p>
+              <p className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{item.desc}</p>
             </div>
-            {item.href ? (
-              <ExternalLink className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
-            ) : (
-              <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
-            )}
           </>
         );
+
+        const cardStyle = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' };
 
         return item.href ? (
           <a
@@ -724,20 +779,20 @@ function FeatureLinks({ cc }: { cc?: { primary: string; glow: string } }) {
             href={item.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-xl p-4 flex items-center gap-4 transition-all duration-200"
-            style={{ background: cardBg, border: cardBorder }}
+            className="rounded-xl p-3 flex items-center gap-3 transition-all duration-200"
+            style={cardStyle}
             data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
           >
-            {content}
+            {inner}
           </a>
         ) : (
           <div
             key={item.title}
-            className="rounded-xl p-4 flex items-center gap-4 opacity-60"
-            style={{ background: cardBg, border: cardBorder }}
+            className="rounded-xl p-3 flex items-center gap-3 opacity-50"
+            style={cardStyle}
             data-testid="card-coming-soon"
           >
-            {content}
+            {inner}
           </div>
         );
       })}
